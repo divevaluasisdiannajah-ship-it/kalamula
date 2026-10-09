@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { generateTemplate } from '@/lib/excel';
 
@@ -18,3 +19,4 @@ export async function GET() {
     return NextResponse.json({ success: false, error: 'Gagal menghasilkan template' }, { status: 500 });
   }
 }
+

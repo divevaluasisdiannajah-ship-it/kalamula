@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { findById } from "@/lib/db";
 import { getBatchStudentProfiles } from "@/lib/profiles";
@@ -147,3 +148,4 @@ export async function GET(
     );
   }
 }
+

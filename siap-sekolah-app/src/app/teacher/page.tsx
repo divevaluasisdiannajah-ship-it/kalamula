@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
@@ -868,3 +869,4 @@ export default function TeacherPortalPage() {
     </div>
   );
 }
+

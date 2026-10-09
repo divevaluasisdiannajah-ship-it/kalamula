@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { findWhere, remove } from "@/lib/db";
 import { getSessionFromRequest, requireRole } from "@/lib/auth";
@@ -117,3 +118,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

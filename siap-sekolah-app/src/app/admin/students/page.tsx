@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -605,3 +606,4 @@ function formatDate(d: string): string {
   try { return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }); }
   catch { return d; }
 }
+

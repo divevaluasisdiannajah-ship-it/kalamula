@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { findAll, create, generateId } from '@/lib/db';
 import { parseExcelBuffer, validateRows, parseDateFlexible, normalizeGender } from '@/lib/excel';
@@ -96,3 +97,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Gagal mengimport data' }, { status: 500 });
   }
 }
+

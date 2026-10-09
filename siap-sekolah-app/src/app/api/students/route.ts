@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { findAll, findWhere, findOne, create, generateId } from '@/lib/db';
 import { getSessionFromRequest, requireRole } from '@/lib/auth';
@@ -63,3 +64,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

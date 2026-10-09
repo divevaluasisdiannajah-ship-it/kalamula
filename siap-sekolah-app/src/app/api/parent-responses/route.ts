@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { findOne, create, update, generateId } from '@/lib/db';
 import type { ParentResponse } from '@/types';
@@ -40,3 +41,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

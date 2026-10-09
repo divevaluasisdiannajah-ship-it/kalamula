@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
@@ -185,3 +186,4 @@ export default function AdminReportsPage() {
     </div>
   );
 }
+

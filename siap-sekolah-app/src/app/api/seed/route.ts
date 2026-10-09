@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from "next/server";
 import { create, generateId, remove, findWhere, findAll } from "@/lib/db";
 import type {
@@ -242,3 +243,4 @@ export async function POST() {
     );
   }
 }
+
