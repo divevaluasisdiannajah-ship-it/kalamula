@@ -1,33 +1,60 @@
-export const runtime = 'edge';
 "use client";
+export const runtime = 'edge';
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  ClipboardText,
-  Leaf,
-  ArrowLeft,
-  Backspace,
-  HouseLine,
-  PersonSimpleRun,
-  Brain,
-  BookOpen,
-  Handshake,
-} from "@phosphor-icons/react";
 
-const POS_DETAILS: Record<number, { name: string; Icon: React.ComponentType<{ weight?: "light"; size?: number; className?: string }> }> = {
-  1: { name: "Emosi & Kemandirian", Icon: HouseLine },
-  2: { name: "Motorik Kasar & Fisik", Icon: PersonSimpleRun },
-  3: { name: "Kematangan Kognitif", Icon: Brain },
-  4: { name: "Bahasa & Pra-Literasi", Icon: BookOpen },
-  5: { name: "Bermain & Interaksi Sosial", Icon: Handshake },
+interface PosInfo {
+  name: string;
+  roleBadge: string;
+  roleBadgeColor: string;
+  desc: string;
+  mdiIcon: string;
+}
+
+const POS_DETAILS: Record<number, PosInfo> = {
+  1: {
+    name: "Kedatangan, Emosi & Super Observer 1",
+    roleBadge: "Super Observer 1 (Pos 1, 3, 4, 5)",
+    roleBadgeColor: "bg-[#EFE7D6] text-[#7D5327] border-[#DDD0B8]",
+    desc: "Pandu Kelompok 2 (Pos 1 → 3 → 4 → 5). Switch saat masuk Pos 2.",
+    mdiIcon: "mdi-eye-circle-outline",
+  },
+  2: {
+    name: "Motorik Kasar & Koordinasi Fisik",
+    roleBadge: "Station Evaluator + Escort",
+    roleBadgeColor: "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]",
+    desc: "Jemput Kelompok 1 dari Pos 1 & antar ke Pos 5 seusai pos 2.",
+    mdiIcon: "mdi-run-fast",
+  },
+  3: {
+    name: "Kematangan Kognitif & Berhitung",
+    roleBadge: "Station Evaluator (Pos 3)",
+    roleBadgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CBD8E5]",
+    desc: "Klasifikasi objek, logika pola & problem solving kuantitas.",
+    mdiIcon: "mdi-head-lightbulb-outline",
+  },
+  4: {
+    name: "Bahasa Lisan, Pra-Literasi & Motorik Halus",
+    roleBadge: "Station Evaluator (Pos 4)",
+    roleBadgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CBD8E5]",
+    desc: "Menyimak cerita, komunikasi lisan & tripod grasp.",
+    mdiIcon: "mdi-book-open-page-variant-outline",
+  },
+  5: {
+    name: "Bermain Bebas, Snack & Super Observer 2",
+    roleBadge: "Super Observer 2 (Pos 1, 3, 4, 5)",
+    roleBadgeColor: "bg-[#EFE7D6] text-[#7D5327] border-[#DDD0B8]",
+    desc: "Pandu Kelompok 3 (Pos 1 → 4 → 3 → 5) & observasi santai saat snack.",
+    mdiIcon: "mdi-handshake-outline",
+  },
 };
 
 export default function EvaluatorLoginPage() {
   const router = useRouter();
   const [pin, setPin] = useState("");
-  const [posNumber, setPosNumber] = useState<number | null>(null);
+  const [posNumber, setPosNumber] = useState<number | null>(1); // Default to Pos 1 as in reference
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -58,6 +85,7 @@ export default function EvaluatorLoginPage() {
   }, [router]);
 
   const handlePinInput = useCallback((digit: string) => {
+    if (loading) return;
     if (pin.length < 4) {
       const newPin = pin + digit;
       setPin(newPin);
@@ -67,12 +95,13 @@ export default function EvaluatorLoginPage() {
         submitLogin(newPin, posNumber);
       }
     }
-  }, [pin, posNumber, submitLogin]);
+  }, [pin, posNumber, loading, submitLogin]);
 
   const handleDelete = useCallback(() => {
+    if (loading) return;
     setPin((prev) => prev.slice(0, -1));
     setError("");
-  }, []);
+  }, [loading]);
 
   // Physical keyboard support
   useEffect(() => {
@@ -83,7 +112,6 @@ export default function EvaluatorLoginPage() {
         handleDelete();
       } else if (e.key === "Escape") {
         setPin("");
-        setPosNumber(null);
       }
     };
 
@@ -92,163 +120,218 @@ export default function EvaluatorLoginPage() {
   }, [handlePinInput, handleDelete]);
 
   return (
-    <main className="min-h-screen bg-[#FAFAF8] text-[#1E2320] flex flex-col items-center justify-center p-4 sm:p-6">
-      {/* Return to Role Selector */}
-      <div className="w-full max-w-md mb-4">
-        <Link
-          href="/"
-          className="text-xs font-bold text-[#3D7A5A] hover:text-[#1E2320] inline-flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none rounded-lg px-2 py-1 transition-colors"
-        >
-          <ArrowLeft weight="light" size={14} />
-          <span>Kembali ke Beranda</span>
-        </Link>
-      </div>
+    <main className="min-h-screen bg-[#F6F2E9] text-[#22352B] pb-16 font-sans">
+      <div className="p-4 sm:p-6 max-w-xl mx-auto space-y-4">
+        {/* Top Bar */}
+        <div className="flex items-center justify-between pb-1">
+          <Link
+            href="/"
+            className="bg-white border border-[#E8E2D8] text-[#22352B] px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1.5 shadow-xs"
+          >
+            <i className="mdi mdi-chevron-left text-base" />
+            <span>Kembali ke Beranda</span>
+          </Link>
 
-      {/* Header */}
-      <div className="text-center mb-6 max-w-md">
-        <div className="w-14 h-14 bg-[#F0F4F1] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xs border border-[#C9DBD0]">
-          <Leaf weight="light" size={28} className="text-[#3D7A5A]" />
-        </div>
-        <p className="font-brand lowercase text-[24px] text-[#1E2320] font-black tracking-tight">kalamula</p>
-        <h1 className="text-base font-bold text-[#1E2320] tracking-tight mt-1">Ruang Observasi Pos Evaluator</h1>
-        <p className="text-xs text-[#565C58] mt-1">
-          Pilih pos observasi Anda dan masukkan PIN 4-digit
-        </p>
-      </div>
-
-      {/* Pos Selector (Pure Crisp White Container matching Portal Guru) */}
-      <div className="w-full max-w-md mb-5 bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E2D8] shadow-[0_4px_20px_-2px_rgba(30,35,32,0.06)]">
-        <p className="text-[11px] font-bold text-[#1E2320] uppercase tracking-wider mb-3 text-center">
-          Pilih Pos Observasi (1 s.d. 5)
-        </p>
-        <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="group" aria-label="Pilihan Pos Observasi">
-          {[1, 2, 3, 4, 5].map((pos) => (
-            <button
-              key={pos}
-              type="button"
-              onClick={() => {
-                setPosNumber(pos);
-                setPin("");
-                setError("");
-              }}
-              className={`
-                h-12 sm:h-13 rounded-xl font-bold text-sm sm:text-base transition-all shadow-xs
-                focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none cursor-pointer
-                ${
-                  posNumber === pos
-                    ? "bg-[#C9733B] text-white shadow-xs font-black ring-2 ring-[#C9733B] ring-offset-2 ring-offset-white"
-                    : "bg-[#F4F3EE] text-[#1E2320] hover:bg-[#EBE6DF] border border-[#DDD7CE] active:bg-[#EBE6DF]"
-                }
-              `}
-              aria-pressed={posNumber === pos}
-              aria-label={`Pos ${pos}: ${POS_DETAILS[pos].name}`}
-            >
-              P{pos}
-            </button>
-          ))}
+          <span className="bg-[#F9E6DC] text-[#B85627] text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
+            EVALUATOR
+          </span>
         </div>
 
+        {/* Hero Judul: Kotak Ikon Besar #D67443 + Teks */}
+        <div className="flex items-center gap-3.5 py-1">
+          <div className="w-16 h-16 rounded-[1.35rem] bg-[#D67443] text-white flex items-center justify-center flex-shrink-0 shadow-md">
+            <i className="mdi mdi-clipboard-check-outline text-3xl" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#22352B] tracking-tight leading-tight">
+              Ruang Observasi Pos Evaluator
+            </h1>
+            <p className="text-xs text-[#565C58] mt-1">
+              Pilih pos observasi Anda dan masukkan PIN 4-digit
+            </p>
+          </div>
+        </div>
+
+        {/* Section: PILIH POS OBSERVASI (1 S.D. 5) */}
+        <div className="space-y-2.5">
+          <p className="text-xs font-extrabold text-[#787F7A] uppercase tracking-wider px-0.5">
+            PILIH POS OBSERVASI (1 S.D. 5)
+          </p>
+
+          <div className="space-y-2.5" role="group" aria-label="Daftar Pos Observasi">
+            {[1, 2, 3, 4, 5].map((pos) => {
+              const isSelected = posNumber === pos;
+              const details = POS_DETAILS[pos];
+
+              return (
+                <button
+                  key={pos}
+                  type="button"
+                  onClick={() => {
+                    setPosNumber(pos);
+                    setPin("");
+                    setError("");
+                  }}
+                  className={`w-full bg-white rounded-2xl p-3.5 flex items-center justify-between cursor-pointer transition text-left active:scale-[0.99] ${
+                    isSelected
+                      ? "border-[1.8px] border-[#B85627] shadow-sm"
+                      : "border border-[#E8E2D8]/60 shadow-xs hover:border-[#DDD7CE]"
+                  }`}
+                  aria-pressed={isSelected}
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                        isSelected
+                          ? "bg-[#B85627] text-white shadow-xs"
+                          : "bg-[#F9E6DC] text-[#8C3713]"
+                      }`}
+                    >
+                      <i className={`mdi ${details.mdiIcon} text-2xl`} />
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                        <span
+                          className={`text-[10px] font-extrabold uppercase tracking-wider block leading-none ${
+                            isSelected ? "text-[#B85627]" : "text-[#787F7A]"
+                          }`}
+                        >
+                          POS {pos}
+                        </span>
+                        <span
+                          className={`text-[9.5px] font-extrabold px-2 py-0.5 rounded-full border ${details.roleBadgeColor}`}
+                        >
+                          {details.roleBadge}
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold text-[#22352B] block truncate">
+                        {details.name}
+                      </span>
+                      <span className="text-[11px] text-[#565C58] block truncate mt-0.5">
+                        {details.desc}
+                      </span>
+                    </div>
+                  </div>
+
+                  {isSelected && (
+                    <div className="w-7 h-7 rounded-full border border-[#B85627] text-[#B85627] flex items-center justify-center flex-shrink-0 ml-2">
+                      <i className="mdi mdi-check text-base font-bold" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Card Numpad PIN 4-Digit */}
         {posNumber && (
-          <div className="mt-3.5 p-3.5 bg-[#F4F3EE] rounded-xl text-center border border-[#E8E2D8] flex items-center justify-center gap-2">
-            {(() => {
-              const PosIcon = POS_DETAILS[posNumber].Icon;
-              return <PosIcon weight="light" size={18} className="text-[#C9733B]" />;
-            })()}
-            <span className="text-xs font-bold text-[#1E2320]">
-              Pos {posNumber}: {POS_DETAILS[posNumber].name}
-            </span>
+          <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-[#E8E2D8]/60 mt-4 space-y-4">
+            <p className="text-xs text-[#565C58] text-center">
+              Masukkan PIN 4-digit untuk{" "}
+              <span className="text-[#B85627] font-bold">Pos {posNumber}</span>
+            </p>
+
+            {/* 4 Indikator Titik Bulat */}
+            <div className="flex justify-center gap-3.5 my-3" aria-label={`PIN terisi ${pin.length} dari 4 digit`}>
+              {[0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`w-4 h-4 rounded-full transition-all duration-150 ${
+                    pin.length > i
+                      ? "bg-[#B85627] shadow-xs"
+                      : "border-2 border-[#C5B4A5] bg-transparent"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <p className="text-xs text-[#B83A35] text-center font-semibold bg-[#FCEEEF] p-2.5 rounded-xl border border-[#F2D8C7]">
+                {error}
+              </p>
+            )}
+
+            {/* Loading Status */}
+            {loading && (
+              <p className="text-xs text-[#B85627] text-center font-bold animate-pulse">
+                Memverifikasi PIN Pos {posNumber}...
+              </p>
+            )}
+
+            {/* Keypad 3 Kolom */}
+            <div className={`grid grid-cols-3 gap-2.5 max-w-[280px] mx-auto transition-opacity ${loading ? "opacity-50 pointer-events-none" : ""}`}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => handlePinInput(String(num))}
+                  disabled={loading}
+                  className="bg-[#F3EFE6] rounded-2xl h-14 font-extrabold text-xl text-[#22352B] hover:bg-[#EAE4D8] active:scale-95 transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50"
+                  aria-label={`Digit ${num}`}
+                >
+                  {num}
+                </button>
+              ))}
+
+              <div /> {/* Slot Kiri Bawah Kosong */}
+
+              <button
+                type="button"
+                onClick={() => handlePinInput("0")}
+                disabled={loading}
+                className="bg-[#F3EFE6] rounded-2xl h-14 font-extrabold text-xl text-[#22352B] hover:bg-[#EAE4D8] active:scale-95 transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50"
+                aria-label="Digit 0"
+              >
+                0
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={loading || pin.length === 0}
+                className="bg-[#F9E6DC] text-[#B85627] rounded-2xl h-14 font-extrabold hover:bg-[#F2D7CA] active:scale-95 transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-40"
+                aria-label="Hapus satu digit"
+              >
+                <i className="mdi mdi-backspace-outline text-2xl" />
+              </button>
+            </div>
           </div>
         )}
-      </div>
 
-      {/* PIN Section (Pure Crisp White Container matching Portal Guru) */}
-      {posNumber && (
-        <div className="w-full max-w-md bg-white p-6 sm:p-7 rounded-2xl border border-[#E8E2D8] shadow-[0_4px_20px_-2px_rgba(30,35,32,0.06)]">
-          <p className="text-xs text-[#565C58] text-center mb-3">
-            Masukkan PIN 4-digit untuk <span className="font-bold text-[#1E2320]">Pos {posNumber}</span>
-          </p>
-
-          {/* PIN Indicators */}
-          <div className="flex justify-center gap-4 mb-5" aria-label={`PIN terisi ${pin.length} dari 4 digit`}>
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={`w-4 h-4 rounded-full transition-all duration-150 ${
-                  pin.length > i
-                    ? "bg-[#C9733B] scale-110 shadow-xs"
-                    : "bg-[#EBE6DF] border border-[#DDD7CE]"
-                }`}
-              />
-            ))}
+        {/* Quick Link: Cetak Lembar Observasi Fisik Lapangan */}
+        <div className="bg-white rounded-2xl p-4 border border-[#E8E2D8]/60 shadow-xs space-y-2 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-[#22352B] flex items-center gap-1.5">
+              <i className="mdi mdi-printer-outline text-base text-[#486B5A]" />
+              <span>Lembar Cetak Observasi Fisik (A4)</span>
+            </span>
+            <span className="text-[10px] font-semibold text-[#787F7A]">Matriks Kelompok & Siswa</span>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <p className="text-xs text-[#C9733B] text-center mb-3 font-semibold bg-[#FAF0E8] p-2.5 rounded-xl border border-[#F2D8C7]">
-              {error}
-            </p>
-          )}
-
-          {/* Loading */}
-          {loading && (
-            <p className="text-xs text-[#565C58] text-center mb-3 font-medium animate-pulse">
-              Memverifikasi PIN...
-            </p>
-          )}
-
-          {/* Tactile Numeric Keypad */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-2.5 max-w-[240px] mx-auto">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-              <button
-                key={num}
-                type="button"
-                onClick={() => handlePinInput(String(num))}
-                disabled={loading}
-                className="h-12 sm:h-13 rounded-xl bg-[#F4F3EE] hover:bg-[#EBE6DF] shadow-xs
-                  text-lg sm:text-xl font-bold text-[#1E2320] border border-[#DDD7CE]
-                  active:bg-[#E0DAD0] active:scale-95 transition-all
-                  focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none
-                  disabled:opacity-50 cursor-pointer"
-                aria-label={`Digit ${num}`}
-              >
-                {num}
-              </button>
-            ))}
-            <div /> {/* Grid spacer */}
-            <button
-              type="button"
-              onClick={() => handlePinInput("0")}
-              disabled={loading}
-              className="h-12 sm:h-13 rounded-xl bg-[#F4F3EE] hover:bg-[#EBE6DF] shadow-xs
-                text-lg sm:text-xl font-bold text-[#1E2320] border border-[#DDD7CE]
-                active:bg-[#E0DAD0] active:scale-95 transition-all
-                focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none
-                disabled:opacity-50 cursor-pointer"
-              aria-label="Digit 0"
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Link
+              href={`/reports/rubric/${posNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 text-xs shadow-2xs"
             >
-              0
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={loading || pin.length === 0}
-              className="h-12 sm:h-13 rounded-xl bg-[#EBE6DF] hover:bg-[#DDD7CE] shadow-xs border border-[#DDD7CE]
-                text-base font-bold text-[#565C58] flex items-center justify-center
-                active:scale-95 transition-all
-                focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none
-                disabled:opacity-40 cursor-pointer"
-              aria-label="Hapus satu digit"
+              <i className="mdi mdi-table-large text-[#B85627]" />
+              <span>Lembar Pos {posNumber}</span>
+            </Link>
+            <Link
+              href="/reports/rubric/so"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#E4EFE9] hover:bg-[#D4E6DC] text-[#486B5A] border border-[#CBE0D4] px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 text-xs shadow-2xs"
             >
-              <Backspace weight="light" size={20} />
-            </button>
+              <i className="mdi mdi-eye-check-outline text-[#486B5A]" />
+              <span>Lembar Super Observer (Pos 1, 3, 4, 5)</span>
+            </Link>
           </div>
-
-          <p className="text-[11px] text-[#787F7A] text-center mt-4">
-            Tip: Anda juga dapat mengetik PIN langsung menggunakan keyboard fisik.
-          </p>
         </div>
-      )}
+      </div>
     </main>
   );
 }
-

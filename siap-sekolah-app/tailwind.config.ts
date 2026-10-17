@@ -8,37 +8,22 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // ─── Font Stack (DM Sans + Fraunces / Recoleta + System) ─────
+      // ─── Font Stack (Plus Jakarta Sans + System) ─────
       fontFamily: {
         sans: [
-          "var(--font-dm-sans)",
+          "var(--font-plus-jakarta)",
           "-apple-system",
           "BlinkMacSystemFont",
-          "SF Pro Text",
-          "SF Pro Display",
+          "Plus Jakarta Sans",
           "Inter",
           "system-ui",
           "sans-serif",
         ],
         brand: [
-          "var(--font-dm-sans)",
+          "var(--font-plus-jakarta)",
           "-apple-system",
           "BlinkMacSystemFont",
-          "DM Sans",
-          "sans-serif",
-        ],
-        outfit: [
-          "var(--font-outfit)",
-          "Outfit",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "sans-serif",
-        ],
-        nunito: [
-          "var(--font-nunito)",
-          "Nunito",
-          "-apple-system",
-          "BlinkMacSystemFont",
+          "Plus Jakarta Sans",
           "sans-serif",
         ],
         serif: [

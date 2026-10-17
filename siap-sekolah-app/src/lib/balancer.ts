@@ -15,7 +15,10 @@ import type {
   AssignedClass,
   ReadingLevel,
 } from "@/types";
-import { generateId } from "@/lib/db";
+
+function generateId(): string {
+  return crypto.randomUUID();
+}
 
 export interface BalanceResult {
   classA: ClassBalance;

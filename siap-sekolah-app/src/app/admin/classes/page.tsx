@@ -1,17 +1,8 @@
-export const runtime = 'edge';
 "use client";
+export const runtime = 'edge';
 
 import React, { useEffect, useState, useCallback } from "react";
-import {
-  Scales,
-  Target,
-  Warning,
-  PushPin,
-  User,
-  FileText,
-  ArrowsLeftRight,
-  X,
-} from "@phosphor-icons/react";
+import Link from "next/link";
 import type { Batch, ClassBalance, StudentProfile, AssignedClass } from "@/types";
 
 export default function AdminClassesPage() {
@@ -66,7 +57,7 @@ export default function AdminClassesPage() {
         setClassB(data.classB);
         setUnassigned(data.unassigned || []);
         setWarnings(data.warnings || []);
-        setBalanceScore(data.balanceScore ?? null);
+        setBalanceScore(data.balanceScore ?? data.overallBalanceScore ?? null);
       }
     } catch {
       // offline handling
@@ -106,9 +97,10 @@ export default function AdminClassesPage() {
         body: JSON.stringify({ batch_id: selectedBatchId }),
       });
       if (res.ok) {
-        loadPlacements(selectedBatchId);
+        await loadPlacements(selectedBatchId);
       } else {
-        alert("Gagal menjalankan algoritma penyeimbang kelas.");
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Gagal menjalankan algoritma penyeimbang kelas.");
       }
     } catch {
       alert("Koneksi gagal.");
@@ -148,13 +140,29 @@ export default function AdminClassesPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6 font-sans">
+    <div className="space-y-6 font-sans">
+      {/* Top Bar Navigation & Badge */}
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#E8E2D8] text-xs font-bold text-[#486B5A] hover:bg-white hover:text-[#22352B] transition-colors shadow-2xs"
+        >
+          <i className="mdi mdi-arrow-left text-sm" />
+          <span>Dashboard Admin</span>
+        </Link>
+        <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-[#EFE7D6] text-[#7D5327]">
+          PEMBAGIAN KELAS
+        </span>
+      </div>
+
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="font-brand text-2xl font-bold text-[#1E2320] tracking-tight">Pembagian Kelas Otomatis</h1>
-          <p className="text-xs sm:text-sm text-[#565C58] mt-0.5">
-            Penyeimbang Kelas 1A & 1B Secara Merata (Kapasitas Maksimal 56 Calon Siswa)
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#22352B] tracking-tight">
+            Pembagian Kelas Otomatis
+          </h1>
+          <p className="text-xs sm:text-sm text-[#565C58] mt-1">
+            Penyeimbang Kelas 1A & 1B secara merata berbasis profil asesmen calon siswa.
           </p>
         </div>
 
@@ -162,7 +170,7 @@ export default function AdminClassesPage() {
           <select
             value={selectedBatchId}
             onChange={(e) => setSelectedBatchId(e.target.value)}
-            className="h-11 rounded-xl px-3.5 text-xs sm:text-sm bg-[#FAF8F5] text-[#1E2320] font-bold border border-[#E5E0D8] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none cursor-pointer"
+            className="h-11 rounded-2xl px-3.5 text-xs sm:text-sm bg-white text-[#22352B] font-bold border border-[#E8E2D8] shadow-2xs focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none cursor-pointer"
           >
             {batches.map((b) => (
               <option key={b.id} value={b.id}>
@@ -174,9 +182,9 @@ export default function AdminClassesPage() {
           <button
             onClick={handleRunAutoBalancer}
             disabled={balancing || !selectedBatchId}
-            className="h-11 bg-[#C9733B] hover:bg-[#B8632E] text-white px-5 text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 shadow-xs disabled:opacity-50 transition-all hover:-translate-y-0.5 active:scale-[0.98] font-bold focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none cursor-pointer"
+            className="h-11 bg-[#B85627] hover:bg-[#A34B21] text-white px-5 text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 transition-all hover:-translate-y-0.5 active:scale-[0.98] font-bold focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none cursor-pointer"
           >
-            <Scales weight="light" size={18} />
+            <i className={`mdi ${balancing ? "mdi-loading mdi-spin" : "mdi-scale-balance"} text-lg`} />
             <span>{balancing ? "Memproses..." : "Bagi Kelas Secara Merata"}</span>
           </button>
         </div>
@@ -184,33 +192,33 @@ export default function AdminClassesPage() {
 
       {/* Warnings & Balance Score Alert */}
       {balanceScore !== null && (
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#D4E2D8] flex items-center justify-between shadow-[0_4px_20px_-2px_rgba(92,124,104,0.06)]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#F0F4F1] text-[#3D7A5A] flex items-center justify-center shadow-xs flex-shrink-0">
-              <Target weight="light" size={24} className="text-[#3D7A5A]" />
+        <div className="bg-white rounded-3xl p-5 border border-[#E8E2D8]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)]">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center shadow-xs flex-shrink-0">
+              <i className="mdi mdi-target text-2xl" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#1E2320]">
+              <p className="text-sm font-extrabold text-[#22352B]">
                 Tingkat Keseimbangan Kelas: {balanceScore} / 100
               </p>
-              <p className="text-xs text-[#565C58]">
-                Pembagian kelas menyeimbangkan jenis kelamin, kebutuhan khusus, tingkat membaca, dan nilai rata-rata siswa.
+              <p className="text-xs text-[#565C58] mt-0.5">
+                Algoritma menyeimbangkan rasio gender, sinyal pendampingan, tingkat membaca, dan rata-rata skor kesiapan.
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold px-3 py-1 bg-[#F0F4F1] text-[#3D7A5A] rounded-full border border-[#D4E2D8]">
-            Optimal
+          <span className="self-start sm:self-center text-xs font-extrabold px-3.5 py-1.5 bg-[#E4EFE9] text-[#486B5A] rounded-full border border-[#CBE0D4]">
+            Optimal Terdistribusi
           </span>
         </div>
       )}
 
       {warnings.length > 0 && (
-        <div className="bg-[#FAF0E8] rounded-2xl p-4 space-y-1 border border-[#F2D8C7]">
-          <p className="text-xs font-bold text-[#C9733B] flex items-center gap-1.5">
-            <Warning weight="light" size={16} />
+        <div className="bg-[#F9E6DC] rounded-3xl p-5 space-y-1.5 border border-[#F1CFC0]">
+          <p className="text-xs font-extrabold text-[#8C3713] flex items-center gap-1.5">
+            <i className="mdi mdi-alert text-base" />
             <span>Catatan Keseimbangan Kelas:</span>
           </p>
-          <ul className="list-disc list-inside text-xs text-[#8C4620] space-y-0.5 font-medium">
+          <ul className="list-disc list-inside text-xs text-[#8C3713] space-y-0.5 font-medium">
             {warnings.map((w, idx) => (
               <li key={idx}>{w}</li>
             ))}
@@ -220,25 +228,35 @@ export default function AdminClassesPage() {
 
       {/* Real-Time Comparative Metrics Banner */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ClassMetricCard label="Kelas 1A" badgeColor="bg-[#F0F4F1] text-[#3D7A5A] border border-[#D4E2D8]" balance={classA} />
-        <ClassMetricCard label="Kelas 1B" badgeColor="bg-[#FAF0E8] text-[#C9733B] border border-[#F2D8C7]" balance={classB} />
+        <ClassMetricCard
+          label="Kelas 1A"
+          badgeColor="bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4]"
+          balance={classA}
+        />
+        <ClassMetricCard
+          label="Kelas 1B"
+          badgeColor="bg-[#EFE7D6] text-[#7D5327] border border-[#E5DAC6]"
+          balance={classB}
+        />
       </div>
 
       {/* Unassigned Students Alert (if any) */}
       {unassigned.length > 0 && (
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#F2D8C7] shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-bold text-[#C9733B] flex items-center gap-1.5">
-              <PushPin weight="light" size={14} />
+        <div className="bg-white rounded-3xl p-5 border border-[#F1CFC0] shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <p className="text-xs font-extrabold text-[#8C3713] flex items-center gap-1.5">
+              <i className="mdi mdi-pin text-sm text-[#B85627]" />
               <span>Siswa Belum Ditempatkan ({unassigned.length} anak):</span>
             </p>
-            <span className="text-[10px] text-[#787F7A]">Klik &quot;Bagi Kelas Secara Merata&quot; untuk membagi otomatis</span>
+            <span className="text-[11px] text-[#565C58]">
+              Klik tombol &quot;Bagi Kelas Secara Merata&quot; di atas untuk pembagian otomatis.
+            </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {unassigned.map((p) => (
               <span
                 key={p.student.id}
-                className="text-xs bg-[#FAF8F5] px-2.5 py-1 rounded-full text-[#1E2320] border border-[#E5E0D8]"
+                className="text-xs bg-[#FAF8F5] px-3 py-1.5 rounded-full text-[#22352B] font-semibold border border-[#E8E2D8]"
               >
                 {p.student.nickname} ({p.student.gender})
               </span>
@@ -250,17 +268,17 @@ export default function AdminClassesPage() {
       {/* Dual Column Class Rosters */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Kelas 1A Column */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E8E2D8] shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)] space-y-3.5">
-          <div className="flex items-center justify-between pb-2 border-b border-[#FAF8F5]">
-            <h3 className="font-bold text-sm text-[#1E2320] flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#F0F4F1] text-[#3D7A5A] flex items-center justify-center font-bold text-xs shadow-2xs border border-[#D4E2D8]">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E2D8]/60 shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)] space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#FAF8F5]">
+            <h3 className="font-extrabold text-sm sm:text-base text-[#22352B] flex items-center gap-2.5">
+              <span className="w-7 h-7 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center font-extrabold text-xs shadow-2xs border border-[#CBE0D4]">
                 1A
               </span>
               <span>Daftar Siswa Kelas 1A ({classA?.students.length || 0} / 28)</span>
             </h3>
           </div>
 
-          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
             {classA?.students.map((profile, i) => (
               <StudentRosterCard
                 key={profile.student.id}
@@ -285,17 +303,17 @@ export default function AdminClassesPage() {
         </div>
 
         {/* Kelas 1B Column */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E8E2D8] shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)] space-y-3.5">
-          <div className="flex items-center justify-between pb-2 border-b border-[#FAF8F5]">
-            <h3 className="font-bold text-sm text-[#1E2320] flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#FAF0E8] text-[#C9733B] flex items-center justify-center font-bold text-xs shadow-2xs border border-[#F2D8C7]">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E2D8]/60 shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)] space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#FAF8F5]">
+            <h3 className="font-extrabold text-sm sm:text-base text-[#22352B] flex items-center gap-2.5">
+              <span className="w-7 h-7 rounded-full bg-[#EFE7D6] text-[#7D5327] flex items-center justify-center font-extrabold text-xs shadow-2xs border border-[#E5DAC6]">
                 1B
               </span>
               <span>Daftar Siswa Kelas 1B ({classB?.students.length || 0} / 28)</span>
             </h3>
           </div>
 
-          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
             {classB?.students.map((profile, i) => (
               <StudentRosterCard
                 key={profile.student.id}
@@ -324,29 +342,29 @@ export default function AdminClassesPage() {
       {swapTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-[#1E2320]/40 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-[#22352B]/40 backdrop-blur-xs transition-opacity"
             onClick={() => setSwapTarget(null)}
             aria-hidden="true"
           />
           <div
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-lg bg-white rounded-2xl p-5 sm:p-6 border border-[#E8E2D8] shadow-[0_25px_60px_-15px_rgba(30,35,32,0.25)] z-10 space-y-4 font-sans"
+            className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-7 border border-[#E8E2D8] shadow-2xl z-10 space-y-4 font-sans"
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D8]">
-              <h3 className="text-base font-bold text-[#1E2320] flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#F0F4F1] text-[#3D7A5A] flex items-center justify-center">
-                  <ArrowsLeftRight weight="light" size={18} />
+              <h3 className="text-base font-extrabold text-[#22352B] flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center">
+                  <i className="mdi mdi-swap-horizontal text-lg" />
                 </div>
                 <span>Pindah Kelas: {swapTarget.student.student.full_name}</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setSwapTarget(null)}
-                className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#1E2320] hover:bg-[#EBE6DF] flex items-center justify-center text-sm font-bold border border-[#E5E0D8] transition-colors focus-visible:ring-2 focus-visible:ring-[#5C7C68]"
+                className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#22352B] hover:bg-[#EBE6DF] flex items-center justify-center text-sm font-bold border border-[#E8E2D8] transition-colors focus-visible:ring-2 focus-visible:ring-[#486B5A]"
                 aria-label="Tutup"
               >
-                <X weight="light" size={16} />
+                <i className="mdi mdi-close text-base" />
               </button>
             </div>
 
@@ -355,17 +373,17 @@ export default function AdminClassesPage() {
               <strong>Kelas {swapTarget.targetClass}</strong>
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               <div>
-                <label className="text-[11px] font-bold text-[#1E2320] uppercase tracking-wider block mb-1">
+                <label className="text-[11px] font-extrabold text-[#22352B] uppercase tracking-wider block mb-1.5">
                   Alasan Pemindahan Manual (Wajib Diisi):
                 </label>
                 <textarea
                   value={swapReason}
                   onChange={(e) => setSwapReason(e.target.value)}
-                  placeholder="Contoh: Permintaan khusus orang tua, koordinasi pendampingan terapi, dsb."
+                  placeholder="Contoh: Permintaan khusus orang tua, koordinasi pendampingan terapi, rekomendasi guru, dsb."
                   rows={3}
-                  className="w-full rounded-xl p-3 text-xs bg-[#FAF8F5] text-[#1E2320] placeholder:text-[#A8A09A] border border-[#E5E0D8] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none resize-none"
+                  className="w-full rounded-2xl p-3.5 text-xs bg-[#FAF8F5] text-[#22352B] placeholder:text-[#A8A09A] border border-[#E8E2D8] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none resize-none transition-all"
                   autoFocus
                 />
               </div>
@@ -374,7 +392,7 @@ export default function AdminClassesPage() {
                 <button
                   type="button"
                   onClick={() => setSwapTarget(null)}
-                  className="h-11 px-4 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#1E2320] text-xs font-bold rounded-xl border border-[#E5E0D8] transition-colors focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+                  className="h-11 px-5 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#22352B] text-xs font-bold rounded-2xl border border-[#E8E2D8] transition-colors focus-visible:ring-2 focus-visible:ring-[#486B5A]"
                 >
                   Batal
                 </button>
@@ -382,7 +400,7 @@ export default function AdminClassesPage() {
                   type="button"
                   onClick={executeSwap}
                   disabled={swapping || !swapReason.trim()}
-                  className="h-11 px-5 bg-[#1E2320] hover:bg-[#2C332E] text-white text-xs font-bold rounded-xl shadow-xs transition-all hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+                  className="h-11 px-6 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs font-bold rounded-2xl shadow-sm transition-all hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A]"
                 >
                   {swapping ? "Menyimpan..." : "Konfirmasi Pindah"}
                 </button>
@@ -407,42 +425,42 @@ function ClassMetricCard({
   if (!balance) return null;
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-[#E8E2D8] shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)]">
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#FAF8F5]">
-        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badgeColor}`}>
+    <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E2D8]/60 shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)]">
+      <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-[#FAF8F5]">
+        <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${badgeColor}`}>
           {label}
         </span>
         <span className="text-xs text-[#565C58] font-medium">
-          Total: <strong className="text-[#1E2320] text-sm font-bold">{balance.total}</strong> / 28 Siswa
+          Total: <strong className="text-[#22352B] text-sm font-extrabold">{balance.total}</strong> / 28 Siswa
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-        <div className="bg-[#FAF8F5] p-2 rounded-xl border border-[#E8E2D8]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
+        <div className="bg-[#FAF8F5] p-2.5 rounded-2xl border border-[#E8E2D8]/60">
           <span className="text-[10px] text-[#787F7A] block font-bold">Gender</span>
-          <span className="font-extrabold text-[#1E2320]">{balance.male_count}L</span> /{" "}
-          <span className="font-extrabold text-[#8C4620]">{balance.female_count}P</span>
+          <span className="font-extrabold text-[#22352B]">{balance.male_count}L</span> /{" "}
+          <span className="font-extrabold text-[#8C3713]">{balance.female_count}P</span>
         </div>
 
-        <div className="bg-[#FAF8F5] p-2 rounded-xl border border-[#E8E2D8]">
+        <div className={`p-2.5 rounded-2xl border ${balance.red_flag_count > 0 ? "bg-[#F9E6DC] border-[#F1CFC0]" : "bg-[#FAF8F5] border-[#E8E2D8]/60"}`}>
           <span className="text-[10px] text-[#787F7A] block font-bold">Pendampingan</span>
           <span
-            className={`font-black ${
-              balance.red_flag_count > 0 ? "text-[#C9733B]" : "text-[#787F7A]"
+            className={`font-extrabold ${
+              balance.red_flag_count > 0 ? "text-[#8C3713]" : "text-[#787F7A]"
             }`}
           >
             {balance.red_flag_count} Anak
           </span>
         </div>
 
-        <div className="bg-[#FAF8F5] p-2 rounded-xl border border-[#E8E2D8]">
+        <div className="bg-[#FAF8F5] p-2.5 rounded-2xl border border-[#E8E2D8]/60">
           <span className="text-[10px] text-[#787F7A] block font-bold">Rerata Skor</span>
-          <span className="font-black text-[#1E2320]">{balance.avg_score}</span>
+          <span className="font-extrabold text-[#22352B]">{balance.avg_score}</span>
         </div>
 
-        <div className="bg-[#FAF8F5] p-2 rounded-xl border border-[#E8E2D8]">
-          <span className="text-[10px] text-[#787F7A] block font-bold">Literasi</span>
-          <span className="font-bold text-xs text-[#1E2320]">
+        <div className="bg-[#EFE7D6]/50 p-2.5 rounded-2xl border border-[#E5DAC6]/60">
+          <span className="text-[10px] text-[#7D5327] block font-bold">Literasi (A / B)</span>
+          <span className="font-extrabold text-xs text-[#7D5327]">
             {balance.reading_level_distribution.L1 + balance.reading_level_distribution.L2} (A) /{" "}
             {balance.reading_level_distribution.L3 + balance.reading_level_distribution.L4} (B)
           </span>
@@ -466,35 +484,39 @@ function StudentRosterCard({
   const { student } = profile;
 
   return (
-    <div className="bg-[#FAF8F5] rounded-xl p-3 border border-[#E8E2D8] hover:border-[#5C7C68]/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+    <div className="bg-[#FAF8F5] rounded-2xl p-3.5 border border-[#E8E2D8]/70 hover:border-[#486B5A]/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex items-center gap-3 min-w-0">
         <span className="text-xs font-mono font-bold text-[#787F7A] w-5 text-right flex-shrink-0">
           {index}.
         </span>
         <div
-          className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-xs font-bold ${
-            student.gender === "L" ? "bg-[#E8EDF2] text-[#283747]" : "bg-[#FAF0E8] text-[#8C4620] border border-[#F2D8C7]"
+          className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 font-bold ${
+            student.gender === "L"
+              ? "bg-[#E4EAF2] text-[#36506C]"
+              : "bg-[#F9E6DC] text-[#8C3713]"
           }`}
         >
-          <User weight="light" size={18} />
+          <i className="mdi mdi-account text-lg" />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <p className="text-xs font-bold text-[#1E2320] truncate">{student.full_name}</p>
-            {profile.has_any_red_flag && <Warning weight="light" size={13} className="text-[#C9733B]" />}
+            <p className="text-xs font-extrabold text-[#22352B] truncate">{student.full_name}</p>
+            {profile.has_any_red_flag && <i className="mdi mdi-alert text-xs text-[#B85627]" title="Perhatian Khusus" />}
           </div>
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] text-[#565C58] mt-0.5">
             <span>&ldquo;{student.nickname}&rdquo;</span>
             <span>&bull;</span>
-            <span>Skor: <strong className="text-[#1E2320]">{profile.overall_score || "-"}</strong></span>
+            <span>Skor: <strong className="text-[#22352B]">{profile.overall_score || "-"}</strong></span>
             {profile.reading_level && (
               <>
                 <span>&bull;</span>
-                <span className="font-bold text-[#1E2320]">{profile.reading_level}</span>
+                <span className="font-extrabold text-[#22352B]">{profile.reading_level}</span>
               </>
             )}
             {profile.placement?.manual_override && (
-              <span className="text-[#C9733B] font-bold bg-[#FAF0E8] px-1 rounded border border-[#F2D8C7]">Manual</span>
+              <span className="text-[#8C3713] font-bold bg-[#F9E6DC] px-1.5 py-0.5 rounded-full border border-[#F1CFC0]">
+                Manual
+              </span>
             )}
           </div>
         </div>
@@ -505,23 +527,22 @@ function StudentRosterCard({
           href={`/reports/student/${student.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="h-8 bg-white text-[#1E2320] hover:bg-[#FAF8F5] px-2.5 text-xs rounded-xl border border-[#E5E0D8] flex items-center gap-1 transition-colors font-semibold focus-visible:ring-2 focus-visible:ring-[#5C7C68]"
+          className="h-8 bg-white text-[#22352B] hover:bg-[#FAF8F5] px-2.5 text-xs rounded-xl border border-[#E8E2D8] flex items-center gap-1.5 transition-colors font-bold shadow-2xs focus-visible:ring-2 focus-visible:ring-[#486B5A]"
           title="Lihat Laporan PDF"
         >
-          <FileText weight="light" size={14} />
+          <i className="mdi mdi-file-document-outline text-sm" />
           <span>PDF</span>
         </a>
 
         <button
           onClick={onSwap}
-          className="h-8 bg-[#C9733B] hover:bg-[#B8632E] text-white text-xs font-bold px-3 rounded-xl shadow-xs flex items-center gap-1 transition-colors cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-[#5C7C68]"
+          className="h-8 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs font-bold px-3 rounded-xl shadow-xs flex items-center gap-1 transition-all hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#486B5A]"
           title={`Pindah ke Kelas ${currentClass === "1A" ? "1B" : "1A"}`}
         >
-          <ArrowsLeftRight weight="light" size={14} />
+          <i className="mdi mdi-swap-horizontal text-sm" />
           <span>Pindah</span>
         </button>
       </div>
     </div>
   );
 }
-

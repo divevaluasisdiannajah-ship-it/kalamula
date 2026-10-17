@@ -113,9 +113,9 @@ function seedAssessmentConfigs(s: Store) {
       pos_name: "Kedatangan, Kemandirian & Kematangan Emosi",
       pos_description: "Observasi saat anak tiba, berpisah dari orang tua, dan berinteraksi awal",
       indicators_json: JSON.stringify([
-        { id: "1.1", label: "Berpisah dari orang tua", description: "Berpisah dari orang tua dengan tenang tanpa kecemasan ekstrem", score_descriptors: { "1": "Menangis histeris tidak mau ditinggal", "2": "Menangis tapi mau ditinggal setelah dibujuk lama", "3": "Sedikit cemas tapi mandiri masuk kelas", "4": "Berpisah dengan tenang dan antusias" } },
-        { id: "1.2", label: "Kemandirian Menaruh Barang", description: "Mandiri melepaskan dan merapikan sepatu di rak serta menggantungkan tas", score_descriptors: { "1": "Tidak bisa, sepenuhnya butuh bantuan", "2": "Bisa dengan banyak bantuan verbal", "3": "Bisa dengan sedikit pengingat", "4": "Mandiri sempurna dan rapi" } },
-        { id: "1.3", label: "Kesantunan dan Antrean", description: "Menggunakan kata santun (tolong, terima kasih, maaf) dan budaya mengantre", score_descriptors: { "1": "Tidak menggunakan kata santun dan tidak mau mengantre", "2": "Kadang menggunakan kata santun dengan pengingat", "3": "Sering menggunakan kata santun secara spontan", "4": "Konsisten santun dan sabar mengantre tanpa pengingat" } },
+        { id: "1.1", label: "Berpisah dari orang tua", description: "Berpisah dari orang tua dengan tenang tanpa kecemasan ekstrem", foundation: 3, score_descriptors: { "1": "Menangis histeris tidak mau ditinggal", "2": "Menangis tapi mau ditinggal setelah dibujuk lama", "3": "Sedikit cemas tapi mandiri masuk kelas", "4": "Berpisah dengan tenang dan antusias" } },
+        { id: "1.2", label: "Kemandirian Menaruh Barang", description: "Mandiri melepaskan dan merapikan sepatu di rak serta menggantungkan tas", foundation: 5, score_descriptors: { "1": "Tidak bisa, sepenuhnya butuh bantuan", "2": "Bisa dengan banyak bantuan verbal", "3": "Bisa dengan sedikit pengingat", "4": "Mandiri sempurna dan rapi" } },
+        { id: "1.3", label: "Kesantunan dan Antrean", description: "Menggunakan kata santun (tolong, terima kasih, maaf) dan budaya mengantre", foundation: 1, score_descriptors: { "1": "Tidak menggunakan kata santun dan tidak mau mengantre", "2": "Kadang menggunakan kata santun dengan pengingat", "3": "Sering menggunakan kata santun secara spontan", "4": "Konsisten santun dan sabar mengantre tanpa pengingat" } },
       ]),
       red_flags_json: JSON.stringify([
         { id: "rf-1-1", label: "Tantrum histeris melantai (>10 menit)", severity: "critical" },
@@ -133,8 +133,8 @@ function seedAssessmentConfigs(s: Store) {
       pos_name: "Motorik Kasar & Koordinasi Fisik",
       pos_description: "Observasi kemampuan gerak tubuh, keseimbangan, dan koordinasi mata-tangan",
       indicators_json: JSON.stringify([
-        { id: "2.1", label: "Keseimbangan & Koordinasi Tubuh", description: "Berjalan lurus, meniti papan titian, melompat 2 kaki", score_descriptors: { "1": "Tidak bisa melakukan salah satu aktivitas", "2": "Bisa dengan pegangan/bantuan fisik", "3": "Bisa mandiri meski sedikit tidak stabil", "4": "Lincah dan koordinasi sangat baik" } },
-        { id: "2.2", label: "Respons Instruksi & Koordinasi Mata-Tangan", description: "Merespons instruksi gerak verbal dan koordinasi mata-tangan (tangkap bola)", score_descriptors: { "1": "Tidak merespons instruksi, gagal tangkap bola", "2": "Merespons lambat, sering gagal tangkap", "3": "Merespons baik, kadang berhasil tangkap", "4": "Merespons cepat dan tepat, tangkap bola konsisten" } },
+        { id: "2.1", label: "Keseimbangan & Koordinasi Tubuh", description: "Berjalan lurus, meniti papan titian, melompat 2 kaki", foundation: 5, score_descriptors: { "1": "Tidak bisa melakukan salah satu aktivitas", "2": "Bisa dengan pegangan/bantuan fisik", "3": "Bisa mandiri meski sedikit tidak stabil", "4": "Lincah dan koordinasi sangat baik" } },
+        { id: "2.2", label: "Respons Instruksi & Koordinasi Mata-Tangan", description: "Merespons instruksi gerak verbal dan koordinasi mata-tangan (tangkap bola)", foundation: 5, score_descriptors: { "1": "Tidak merespons instruksi, gagal tangkap bola", "2": "Merespons lambat, sering gagal tangkap", "3": "Merespons baik, kadang berhasil tangkap", "4": "Merespons cepat dan tepat, tangkap bola konsisten" } },
       ]),
       red_flags_json: JSON.stringify([
         { id: "rf-2-1", label: "Tonus otot kaku (hipertonia) atau sangat lemas (hipotonia)", severity: "critical" },
@@ -152,8 +152,8 @@ function seedAssessmentConfigs(s: Store) {
       pos_name: "Kematangan Kognitif & Numerasi Dasar",
       pos_description: "Observasi kemampuan berpikir logis, pola, perbandingan, dan pemecahan masalah",
       indicators_json: JSON.stringify([
-        { id: "3.1", label: "Klasifikasi & Pola", description: "Memilah benda berdasarkan atribut dan melengkapi pola berulang", score_descriptors: { "1": "Tidak bisa memilah atau mengenali pola", "2": "Bisa memilah 1 atribut dengan bantuan", "3": "Bisa memilah dan lanjutkan pola sederhana", "4": "Mandiri klasifikasi multi-atribut dan pola kompleks" } },
-        { id: "3.2", label: "Konsep Kuantitas & Problem Solving", description: "Memahami banyak/sedikit dan pemecahan masalah (puzzle/balok)", score_descriptors: { "1": "Belum paham konsep kuantitas", "2": "Paham dengan bimbingan konkret", "3": "Paham mandiri dan bisa puzzle sederhana", "4": "Pemahaman kuat dan selesaikan tantangan kompleks" } },
+        { id: "3.1", label: "Klasifikasi & Pola", description: "Memilah benda berdasarkan atribut dan melengkapi pola berulang", foundation: 4, score_descriptors: { "1": "Tidak bisa memilah atau mengenali pola", "2": "Bisa memilah 1 atribut dengan bantuan", "3": "Bisa memilah dan lanjutkan pola sederhana", "4": "Mandiri klasifikasi multi-atribut dan pola kompleks" } },
+        { id: "3.2", label: "Konsep Kuantitas & Problem Solving", description: "Memahami banyak/sedikit dan pemecahan masalah (puzzle/balok)", foundation: 4, score_descriptors: { "1": "Belum paham konsep kuantitas", "2": "Paham dengan bimbingan konkret", "3": "Paham mandiri dan bisa puzzle sederhana", "4": "Pemahaman kuat dan selesaikan tantangan kompleks" } },
       ]),
       red_flags_json: JSON.stringify([
         { id: "rf-3-1", label: "Disorientasi spasial berat", severity: "moderate" },
@@ -171,9 +171,9 @@ function seedAssessmentConfigs(s: Store) {
       pos_name: "Bahasa Lisan, Pra-Literasi & Motorik Halus",
       pos_description: "Observasi kemampuan berbahasa, pra-membaca, dan kontrol motorik halus tangan",
       indicators_json: JSON.stringify([
-        { id: "4.1", label: "Menyimak Cerita Lisan", description: "Menyimak dan memahami pesan cerita lisan yang dibacakan (read-aloud)", score_descriptors: { "1": "Tidak memperhatikan dan tidak bisa jawab pertanyaan", "2": "Memperhatikan tapi jawaban tidak relevan", "3": "Menyimak baik dan menjawab sebagian besar", "4": "Menyimak aktif dan jawab dengan detail" } },
-        { id: "4.2", label: "Komunikasi Gagasan Lisan", description: "Mengomunikasikan gagasan lisan tentang hasil gambarnya", score_descriptors: { "1": "Tidak bisa menjelaskan gambarnya", "2": "Menjelaskan dengan 1-2 kata", "3": "Menjelaskan dengan kalimat sederhana", "4": "Menjelaskan dengan kalimat lengkap dan rinci" } },
-        { id: "4.3", label: "Kontrol Motorik Halus", description: "Kontrol motorik halus dan genggaman alat tulis fungsional (pincer/tripod grasp)", score_descriptors: { "1": "Genggaman palmar, tidak bisa kontrol", "2": "Peralihan ke pincer, kontrol lemah", "3": "Pincer/tripod grasp, bisa menulis/mewarnai", "4": "Tripod sempurna, presisi dan kontrol tinggi" } },
+        { id: "4.1", label: "Menyimak Cerita Lisan", description: "Menyimak dan memahami pesan cerita lisan yang dibacakan (read-aloud)", foundation: 2, score_descriptors: { "1": "Tidak memperhatikan dan tidak bisa jawab pertanyaan", "2": "Memperhatikan tapi jawaban tidak relevan", "3": "Menyimak baik dan menjawab sebagian besar", "4": "Menyimak aktif dan jawab dengan detail" } },
+        { id: "4.2", label: "Komunikasi Gagasan Lisan", description: "Mengomunikasikan gagasan lisan tentang hasil gambarnya", foundation: 2, score_descriptors: { "1": "Tidak bisa menjelaskan gambarnya", "2": "Menjelaskan dengan 1-2 kata", "3": "Menjelaskan dengan kalimat sederhana", "4": "Menjelaskan dengan kalimat lengkap dan rinci" } },
+        { id: "4.3", label: "Kontrol Motorik Halus", description: "Kontrol motorik halus dan genggaman alat tulis fungsional (pincer/tripod grasp)", foundation: 5, score_descriptors: { "1": "Genggaman palmar, tidak bisa kontrol", "2": "Peralihan ke pincer, kontrol lemah", "3": "Pincer/tripod grasp, bisa menulis/mewarnai", "4": "Tripod sempurna, presisi dan kontrol tinggi" } },
       ]),
       red_flags_json: JSON.stringify([
         { id: "rf-4-1", label: "Bicara tidak dapat dipahami (speech delay berat)", severity: "critical" },
@@ -189,11 +189,12 @@ function seedAssessmentConfigs(s: Store) {
       id: "config-pos-5-v1",
       version: "1.0.0",
       pos_number: 5,
-      pos_name: "Bermain Bebas, Interaksi Sosial & Koordinator Tim",
-      pos_description: "Observasi kemampuan bermain bersama, berbagi, dan regulasi emosi dalam kelompok",
+      pos_name: "Bermain Bebas, Istirahat & Interaksi Kelompok",
+      pos_description: "Observasi interaksi saat bermain bebas, makan snack bersama, dan regulasi emosi kelompok",
       indicators_json: JSON.stringify([
-        { id: "5.1", label: "Bermain Kooperatif", description: "Bermain kooperatif, berbagi mainan, dan berinteraksi sehat dalam kelompok", score_descriptors: { "1": "Menolak bermain bersama, menyendiri total", "2": "Bermain paralel (di dekat teman tapi tidak interaksi)", "3": "Bermain kooperatif dengan sedikit konflik", "4": "Pemimpin alami, mendorong kerjasama tim" } },
-        { id: "5.2", label: "Regulasi Emosi & Konflik", description: "Regulasi emosi saat terjadi perbedaan pendapat/konflik kecil", score_descriptors: { "1": "Breakdown total saat ada konflik kecil", "2": "Perlu banyak bantuan dewasa untuk regulasi", "3": "Bisa regulasi dengan sedikit bantuan", "4": "Resolusi konflik mandiri dan dewasa" } },
+        { id: "5.1", label: "Bermain Kooperatif & Berbagi", description: "Bermain kooperatif, berbagi alat bermain/makanan, dan berinteraksi sehat dalam kelompok", foundation: 2, score_descriptors: { "1": "Menolak bermain bersama, menyendiri total", "2": "Bermain paralel (di dekat teman tapi tidak interaksi)", "3": "Bermain kooperatif dengan sedikit konflik", "4": "Pemimpin alami, mendorong kerjasama tim" } },
+        { id: "5.2", label: "Regulasi Diri & Adaptasi", description: "Regulasi emosi saat terjadi perbedaan pendapat/konflik kecil atau situasi baru", foundation: 3, score_descriptors: { "1": "Breakdown total saat ada konflik kecil", "2": "Perlu banyak bantuan dewasa untuk regulasi", "3": "Bisa regulasi dengan sedikit bantuan", "4": "Resolusi konflik mandiri dan tenang" } },
+        { id: "5.3", label: "Antusiasme & Refleksi Belajar", description: "Menunjukkan keceriaan, rasa ingin tahu positif, dan antusiasme menjalani rangkaian kegiatan", foundation: 6, score_descriptors: { "1": "Tampak sangat tertekan atau pasif menolak kegiatan", "2": "Kurang bersemangat, perlu motivasi konstan", "3": "Menikmati kegiatan bermain dan interaksi dengan wajar", "4": "Sangat antusias, ceria, dan bangga dengan pengalamannya" } },
       ]),
       red_flags_json: JSON.stringify([
         { id: "rf-5-1", label: "Extreme social withdrawal — menolak disapa sama sekali", severity: "critical" },
@@ -229,14 +230,14 @@ function seedDemoBatchAndStudents(s: Store) {
 
   // 2. Demo Students
   const demoStudents = [
-    { id: "std-1", reg: "REG-2026-001", name: "Muhammad Al-Fatih Pratama", nick: "Fatih", gender: "L" as const, birth: "2020-03-15", parent: "dr. Hendra Pratama", phone: "081234567890", level: "L4" as const, redFlag: false, p1: 4.0, p2: 3.5, p3: 4.0, p4: 4.0, p5: 3.8, class: "1A" as const, note: "Sangat percaya diri, membaca lancar dan senang memimpin baris antrean." },
-    { id: "std-2", reg: "REG-2026-002", name: "Aisyah Putri Rahmadani", nick: "Aisyah", gender: "P" as const, birth: "2020-05-20", parent: "Rahmat Hidayat", phone: "081298765432", level: "L3" as const, redFlag: false, p1: 3.8, p2: 3.6, p3: 3.5, p4: 3.5, p5: 4.0, class: "1A" as const, note: "Mampu membaca suku kata dengan mandiri, sangat ramah pada teman sebaya." },
-    { id: "std-3", reg: "REG-2026-003", name: "Rayhan Alvaro Zikri", nick: "Rayhan", gender: "L" as const, birth: "2020-02-10", parent: "Budi Santoso", phone: "081311223344", level: "L2" as const, redFlag: false, p1: 3.2, p2: 3.8, p3: 3.0, p4: 2.8, p5: 3.5, class: "1B" as const, note: "Mengenal bunyi fonem dasar, fisik sangat lincah dan antusias melompat." },
-    { id: "std-4", reg: "REG-2026-004", name: "Khadijah Azzahra Humaira", nick: "Azza", gender: "P" as const, birth: "2020-07-08", parent: "Ahmad Fauzi", phone: "081355667788", level: "L1" as const, redFlag: false, p1: 3.0, p2: 3.0, p3: 2.8, p4: 2.5, p5: 3.2, class: "1B" as const, note: "Mengenal simbol gambar visual, perlu stimulasi fonik dan motorik pensil di kelas." },
-    { id: "std-5", reg: "REG-2026-005", name: "Kenzo Arshaka Wijaya", nick: "Kenzo", gender: "L" as const, birth: "2020-08-12", parent: "Doni Wijaya", phone: "081277889900", level: "L1" as const, redFlag: true, p1: 1.8, p2: 2.5, p3: 2.2, p4: 2.0, p5: 2.0, class: "1A" as const, note: "Sensitif terhadap suara keras dan sempat tantrum saat berpisah. Butuh calm-down corner ramah anak." },
-    { id: "std-6", reg: "REG-2026-006", name: "Maryam Salsabila Zahra", nick: "Maryam", gender: "P" as const, birth: "2020-04-02", parent: "Irfan Hakim", phone: "081233445566", level: "L3" as const, redFlag: false, p1: 3.5, p2: 3.2, p3: 3.5, p4: 3.6, p5: 3.7, class: "1B" as const, note: "Mandiri merapikan sepatu dan tas, membaca kata bermakna dengan artikulasi jelas." },
-    { id: "std-7", reg: "REG-2026-007", name: "Bilal Ramadhan Al-Ghifari", nick: "Bilal", gender: "L" as const, birth: "2020-09-18", parent: "Yusuf Mansur", phone: "081399887766", level: "L2" as const, redFlag: false, p1: 3.0, p2: 3.7, p3: 3.1, p4: 2.7, p5: 3.4, class: "1A" as const, note: "Fokus mendengarkan cerita, menyusun balok bersama teman dengan tertib." },
-    { id: "std-8", reg: "REG-2026-008", name: "Zhafira Nurul Izzah", nick: "Zhafira", gender: "P" as const, birth: "2020-01-25", parent: "dr. Fitriani", phone: "081222334455", level: "L4" as const, redFlag: false, p1: 4.0, p2: 3.8, p3: 3.9, p4: 4.0, p5: 4.0, class: "1B" as const, note: "Kemandirian dan kematangan emosi sangat matang, membaca lancar penuh ekspresi." },
+    { id: "std-1", reg: "REG-2026-001", name: "Muhammad Al-Fatih Pratama", nick: "Fatih", gender: "L" as const, birth: "2020-03-15", parent: "dr. Hendra Pratama", phone: "081234567890", level: "L4" as const, redFlag: false, p1: 4.0, p2: 3.5, p3: 4.0, p4: 4.0, p5: 3.8, class: "1A" as const, group: "Kelompok 1", note: "Sangat percaya diri, membaca lancar dan senang memimpin baris antrean." },
+    { id: "std-2", reg: "REG-2026-002", name: "Aisyah Putri Rahmadani", nick: "Aisyah", gender: "P" as const, birth: "2020-05-20", parent: "Rahmat Hidayat", phone: "081298765432", level: "L3" as const, redFlag: false, p1: 3.8, p2: 3.6, p3: 3.5, p4: 3.5, p5: 4.0, class: "1A" as const, group: "Kelompok 1", note: "Mampu membaca suku kata dengan mandiri, sangat ramah pada teman sebaya." },
+    { id: "std-3", reg: "REG-2026-003", name: "Rayhan Alvaro Zikri", nick: "Rayhan", gender: "L" as const, birth: "2020-02-10", parent: "Budi Santoso", phone: "081311223344", level: "L2" as const, redFlag: false, p1: 3.2, p2: 3.8, p3: 3.0, p4: 2.8, p5: 3.5, class: "1B" as const, group: "Kelompok 2", note: "Mengenal bunyi fonem dasar, fisik sangat lincah dan antusias melompat." },
+    { id: "std-4", reg: "REG-2026-004", name: "Khadijah Azzahra Humaira", nick: "Azza", gender: "P" as const, birth: "2020-07-08", parent: "Ahmad Fauzi", phone: "081355667788", level: "L1" as const, redFlag: false, p1: 3.0, p2: 3.0, p3: 2.8, p4: 2.5, p5: 3.2, class: "1B" as const, group: "Kelompok 2", note: "Mengenal simbol gambar visual, perlu stimulasi fonik dan motorik pensil di kelas." },
+    { id: "std-5", reg: "REG-2026-005", name: "Kenzo Arshaka Wijaya", nick: "Kenzo", gender: "L" as const, birth: "2020-08-12", parent: "Doni Wijaya", phone: "081277889900", level: "L1" as const, redFlag: true, p1: 1.8, p2: 2.5, p3: 2.2, p4: 2.0, p5: 2.0, class: "1A" as const, group: "Kelompok 3", note: "Sensitif terhadap suara keras dan sempat tantrum saat berpisah. Butuh calm-down corner ramah anak." },
+    { id: "std-6", reg: "REG-2026-006", name: "Maryam Salsabila Zahra", nick: "Maryam", gender: "P" as const, birth: "2020-04-02", parent: "Irfan Hakim", phone: "081233445566", level: "L3" as const, redFlag: false, p1: 3.5, p2: 3.2, p3: 3.5, p4: 3.6, p5: 3.7, class: "1B" as const, group: "Kelompok 3", note: "Mandiri merapikan sepatu dan tas, membaca kata bermakna dengan artikulasi jelas." },
+    { id: "std-7", reg: "REG-2026-007", name: "Bilal Ramadhan Al-Ghifari", nick: "Bilal", gender: "L" as const, birth: "2020-09-18", parent: "Yusuf Mansur", phone: "081399887766", level: "L2" as const, redFlag: false, p1: 3.0, p2: 3.7, p3: 3.1, p4: 2.7, p5: 3.4, class: "1A" as const, group: "Kelompok 1", note: "Fokus mendengarkan cerita, menyusun balok bersama teman dengan tertib." },
+    { id: "std-8", reg: "REG-2026-008", name: "Zhafira Nurul Izzah", nick: "Zhafira", gender: "P" as const, birth: "2020-01-25", parent: "dr. Fitriani", phone: "081222334455", level: "L4" as const, redFlag: false, p1: 4.0, p2: 3.8, p3: 3.9, p4: 4.0, p5: 4.0, class: "1B" as const, group: "Kelompok 2", note: "Kemandirian dan kematangan emosi sangat matang, membaca lancar penuh ekspresi." },
   ];
 
   for (const item of demoStudents) {
@@ -250,6 +251,7 @@ function seedDemoBatchAndStudents(s: Store) {
       parent_name: item.parent,
       phone: item.phone,
       batch_id: batchId,
+      observation_group: item.group,
       avatar_seed: null,
       is_active: true,
       created_at: now,

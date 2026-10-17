@@ -1,19 +1,8 @@
-export const runtime = 'edge';
 "use client";
+export const runtime = 'edge';
 
 import { useEffect, useState, useCallback } from "react";
-import {
-  Plus,
-  CalendarBlank,
-  NotePencil,
-  Play,
-  PencilSimple,
-  Trash,
-  LockKey,
-  CheckCircle,
-  FileDashed,
-  X,
-} from "@phosphor-icons/react";
+import Link from "next/link";
 import type { Batch } from "@/types";
 
 type ModalMode = "create" | "edit" | null;
@@ -33,11 +22,16 @@ export default function BatchManagerPage() {
         const data = await res.json();
         setBatches(data.data || []);
       }
-    } catch { /* offline fallback */ }
-    finally { setLoading(false); }
+    } catch {
+      /* offline fallback */
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { loadBatches(); }, [loadBatches]);
+  useEffect(() => {
+    loadBatches();
+  }, [loadBatches]);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -81,8 +75,11 @@ export default function BatchManagerPage() {
       }
       setModal(null);
       loadBatches();
-    } catch { /* handle error */ }
-    finally { setSubmitting(false); }
+    } catch {
+      /* handle error */
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleStatusChange = async (batch: Batch, newStatus: string) => {
@@ -99,7 +96,9 @@ export default function BatchManagerPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       loadBatches();
-    } catch { /* handle error */ }
+    } catch {
+      /* handle error */
+    }
   };
 
   const handleDelete = async (batch: Batch) => {
@@ -107,68 +106,97 @@ export default function BatchManagerPage() {
     try {
       await fetch(`/api/batches/${batch.id}`, { method: "DELETE" });
       loadBatches();
-    } catch { /* handle error */ }
+    } catch {
+      /* handle error */
+    }
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6 font-sans">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-5 font-sans">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between pb-1">
+        <Link
+          href="/admin"
+          className="bg-white border border-[#E8E2D8] text-[#22352B] px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1 shadow-xs"
+        >
+          <i className="mdi mdi-chevron-left text-base" />
+          <span>Dashboard Admin</span>
+        </Link>
+        <span className="bg-[#E4EAF2] text-[#36506C] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
+          GELOMBANG
+        </span>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-brand text-2xl font-bold text-[#1E2320] tracking-tight">Kelola Gelombang</h1>
-          <p className="text-xs sm:text-sm text-[#565C58] mt-0.5">
-            Kelola gelombang observasi asesmen kesiapan siswa
+          <h1 className="text-2xl font-extrabold text-[#22352B] tracking-tight">
+            Kelola Gelombang Observasi
+          </h1>
+          <p className="text-xs text-[#565C58] mt-1">
+            Atur jadwal dan status aktif gelombang asesmen diagnostik kesiapan belajar calon siswa
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="h-11 bg-[#C9733B] hover:bg-[#B8632E] text-white font-bold px-4 text-xs sm:text-sm rounded-xl shadow-xs transition-all hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-1.5 w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none cursor-pointer"
+          className="bg-[#B85627] hover:bg-[#A34A1F] text-white font-extrabold px-4 py-3 rounded-2xl shadow-xs transition flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
         >
-          <Plus weight="light" size={17} />
-          <span>Tambah Gelombang</span>
+          <i className="mdi mdi-plus text-xl" />
+          <span>Tambah Gelombang Baru</span>
         </button>
       </div>
 
       {/* Batch List */}
       {loading ? (
-        <div className="text-center py-16 text-[#565C58] text-xs font-medium animate-pulse">Memuat data...</div>
+        <div className="text-center py-16 text-[#565C58] text-xs font-medium animate-pulse">
+          Memuat data gelombang...
+        </div>
       ) : batches.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 sm:p-12 text-center border border-[#E8E2D8] shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)]">
-          <CalendarBlank weight="light" size={44} className="text-[#787F7A] mx-auto mb-3" />
-          <p className="text-[#1E2320] font-bold text-base">Belum ada gelombang</p>
-          <p className="text-xs text-[#565C58] mt-1 mb-4">Buat gelombang pertama untuk memulai observasi</p>
+        <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-[#E8E2D8]/60 shadow-sm space-y-3">
+          <div className="w-16 h-16 rounded-2xl bg-[#E4EAF2] text-[#36506C] flex items-center justify-center mx-auto">
+            <i className="mdi mdi-calendar-blank-outline text-3xl" />
+          </div>
+          <p className="text-[#22352B] font-extrabold text-base">Belum ada gelombang</p>
+          <p className="text-xs text-[#565C58]">Buat gelombang pertama untuk memulai jadwal observasi.</p>
           <button
             onClick={openCreate}
-            className="h-11 bg-[#C9733B] hover:bg-[#B8632E] text-white font-bold px-6 text-xs sm:text-sm rounded-xl shadow-xs transition-all hover:-translate-y-0.5 active:scale-[0.98] flex items-center gap-1.5 mx-auto cursor-pointer focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+            className="bg-[#B85627] hover:bg-[#A34A1F] text-white font-extrabold px-5 py-2.5 text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 mx-auto cursor-pointer"
           >
-            <Plus weight="light" size={17} />
+            <i className="mdi mdi-plus text-lg" />
             <span>Buat Gelombang Pertama</span>
           </button>
         </div>
       ) : (
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           {batches.map((batch) => (
             <div
               key={batch.id}
-              className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)] hover:shadow-[0_8px_24px_-2px_rgba(30,35,32,0.08)] transition-all"
+              className="bg-white rounded-3xl p-4.5 sm:p-5 border border-[#E8E2D8]/60 shadow-sm hover:shadow-md transition-all space-y-3"
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                    <h3 className="font-bold text-sm text-[#1E2320]">{batch.batch_name}</h3>
-                    <StatusBadge status={batch.status} />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#565C58]">
-                    <span className="flex items-center gap-1">
-                      <CalendarBlank weight="light" size={14} className="text-[#787F7A]" />
-                      {formatDate(batch.batch_date)}
-                    </span>
-                    {batch.notes && (
-                      <span className="flex items-center gap-1">
-                        <NotePencil weight="light" size={14} className="text-[#787F7A]" />
-                        {batch.notes}
-                      </span>
-                    )}
+                    <div className="w-10 h-10 rounded-xl bg-[#E4EAF2] text-[#36506C] flex items-center justify-center flex-shrink-0">
+                      <i className="mdi mdi-calendar-blank-outline text-xl" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-extrabold text-base text-[#22352B]">{batch.batch_name}</h3>
+                        <StatusBadge status={batch.status} />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#565C58] mt-0.5">
+                        <span className="flex items-center gap-1 font-medium">
+                          <i className="mdi mdi-calendar text-[#787F7A] text-sm" />
+                          <span>{batch.batch_date}</span>
+                        </span>
+                        {batch.notes && (
+                          <span className="flex items-center gap-1 text-[#787F7A]">
+                            <i className="mdi mdi-note-text-outline text-sm" />
+                            <span>{batch.notes}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -178,41 +206,41 @@ export default function BatchManagerPage() {
                     <>
                       <button
                         onClick={() => handleStatusChange(batch, "active")}
-                        className="h-9 bg-[#F0F4F1] text-[#3D7A5A] border border-[#D4E2D8] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#D4E2D8] active:scale-95 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+                        className="h-9 bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4] font-extrabold px-3.5 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#D4E2D8] active:scale-95 transition-all cursor-pointer"
                       >
-                        <Play weight="light" size={13} />
+                        <i className="mdi mdi-play text-base" />
                         <span>Aktifkan</span>
                       </button>
                       <button
                         onClick={() => openEdit(batch)}
-                        className="h-9 bg-[#FAF8F5] text-[#1E2320] px-3 text-xs rounded-xl border border-[#E5E0D8] hover:bg-[#F3EFE8] active:scale-95 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+                        className="h-9 bg-[#FAF8F5] text-[#22352B] px-3 text-xs rounded-xl border border-[#E8E2D8] hover:bg-[#F3EFE6] active:scale-95 transition-all cursor-pointer"
                         title="Edit Gelombang"
                         aria-label="Edit Gelombang"
                       >
-                        <PencilSimple weight="light" size={15} />
+                        <i className="mdi mdi-pencil-outline text-base" />
                       </button>
                       <button
                         onClick={() => handleDelete(batch)}
-                        className="h-9 bg-[#FAF0E8] text-[#C9733B] px-3 text-xs rounded-xl border border-[#F2D8C7] hover:bg-[#F7EAE5] active:scale-95 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+                        className="h-9 bg-[#F9E6DC] text-[#8C3713] px-3 text-xs rounded-xl border border-[#F1CFC0] hover:bg-[#F2D7CA] active:scale-95 transition-all cursor-pointer"
                         title="Hapus Gelombang"
                         aria-label="Hapus Gelombang"
                       >
-                        <Trash weight="light" size={15} />
+                        <i className="mdi mdi-trash-can-outline text-base" />
                       </button>
                     </>
                   )}
                   {batch.status === "active" && (
                     <button
                       onClick={() => handleStatusChange(batch, "locked")}
-                      className="h-9 bg-[#FAF0E8] text-[#C9733B] border border-[#F2D8C7] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#F7EAE5] active:scale-95 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+                      className="h-9 bg-[#F9E6DC] text-[#8C3713] border border-[#F1CFC0] font-extrabold px-3.5 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#F2D7CA] active:scale-95 transition-all cursor-pointer"
                     >
-                      <LockKey weight="light" size={14} />
-                      <span>Kunci</span>
+                      <i className="mdi mdi-lock-outline text-base" />
+                      <span>Kunci Gelombang</span>
                     </button>
                   )}
                   {batch.status === "locked" && (
-                    <span className="h-9 text-xs text-[#787F7A] inline-flex items-center gap-1 px-3 bg-[#FAF8F5] border border-[#E5E0D8] rounded-xl font-semibold">
-                      <LockKey weight="light" size={14} />
+                    <span className="h-9 text-xs text-[#787F7A] inline-flex items-center gap-1 px-3 bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl font-semibold">
+                      <i className="mdi mdi-lock text-sm" />
                       <span>Terkunci</span>
                     </span>
                   )}
@@ -227,87 +255,85 @@ export default function BatchManagerPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="fixed inset-0 bg-[#1E2320]/40 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-[#22352B]/40 backdrop-blur-sm transition-opacity"
             onClick={() => setModal(null)}
             aria-hidden="true"
           />
           <div
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-md bg-white rounded-2xl p-4 sm:p-6 border border-[#E8E2D8] shadow-[0_25px_60px_-15px_rgba(30,35,32,0.25)] z-10 space-y-4 max-h-[90vh] overflow-y-auto font-sans"
+            className="relative w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E2D8] shadow-xl z-10 space-y-4 max-h-[90vh] overflow-y-auto font-sans"
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D8]">
-              <h2 className="text-base font-bold text-[#1E2320]">
+              <h2 className="text-base font-extrabold text-[#22352B]">
                 {modal === "create" ? "Tambah Gelombang Baru" : "Edit Gelombang"}
               </h2>
               <button
                 type="button"
                 onClick={() => setModal(null)}
-                className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#1E2320] hover:bg-[#EBE6DF] flex items-center justify-center text-sm font-bold border border-[#E5E0D8] transition-colors focus-visible:ring-2 focus-visible:ring-[#5C7C68]"
+                className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#22352B] flex items-center justify-center border border-[#DDD7CE] transition cursor-pointer"
                 aria-label="Tutup"
               >
-                <X weight="light" size={16} />
+                <i className="mdi mdi-close text-lg" />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               <div>
-                <label className="text-[11px] font-bold text-[#1E2320] uppercase tracking-wider block mb-1.5">
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
                   Nama Gelombang *
                 </label>
                 <input
                   type="text"
                   value={form.batch_name}
                   onChange={(e) => setForm({ ...form, batch_name: e.target.value })}
-                  placeholder="Contoh: Gelombang 1 (Oktober 2026)"
-                  className="w-full h-11 rounded-xl px-3.5 text-xs sm:text-sm text-[#1E2320] bg-[#FAF8F5] border border-[#E5E0D8] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none transition-all"
+                  placeholder="Contoh: Gelombang 1 - TP 2026/2027"
+                  className="w-full h-11 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] placeholder:text-[#A8A09A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B85627]"
                 />
               </div>
 
-              {modal === "create" && (
-                <div>
-                  <label className="text-[11px] font-bold text-[#1E2320] uppercase tracking-wider block mb-1.5">
-                    Tanggal Observasi *
-                  </label>
-                  <input
-                    type="date"
-                    value={form.batch_date}
-                    onChange={(e) => setForm({ ...form, batch_date: e.target.value })}
-                    className="w-full h-11 rounded-xl px-3.5 text-xs sm:text-sm text-[#1E2320] bg-[#FAF8F5] border border-[#E5E0D8] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none transition-all"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Tanggal Observasi *
+                </label>
+                <input
+                  type="date"
+                  value={form.batch_date}
+                  onChange={(e) => setForm({ ...form, batch_date: e.target.value })}
+                  className="w-full h-11 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B85627]"
+                />
+              </div>
 
               <div>
-                <label className="text-[11px] font-bold text-[#1E2320] uppercase tracking-wider block mb-1.5">
-                  Catatan (opsional)
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Catatan Tambahan (Opsional)
                 </label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="Catatan tambahan untuk gelombang ini..."
                   rows={2}
-                  className="w-full rounded-xl p-3 text-xs sm:text-sm text-[#1E2320] bg-[#FAF8F5] border border-[#E5E0D8] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none transition-all resize-none"
+                  placeholder="Keterangan singkat tentang kelompok calon siswa..."
+                  className="w-full rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] p-3 text-xs text-[#22352B] placeholder:text-[#A8A09A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B85627]"
                 />
               </div>
+            </div>
 
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setModal(null)}
-                  className="flex-1 h-11 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#1E2320] text-xs font-bold rounded-xl border border-[#E5E0D8] transition-colors focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={submitting || !form.batch_name.trim()}
-                  className="flex-1 h-11 bg-[#1E2320] hover:bg-[#2C332E] text-white text-xs font-bold rounded-xl shadow-xs transition-all hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
-                >
-                  {submitting ? "Menyimpan..." : modal === "create" ? "Buat Gelombang" : "Simpan Perubahan"}
-                </button>
-              </div>
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E8E2D8]">
+              <button
+                type="button"
+                onClick={() => setModal(null)}
+                className="px-4 py-2.5 rounded-xl bg-[#F3EFE6] text-[#22352B] text-xs font-bold hover:bg-[#EAE4D8] transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting || !form.batch_name.trim() || !form.batch_date}
+                className="px-5 py-2.5 rounded-xl bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-extrabold shadow-xs transition disabled:opacity-50 cursor-pointer"
+              >
+                {submitting ? "Menyimpan..." : modal === "create" ? "Buat Gelombang" : "Simpan Perubahan"}
+              </button>
             </div>
           </div>
         </div>
@@ -317,25 +343,25 @@ export default function BatchManagerPage() {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const m: Record<string, { bg: string; Icon: React.ComponentType<{ weight?: "light" | "bold" | "regular" | "fill"; size?: number }>; label: string }> = {
-    draft: { bg: "bg-[#EBE6DF] text-[#565C58] border border-[#DDD7CE]", Icon: FileDashed, label: "Draft" },
-    active: { bg: "bg-[#F0F4F1] text-[#3D7A5A] border border-[#D4E2D8]", Icon: CheckCircle, label: "Aktif" },
-    locked: { bg: "bg-[#FAF0E8] text-[#C9733B] border border-[#F2D8C7]", Icon: LockKey, label: "Terkunci" },
-  };
-  const s = m[status] || m.draft;
-  const BadgeIcon = s.Icon;
-
+  if (status === "active") {
+    return (
+      <span className="bg-[#E4EFE9] text-[#22352B] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-2xs">
+        <span className="w-2 h-2 rounded-full bg-[#4F936F]" />
+        <span>Aktif</span>
+      </span>
+    );
+  }
+  if (status === "locked") {
+    return (
+      <span className="bg-[#F9E6DC] text-[#8C3713] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+        <i className="mdi mdi-lock text-xs" />
+        <span>Terkunci</span>
+      </span>
+    );
+  }
   return (
-    <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${s.bg}`}>
-      <BadgeIcon weight="bold" size={12} />
-      <span>{s.label}</span>
+    <span className="bg-[#FAF8F5] text-[#787F7A] text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-[#DDD7CE]">
+      Draft
     </span>
   );
 }
-
-function formatDate(d: string): string {
-  try {
-    return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-  } catch { return d; }
-}
-

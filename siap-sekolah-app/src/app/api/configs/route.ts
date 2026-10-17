@@ -1,12 +1,18 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-import { findWhere, create, generateId } from '@/lib/db';
+import { eq } from 'drizzle-orm';
+import { getDB, assessmentConfigs as configsTable } from '@/db';
 import { getSessionFromRequest, requireRole } from '@/lib/auth';
 import type { AssessmentConfig } from '@/types';
 
 export async function GET() {
   try {
-    const configs = findWhere<AssessmentConfig>('assessment_configs', (c) => c.is_active === true);
+    const db = getDB();
+    const configs = (await db
+      .select()
+      .from(configsTable)
+      .where(eq(configsTable.is_active, true))
+      .all()) as AssessmentConfig[];
     return NextResponse.json({ success: true, data: configs });
   } catch {
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
@@ -15,7 +21,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request);
     const auth = requireRole(session, 'admin');
     if (!auth.authorized) {
       return NextResponse.json({ success: false, error: auth.error }, { status: 403 });
@@ -24,8 +30,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { pos_number, pos_name, pos_description, indicators_json, red_flags_json } = body;
 
+    const db = getDB();
+    const now = new Date().toISOString();
     const newConfig: AssessmentConfig = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       pos_number,
       pos_name,
       pos_description: pos_description || null,
@@ -34,14 +42,13 @@ export async function POST(request: Request) {
       version: '1.0.0',
       is_active: true,
       created_by: session!.user_id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: now,
+      updated_at: now,
     };
 
-    const created = create<AssessmentConfig>('assessment_configs', newConfig);
-    return NextResponse.json({ success: true, data: created }, { status: 201 });
+    await db.insert(configsTable).values(newConfig);
+    return NextResponse.json({ success: true, data: newConfig }, { status: 201 });
   } catch {
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }
-

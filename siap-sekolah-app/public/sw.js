@@ -6,7 +6,7 @@
  * Register in: src/app/layout.tsx via <Script> or inline registration
  */
 
-const CACHE_VERSION = "siap-sekolah-v1";
+const CACHE_VERSION = "siap-sekolah-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 

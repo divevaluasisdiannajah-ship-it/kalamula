@@ -1,45 +1,72 @@
 export const runtime = 'edge';
-import { NextResponse } from "next/server";
-import { findWhere, remove } from "@/lib/db";
-import { getSessionFromRequest, requireRole } from "@/lib/auth";
-import { getBatchStudentProfiles } from "@/lib/profiles";
-import { balanceClasses, buildClassBalanceMetrics } from "@/lib/balancer";
-import type { ClassPlacement } from "@/types";
+import { NextResponse } from 'next/server';
+import { eq, and } from 'drizzle-orm';
+import { getDB, classPlacements as classPlacementsTable } from '@/db';
+import { getSessionFromRequest, requireRole } from '@/lib/auth';
+import { getBatchStudentProfiles } from '@/lib/profiles';
+import { balanceClasses, buildClassBalanceMetrics } from '@/lib/balancer';
+import type { ClassPlacement } from '@/types';
 
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const batchId = url.searchParams.get("batch_id");
+    const batchId = url.searchParams.get('batch_id');
 
     if (!batchId) {
       return NextResponse.json(
-        { success: false, error: "batch_id parameter is required" },
+        { success: false, error: 'batch_id parameter is required' },
         { status: 400 }
       );
     }
 
-    const profiles = getBatchStudentProfiles(batchId);
-    const existingPlacements = findWhere<ClassPlacement>(
-      "class_placements",
-      (cp) => cp.batch_id === batchId
-    );
+    const db = getDB();
+    const profiles = await getBatchStudentProfiles(db, batchId);
+    const existingPlacements = (await db
+      .select()
+      .from(classPlacementsTable)
+      .where(eq(classPlacementsTable.batch_id, batchId))
+      .all()) as ClassPlacement[];
 
     const studentsA = profiles.filter((p) => {
       const placement = existingPlacements.find((ep) => ep.student_id === p.student.id);
-      return placement?.assigned_class === "1A";
+      return placement?.assigned_class === '1A';
     });
 
     const studentsB = profiles.filter((p) => {
       const placement = existingPlacements.find((ep) => ep.student_id === p.student.id);
-      return placement?.assigned_class === "1B";
+      return placement?.assigned_class === '1B';
     });
 
     const unassigned = profiles.filter(
       (p) => !existingPlacements.some((ep) => ep.student_id === p.student.id)
     );
 
-    const classA = buildClassBalanceMetrics("1A", studentsA);
-    const classB = buildClassBalanceMetrics("1B", studentsB);
+    const classA = buildClassBalanceMetrics('1A', studentsA);
+    const classB = buildClassBalanceMetrics('1B', studentsB);
+
+    const genderDiff = Math.abs(classA.male_count - classB.male_count);
+    const redFlagDiff = Math.abs(classA.red_flag_count - classB.red_flag_count);
+    const scoreDiff = Math.abs(classA.avg_score - classB.avg_score);
+
+    const warnings: string[] = [];
+    if (genderDiff > 2) {
+      warnings.push(`Ketidakseimbangan Gender: Selisih ${genderDiff} siswa laki-laki antara 1A dan 1B.`);
+    }
+    if (redFlagDiff > 1) {
+      warnings.push(`Penyebaran Red Flag: Selisih ${redFlagDiff} anak red flag antara 1A dan 1B.`);
+    }
+    if (scoreDiff > 0.3) {
+      warnings.push(`Kesenjangan Rata-rata Skor: Selisih ${scoreDiff.toFixed(2)} antara 1A (${classA.avg_score.toFixed(2)}) dan 1B (${classB.avg_score.toFixed(2)}).`);
+    }
+
+    let balanceScore = 100;
+    balanceScore -= genderDiff * 10;
+    balanceScore -= redFlagDiff * 12;
+    balanceScore -= Math.round(scoreDiff * 30);
+    balanceScore = Math.max(0, Math.min(100, balanceScore));
+
+    classA.balance_score = balanceScore;
+    classB.balance_score = balanceScore;
 
     return NextResponse.json({
       success: true,
@@ -50,20 +77,21 @@ export async function GET(request: Request) {
         classB,
         unassigned,
         placements: existingPlacements,
+        balanceScore: existingPlacements.length > 0 ? balanceScore : null,
+        overallBalanceScore: existingPlacements.length > 0 ? balanceScore : null,
+        warnings,
       },
     });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Internal Server Error" },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : 'Internal Server Error';
+    return NextResponse.json({ success: false, error: errorMsg }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const session = getSessionFromRequest(request);
-    const auth = requireRole(session, "admin");
+    const session = await getSessionFromRequest(request);
+    const auth = requireRole(session, 'admin');
     if (!auth.authorized) {
       return NextResponse.json({ success: false, error: auth.error }, { status: 403 });
     }
@@ -73,49 +101,43 @@ export async function POST(request: Request) {
 
     if (!batch_id) {
       return NextResponse.json(
-        { success: false, error: "batch_id parameter is required" },
+        { success: false, error: 'batch_id parameter is required' },
         { status: 400 }
       );
     }
 
-    const profiles = getBatchStudentProfiles(batch_id);
+    const db = getDB();
+    const profiles = await getBatchStudentProfiles(db, batch_id);
     if (profiles.length === 0) {
       return NextResponse.json(
-        { success: false, error: "Tidak ada siswa pada batch ini" },
+        { success: false, error: 'Tidak ada siswa pada batch ini' },
         { status: 400 }
       );
     }
 
-    // Run Serpentine balancer algorithm
     const result = balanceClasses(profiles, batch_id);
 
-    // If not dry run, persist to database
     if (!dry_run) {
-      // Clear previous auto-placements for this batch
-      const currentPlacements = findWhere<ClassPlacement>(
-        "class_placements",
-        (cp) => cp.batch_id === batch_id
-      );
-      currentPlacements.forEach((cp) => {
-        remove("class_placements", cp.id);
-      });
+      // Clear previous placements for this batch before inserting newly balanced placements
+      await db
+        .delete(classPlacementsTable)
+        .where(eq(classPlacementsTable.batch_id, batch_id));
 
       // Insert new placements
-      const { create } = await import("@/lib/db");
-      result.placements.forEach((p) => {
-        create<ClassPlacement>("class_placements", p);
-      });
+      for (const p of result.placements) {
+        await db.insert(classPlacementsTable).values(p);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: result,
+      data: {
+        ...result,
+        balanceScore: result.overallBalanceScore,
+      },
     });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Internal Server Error" },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : 'Internal Server Error';
+    return NextResponse.json({ success: false, error: errorMsg }, { status: 500 });
   }
 }
-

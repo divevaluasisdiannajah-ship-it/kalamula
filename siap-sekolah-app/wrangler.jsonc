@@ -1,18 +1,13 @@
 {
-  "name": "kalamula",
+  "name": "sdiannajah-kalamula",
   "compatibility_date": "2024-09-23",
-  "pages_build_output_dir": ".next",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": ".vercel/output/static",
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "kalamula-db",
-      "database_id": "8db30f99-b382-426f-b85a-ad23056ccbf9"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "REPORTS_BUCKET",
-      "bucket_name": "kalamula-reports"
+      "database_name": "siap-sekolah-db",
+      "database_id": "9976644c-d337-4412-b8da-f6fc16639119"
     }
   ]
 }

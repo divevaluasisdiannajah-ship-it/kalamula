@@ -1,0 +1,1 @@
+ALTER TABLE `students` ADD `observation_group` text;

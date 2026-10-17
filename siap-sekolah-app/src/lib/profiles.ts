@@ -1,8 +1,19 @@
 /**
  * SIAP SEKOLAH — Profile Aggregator & Teacher Recommendation Engine
+ *
+ * All functions now accept a Drizzle DB instance (D1-compatible)
+ * instead of importing directly from the in-memory store.
  */
 
-import { findById, findWhere, findAll } from "@/lib/db";
+import { eq, and } from "drizzle-orm";
+import type { DB } from "@/db";
+import {
+  students as studentsTable,
+  batches as batchesTable,
+  evaluations as evaluationsTable,
+  parentResponses as parentResponsesTable,
+  classPlacements as classPlacementsTable,
+} from "@/db/schema";
 import type {
   Student,
   Batch,
@@ -12,22 +23,57 @@ import type {
   ClassPlacement,
   StudentProfile,
   ReadingLevel,
+  FoundationNumber,
 } from "@/types";
+
+export const INDICATOR_FOUNDATION_MAP: Record<string, FoundationNumber> = {
+  "1.1": 3,
+  "1.2": 5,
+  "1.3": 1,
+  "2.1": 5,
+  "2.2": 5,
+  "3.1": 4,
+  "3.2": 4,
+  "4.1": 2,
+  "4.2": 2,
+  "4.3": 5,
+  "5.1": 2,
+  "5.2": 3,
+  "5.3": 6,
+};
 
 /**
  * Builds a comprehensive profile for a single student
  */
-export function buildStudentProfile(
+export async function buildStudentProfile(
+  db: DB,
   student: Student,
   batchId?: string
-): StudentProfile {
+): Promise<StudentProfile> {
   const currentBatchId = batchId || student.batch_id || "";
-  const batch = currentBatchId ? findById<Batch>("batches", currentBatchId) || null : null;
 
-  // Find all evaluations
-  const evaluationsRaw = findWhere<Evaluation>("evaluations", (e) =>
-    e.student_id === student.id && (!currentBatchId || e.batch_id === currentBatchId)
-  );
+  // Fetch batch
+  const batch: Batch | null = currentBatchId
+    ? ((await db
+        .select()
+        .from(batchesTable)
+        .where(eq(batchesTable.id, currentBatchId))
+        .get()) as Batch | null)
+    : null;
+
+  // Fetch evaluations
+  const evaluationsRaw = (await db
+    .select()
+    .from(evaluationsTable)
+    .where(
+      currentBatchId
+        ? and(
+            eq(evaluationsTable.student_id, student.id),
+            eq(evaluationsTable.batch_id, currentBatchId)
+          )
+        : eq(evaluationsTable.student_id, student.id)
+    )
+    .all()) as Evaluation[];
 
   const evaluations: EvaluationParsed[] = evaluationsRaw.map((e) => ({
     id: e.id,
@@ -49,19 +95,37 @@ export function buildStudentProfile(
     updated_at: e.updated_at,
   }));
 
-  // Parent response
-  const parent_response =
-    findWhere<ParentResponse>("parent_responses", (p) =>
-      p.student_id === student.id && (!currentBatchId || p.batch_id === currentBatchId)
-    )[0] || null;
+  // Fetch parent response
+  const parentResponseRow = (await db
+    .select()
+    .from(parentResponsesTable)
+    .where(
+      currentBatchId
+        ? and(
+            eq(parentResponsesTable.student_id, student.id),
+            eq(parentResponsesTable.batch_id, currentBatchId)
+          )
+        : eq(parentResponsesTable.student_id, student.id)
+    )
+    .get()) as ParentResponse | null;
+  const parent_response = parentResponseRow ?? null;
 
-  // Class placement
-  const placement =
-    findWhere<ClassPlacement>("class_placements", (cp) =>
-      cp.student_id === student.id && (!currentBatchId || cp.batch_id === currentBatchId)
-    )[0] || null;
+  // Fetch class placement
+  const placementRow = (await db
+    .select()
+    .from(classPlacementsTable)
+    .where(
+      currentBatchId
+        ? and(
+            eq(classPlacementsTable.student_id, student.id),
+            eq(classPlacementsTable.batch_id, currentBatchId)
+          )
+        : eq(classPlacementsTable.student_id, student.id)
+    )
+    .get()) as ClassPlacement | null;
+  const placement = placementRow ?? null;
 
-  // Pos Scores (1 to 5)
+  // Compute pos scores
   const pos_scores: Record<number, number | null> = {
     1: null,
     2: null,
@@ -81,12 +145,8 @@ export function buildStudentProfile(
       totalScoreSum += ev.total_score;
       scoredPosCount++;
     }
-    if (ev.has_red_flag) {
-      has_any_red_flag = true;
-    }
-    if (ev.pos_number === 4 && ev.reading_level) {
-      reading_level = ev.reading_level;
-    }
+    if (ev.has_red_flag) has_any_red_flag = true;
+    if (ev.pos_number === 4 && ev.reading_level) reading_level = ev.reading_level;
   });
 
   const overall_score =
@@ -94,6 +154,40 @@ export function buildStudentProfile(
 
   const completedPosCount = evaluations.filter((e) => e.is_complete).length;
   const completion_rate = Math.round((completedPosCount / 5) * 100);
+
+  // Compute scores for the 6 Fondasi Transisi PAUD-SD Kemendikbudristek
+  const foundationSums: Record<FoundationNumber, { sum: number; count: number }> = {
+    1: { sum: 0, count: 0 },
+    2: { sum: 0, count: 0 },
+    3: { sum: 0, count: 0 },
+    4: { sum: 0, count: 0 },
+    5: { sum: 0, count: 0 },
+    6: { sum: 0, count: 0 },
+  };
+
+  evaluations.forEach((ev) => {
+    if (ev.scores && typeof ev.scores === "object") {
+      Object.entries(ev.scores).forEach(([indId, val]) => {
+        const numVal = Number(val);
+        if (!isNaN(numVal) && numVal >= 1 && numVal <= 4) {
+          const foundation = INDICATOR_FOUNDATION_MAP[indId];
+          if (foundation) {
+            foundationSums[foundation].sum += numVal;
+            foundationSums[foundation].count += 1;
+          }
+        }
+      });
+    }
+  });
+
+  const foundation_scores: Record<FoundationNumber, number | null> = {
+    1: foundationSums[1].count > 0 ? Number((foundationSums[1].sum / foundationSums[1].count).toFixed(2)) : (pos_scores[1] ?? null),
+    2: foundationSums[2].count > 0 ? Number((foundationSums[2].sum / foundationSums[2].count).toFixed(2)) : (pos_scores[4] ?? null),
+    3: foundationSums[3].count > 0 ? Number((foundationSums[3].sum / foundationSums[3].count).toFixed(2)) : (pos_scores[1] ?? null),
+    4: foundationSums[4].count > 0 ? Number((foundationSums[4].sum / foundationSums[4].count).toFixed(2)) : (pos_scores[3] ?? null),
+    5: foundationSums[5].count > 0 ? Number((foundationSums[5].sum / foundationSums[5].count).toFixed(2)) : (pos_scores[2] ?? null),
+    6: foundationSums[6].count > 0 ? Number((foundationSums[6].sum / foundationSums[6].count).toFixed(2)) : (pos_scores[5] ?? null),
+  };
 
   return {
     student,
@@ -106,15 +200,24 @@ export function buildStudentProfile(
     has_any_red_flag,
     reading_level,
     pos_scores,
+    foundation_scores,
   };
 }
 
 /**
  * Gets student profiles for an entire batch
  */
-export function getBatchStudentProfiles(batchId: string): StudentProfile[] {
-  const students = findWhere<Student>("students", (s) => s.batch_id === batchId);
-  return students.map((s) => buildStudentProfile(s, batchId));
+export async function getBatchStudentProfiles(
+  db: DB,
+  batchId: string
+): Promise<StudentProfile[]> {
+  const rows = (await db
+    .select()
+    .from(studentsTable)
+    .where(eq(studentsTable.batch_id, batchId))
+    .all()) as Student[];
+
+  return Promise.all(rows.map((s) => buildStudentProfile(db, s, batchId)));
 }
 
 /**
@@ -128,13 +231,20 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   const p1 = profile.pos_scores[1];
   if (p1 !== null) {
     if (p1 >= 3.5) {
-      narratives[1] = "Menunjukkan kematangan emosi yang sangat baik. Cepat beradaptasi di lingkungan baru, mandiri mengelola barang pribadi, dan konsisten mempraktikkan budaya santun serta antre.";
+      narratives[1] =
+        "Menunjukkan kematangan emosi yang sangat baik. Cepat beradaptasi di lingkungan baru, mandiri mengelola barang pribadi, dan konsisten mempraktikkan budaya santun serta antre.";
     } else if (p1 >= 2.5) {
-      narratives[1] = "Mampu berpisah dari orang tua dengan pendampingan wajar. Mulai mandiri dalam merapikan barang dan memahami aturan antre sederhana di kelas.";
-      stimulations.push("Latih kemandirian meletakkan sepatu dan tas sendiri di rumah tanpa bantuan orang tua.");
+      narratives[1] =
+        "Mampu berpisah dari orang tua dengan pendampingan wajar. Mulai mandiri dalam merapikan barang dan memahami aturan antre sederhana di kelas.";
+      stimulations.push(
+        "Latih kemandirian meletakkan sepatu dan tas sendiri di rumah tanpa bantuan orang tua."
+      );
     } else {
-      narratives[1] = "Masih membutuhkan transisi emosi yang lebih tenang saat berpisah dari orang tua. Memerlukan penguatan afeksi dan pembiasaan rutinitas kemandirian.";
-      stimulations.push("Buat rutinitas perpisahan pagi yang konsisten dan berikan apresiasi setiap kali anak berhasil mandiri.");
+      narratives[1] =
+        "Masih membutuhkan transisi emosi yang lebih tenang saat berpisah dari orang tua. Memerlukan penguatan afeksi dan pembiasaan rutinitas kemandirian.";
+      stimulations.push(
+        "Buat rutinitas perpisahan pagi yang konsisten dan berikan apresiasi setiap kali anak berhasil mandiri."
+      );
     }
   }
 
@@ -142,13 +252,20 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   const p2 = profile.pos_scores[2];
   if (p2 !== null) {
     if (p2 >= 3.5) {
-      narratives[2] = "Koordinasi fisik dan keseimbangan tubuh sangat prima. Cekatan merespons instruksi gerak berurutan dan tangkas menangkap bola.";
+      narratives[2] =
+        "Koordinasi fisik dan keseimbangan tubuh sangat prima. Cekatan merespons instruksi gerak berurutan dan tangkas menangkap bola.";
     } else if (p2 >= 2.5) {
-      narratives[2] = "Koordinasi fisik dasar telah berkembang sesuai usia. Mampu meniti dan melompat dengan kendali tubuh yang cukup stabil.";
-      stimulations.push("Ajak aktivitas luar ruangan seperti meniti garis lurus, lempar-tangkap bola, atau bersepeda.");
+      narratives[2] =
+        "Koordinasi fisik dasar telah berkembang sesuai usia. Mampu meniti dan melompat dengan kendali tubuh yang cukup stabil.";
+      stimulations.push(
+        "Ajak aktivitas luar ruangan seperti meniti garis lurus, lempar-tangkap bola, atau bersepeda."
+      );
     } else {
-      narratives[2] = "Perlu stimulasi penguatan otot tungkai dan koordinasi visual-motorik (mata-tangan).";
-      stimulations.push("Perbanyak latihan gerak aktif: lompat tali sederhana, merangkak di rintangan bantal, dan bermain bola.");
+      narratives[2] =
+        "Perlu stimulasi penguatan otot tungkai dan koordinasi visual-motorik (mata-tangan).";
+      stimulations.push(
+        "Perbanyak latihan gerak aktif: lompat tali sederhana, merangkak di rintangan bantal, dan bermain bola."
+      );
     }
   }
 
@@ -156,13 +273,20 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   const p3 = profile.pos_scores[3];
   if (p3 !== null) {
     if (p3 >= 3.5) {
-      narratives[3] = "Penalaran logis sangat kuat. Sangat cepat menemukan pola berulang, membandingkan kuantitas objek konkret, serta tekun memecahkan masalah teka-teki balok.";
+      narratives[3] =
+        "Penalaran logis sangat kuat. Sangat cepat menemukan pola berulang, membandingkan kuantitas objek konkret, serta tekun memecahkan masalah teka-teki balok.";
     } else if (p3 >= 2.5) {
-      narratives[3] = "Memahami konsep banyak-sedikit dan klasifikasi benda berdasarkan warna/bentuk secara konkret.";
-      stimulations.push("Libatkan dalam permainan menyortir benda di rumah (sendok-garpu, kaos kaki berpasangan) dan puzzle.");
+      narratives[3] =
+        "Memahami konsep banyak-sedikit dan klasifikasi benda berdasarkan warna/bentuk secara konkret.";
+      stimulations.push(
+        "Libatkan dalam permainan menyortir benda di rumah (sendok-garpu, kaos kaki berpasangan) dan puzzle."
+      );
     } else {
-      narratives[3] = "Konsep kuantitas dan persepsi spasial masih dalam tahap pengenalan awal dengan objek konkret.";
-      stimulations.push("Gunakan benda nyata sehari-hari untuk menghitung benda 1-10 sambil disentuh (one-to-one correspondence).");
+      narratives[3] =
+        "Konsep kuantitas dan persepsi spasial masih dalam tahap pengenalan awal dengan objek konkret.";
+      stimulations.push(
+        "Gunakan benda nyata sehari-hari untuk menghitung benda 1-10 sambil disentuh (one-to-one correspondence)."
+      );
     }
   }
 
@@ -175,14 +299,19 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
       L3: "Tingkat 3 (Membaca Suku Kata)",
       L4: "Tingkat 4 (Membaca Kalimat Lancar)",
     };
-    const readingStatus = profile.reading_level ? readingMap[profile.reading_level] : "Belum dievaluasi";
-
+    const readingStatus = profile.reading_level
+      ? readingMap[profile.reading_level]
+      : "Belum dievaluasi";
     narratives[4] = `Kesiapan membaca berada pada ${readingStatus}. `;
     if (p4 >= 3.0) {
-      narratives[4] += "Daya simak cerita lisan sangat fokus, artikulasi gagasan jelas, dan kontrol jari saat memegang pensil sudah stabil.";
+      narratives[4] +=
+        "Daya simak cerita lisan sangat fokus, artikulasi gagasan jelas, dan kontrol jari saat memegang pensil sudah stabil.";
     } else {
-      narratives[4] += "Perlu pengayaan perbendaharaan kata melalui dialog interaktif dan stimulasi motorik halus jemari tangan.";
-      stimulations.push("Rutin bacakan buku cerita bergambar 10-15 menit setiap hari dan ajak bermain plastisin atau meronce.");
+      narratives[4] +=
+        "Perlu pengayaan perbendaharaan kata melalui dialog interaktif dan stimulasi motorik halus jemari tangan.";
+      stimulations.push(
+        "Rutin bacakan buku cerita bergambar 10-15 menit setiap hari dan ajak bermain plastisin atau meronce."
+      );
     }
   }
 
@@ -190,13 +319,18 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   const p5 = profile.pos_scores[5];
   if (p5 !== null) {
     if (p5 >= 3.5) {
-      narratives[5] = "Kemampuan sosialisasi sangat hangat. Suka berbagi mainan, mampu berkolaborasi dalam kelompok kecil, dan memiliki regulasi emosi yang baik saat bermain.";
+      narratives[5] =
+        "Kemampuan sosialisasi sangat hangat. Suka berbagi mainan, mampu berkolaborasi dalam kelompok kecil, dan memiliki regulasi emosi yang baik saat bermain.";
     } else if (p5 >= 2.5) {
-      narratives[5] = "Mampu bermain berdampingan dan mulai menunjukkan inisiatif berbagi dengan dorongan pembimbing.";
+      narratives[5] =
+        "Mampu bermain berdampingan dan mulai menunjukkan inisiatif berbagi dengan dorongan pembimbing.";
       stimulations.push("Berikan kesempatan bermain bergantian dengan saudara atau teman sebaya.");
     } else {
-      narratives[5] = "Perlu pendampingan untuk mengatasi kecemasan sosial dan bimbingan saat berbagi ruang interaksi.";
-      stimulations.push("Bimbing anak mengungkapkan perasaan dengan kata-kata ('aku mau pinjam', 'sebentar ya') daripada tindakan fisik.");
+      narratives[5] =
+        "Perlu pendampingan untuk mengatasi kecemasan sosial dan bimbingan saat berbagi ruang interaksi.";
+      stimulations.push(
+        "Bimbing anak mengungkapkan perasaan dengan kata-kata ('aku mau pinjam', 'sebentar ya') daripada tindakan fisik."
+      );
     }
   }
 

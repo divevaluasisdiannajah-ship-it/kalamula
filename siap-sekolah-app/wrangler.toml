@@ -1,0 +1,9 @@
+name = "sdiannajah-kalamula"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "siap-sekolah-db"
+database_id = "9976644c-d337-4412-b8da-f6fc16639119"

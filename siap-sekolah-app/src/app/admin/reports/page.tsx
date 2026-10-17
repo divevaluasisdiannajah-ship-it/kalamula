@@ -1,10 +1,9 @@
-export const runtime = 'edge';
 "use client";
+export const runtime = 'edge';
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { StudentHeroCard } from "@/components/aetrium/StudentHeroCard";
-import { Printer, MagnifyingGlass } from "@phosphor-icons/react";
 import type { Batch, StudentProfile } from "@/types";
 
 export default function AdminReportsPage() {
@@ -79,27 +78,45 @@ export default function AdminReportsPage() {
   }, [students, searchQuery]);
 
   return (
-    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6 font-sans">
+    <div className="space-y-6 font-sans">
+      {/* Top Bar Navigation & Badge */}
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#E8E2D8] text-xs font-bold text-[#486B5A] hover:bg-white hover:text-[#22352B] transition-colors shadow-2xs"
+        >
+          <i className="mdi mdi-arrow-left text-sm" />
+          <span>Dashboard Admin</span>
+        </Link>
+        <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-[#E4EAF2] text-[#36506C]">
+          PUSAT LAPORAN
+        </span>
+      </div>
+
       {/* Page Heading */}
-      <div>
-        <h1 className="font-brand text-2xl font-bold text-[#1E2320] tracking-tight">Pusat Dokumen & Laporan Siswa</h1>
-        <p className="text-xs sm:text-sm text-[#565C58] mt-0.5">
-          Format 1 Halaman PDF Siap Cetak untuk Guru Kelas & Orang Tua, bebas jargon teknis.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#22352B] tracking-tight">
+            Pusat Dokumen & Laporan Siswa
+          </h1>
+          <p className="text-xs sm:text-sm text-[#565C58] mt-1">
+            Format 1 Halaman PDF Siap Cetak untuk Guru Kelas & Orang Tua, bebas jargon teknis.
+          </p>
+        </div>
       </div>
 
       {/* Control Header & Filters */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8E2D8] shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-[#E8E2D8]/60 shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <label htmlFor="batch-select" className="text-xs font-bold text-[#565C58] uppercase tracking-wider flex-shrink-0">
+            <label htmlFor="batch-select" className="text-xs font-extrabold text-[#565C58] uppercase tracking-wider flex-shrink-0">
               Gelombang:
             </label>
             <select
               id="batch-select"
               value={selectedBatchId}
               onChange={(e) => setSelectedBatchId(e.target.value)}
-              className="flex-1 sm:flex-initial h-11 rounded-xl px-3.5 text-xs sm:text-sm bg-[#FAF8F5] text-[#1E2320] font-bold border border-[#E5E0D8] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none cursor-pointer"
+              className="flex-1 sm:flex-initial h-11 rounded-2xl px-3.5 text-xs sm:text-sm bg-white text-[#22352B] font-bold border border-[#E8E2D8] shadow-2xs focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none cursor-pointer"
             >
               {batches.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -114,10 +131,10 @@ export default function AdminReportsPage() {
               href={`/reports/batch/${selectedBatchId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-11 bg-[#C9733B] hover:bg-[#B8632E] text-white px-4 text-xs rounded-xl font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 active:scale-[0.98] w-full sm:w-auto flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+              className="h-11 bg-[#B85627] hover:bg-[#A34B21] text-white px-5 text-xs rounded-2xl font-bold shadow-sm flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:scale-[0.98] w-full sm:w-auto flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2"
               title="Buka Lembar Rekapitulasi Gelombang Siap Cetak"
             >
-              <Printer weight="light" size={16} />
+              <i className="mdi mdi-printer text-base" />
               <span>Cetak Rekap Gelombang</span>
             </Link>
           )}
@@ -125,14 +142,14 @@ export default function AdminReportsPage() {
 
         <div className="relative w-full sm:w-72">
           <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-[#787F7A]">
-            <MagnifyingGlass weight="light" size={17} />
+            <i className="mdi mdi-magnify text-lg" />
           </div>
           <input
             type="text"
             placeholder="Cari nama atau No. Reg..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 pl-10 pr-3.5 text-xs sm:text-sm bg-[#FAF8F5] rounded-xl text-[#1E2320] placeholder:text-[#A8A09A] border border-[#E5E0D8] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none transition-all"
+            className="w-full h-11 pl-10 pr-4 text-xs sm:text-sm bg-[#FAF8F5] rounded-full text-[#22352B] placeholder:text-[#A8A09A] border border-[#E8E2D8] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none transition-all"
           />
         </div>
       </div>
@@ -140,17 +157,18 @@ export default function AdminReportsPage() {
       {/* Main Content Area */}
       <section aria-label="Daftar Siswa">
         {loading ? (
-          <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-xs p-16 text-center text-xs text-[#565C58] font-medium animate-pulse">
-            Memuat daftar calon siswa dan laporan...
+          <div className="bg-white rounded-3xl border border-[#E8E2D8]/60 shadow-xs p-16 text-center text-xs text-[#565C58] font-bold flex flex-col items-center justify-center gap-3">
+            <i className="mdi mdi-loading mdi-spin text-3xl text-[#486B5A]" />
+            <span>Memuat daftar calon siswa dan laporan...</span>
           </div>
         ) : filteredStudents.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-xs p-12 text-center text-xs text-[#565C58]">
+          <div className="bg-white rounded-3xl border border-[#E8E2D8]/60 shadow-xs p-12 text-center text-xs text-[#565C58]">
             {searchQuery
               ? "Tidak ada siswa yang cocok dengan kata kunci pencarian."
               : "Belum ada data siswa pada gelombang yang dipilih."}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {filteredStudents.map((p) => {
               const completedPos = [1, 2, 3, 4, 5].filter(
                 (pos) => p.pos_scores[pos] !== null
@@ -171,9 +189,9 @@ export default function AdminReportsPage() {
                       href={`/reports/student/${p.student.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="h-10 px-3.5 bg-[#1E2320] hover:bg-[#2C332E] text-white text-xs rounded-xl font-bold shadow-xs inline-flex items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2"
+                      className="h-10 px-4 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs rounded-2xl font-bold shadow-xs inline-flex items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2"
                     >
-                      <Printer weight="light" size={15} />
+                      <i className="mdi mdi-printer text-base" />
                       <span>Cetak PDF</span>
                     </Link>
                   }
@@ -186,4 +204,3 @@ export default function AdminReportsPage() {
     </div>
   );
 }
-

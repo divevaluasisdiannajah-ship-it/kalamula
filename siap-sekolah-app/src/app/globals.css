@@ -28,16 +28,16 @@ html {
 }
 
 body {
-  background-color: #FAF7F2;
-  color: #2C2725;
-  font-family: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, sans-serif;
+  background-color: #F6F2E9;
+  color: #22352B;
+  font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
 }
 
 .font-brand {
-  font-family: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "DM Sans", sans-serif;
+  font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", sans-serif;
 }
 
 /* ─── Kalamula Card Style (Elevation & Soft Ambient Shadow) ─── */

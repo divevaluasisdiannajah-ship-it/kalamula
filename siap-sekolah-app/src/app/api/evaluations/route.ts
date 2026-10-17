@@ -1,6 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-import { findAll, findWhere, findOne, create, update, generateId } from '@/lib/db';
+import { eq, and } from 'drizzle-orm';
+import { getDB, evaluations as evaluationsTable, students as studentsTable } from '@/db';
 import { getSessionFromRequest, requireRole } from '@/lib/auth';
 import type { Evaluation, Student } from '@/types';
 
@@ -11,22 +12,35 @@ export async function GET(request: Request) {
     const batchId = url.searchParams.get('batch_id');
     const posNumber = url.searchParams.get('pos_number');
 
-    let evaluations: Evaluation[];
+    const db = getDB();
+    let query = db.select().from(evaluationsTable);
 
+    let evaluations: Evaluation[];
     if (studentId && batchId) {
-      evaluations = findWhere<Evaluation>('evaluations', (e) =>
-        e.student_id === studentId && e.batch_id === batchId
-      );
+      evaluations = (await query
+        .where(
+          and(eq(evaluationsTable.student_id, studentId), eq(evaluationsTable.batch_id, batchId))
+        )
+        .all()) as Evaluation[];
     } else if (batchId && posNumber) {
-      evaluations = findWhere<Evaluation>('evaluations', (e) =>
-        e.batch_id === batchId && e.pos_number === parseInt(posNumber)
-      );
+      evaluations = (await query
+        .where(
+          and(
+            eq(evaluationsTable.batch_id, batchId),
+            eq(evaluationsTable.pos_number, parseInt(posNumber))
+          )
+        )
+        .all()) as Evaluation[];
     } else if (studentId) {
-      evaluations = findWhere<Evaluation>('evaluations', (e) => e.student_id === studentId);
+      evaluations = (await query
+        .where(eq(evaluationsTable.student_id, studentId))
+        .all()) as Evaluation[];
     } else if (batchId) {
-      evaluations = findWhere<Evaluation>('evaluations', (e) => e.batch_id === batchId);
+      evaluations = (await query
+        .where(eq(evaluationsTable.batch_id, batchId))
+        .all()) as Evaluation[];
     } else {
-      evaluations = findAll<Evaluation>('evaluations');
+      evaluations = (await query.all()) as Evaluation[];
     }
 
     return NextResponse.json({ success: true, data: evaluations });
@@ -37,7 +51,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request);
     const auth = requireRole(session, 'evaluator', 'admin');
     if (!auth.authorized) {
       return NextResponse.json({ success: false, error: auth.error }, { status: 403 });
@@ -45,40 +59,61 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const {
-      student_id, batch_id, pos_number, config_id,
-      scores_json, reading_level, red_flags_json,
-      anecdotal_note, client_id,
+      student_id,
+      batch_id,
+      pos_number,
+      config_id,
+      scores_json,
+      reading_level,
+      red_flags_json,
+      anecdotal_note,
+      client_id,
     } = body;
 
+    const db = getDB();
+
     // Validate student exists
-    const student = findOne<Student>('students', (s) => s.id === student_id);
+    const student = (await db
+      .select()
+      .from(studentsTable)
+      .where(eq(studentsTable.id, student_id))
+      .get()) as Student | null;
     if (!student) {
       return NextResponse.json({ success: false, error: 'Siswa tidak ditemukan' }, { status: 404 });
     }
 
     // Check for existing evaluation (upsert)
-    const existing = findOne<Evaluation>('evaluations', (e) =>
-      e.student_id === student_id && e.batch_id === batch_id && e.pos_number === pos_number
-    );
+    const existing = (await db
+      .select()
+      .from(evaluationsTable)
+      .where(
+        and(
+          eq(evaluationsTable.student_id, student_id),
+          eq(evaluationsTable.batch_id, batch_id),
+          eq(evaluationsTable.pos_number, pos_number)
+        )
+      )
+      .get()) as Evaluation | null;
 
     // Parse scores and compute total
     const scores = typeof scores_json === 'string' ? JSON.parse(scores_json) : scores_json;
-    const scoreValues = Object.values(scores).filter((v): v is number => typeof v === 'number');
-    const totalScore = scoreValues.length > 0
-      ? scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length
-      : null;
+    const scoreValues = Object.values(scores).filter(
+      (v): v is number => typeof v === 'number'
+    );
+    const totalScore =
+      scoreValues.length > 0
+        ? scoreValues.reduce((a: number, b: number) => a + b, 0) / scoreValues.length
+        : null;
 
     // Parse red flags
     const redFlags = typeof red_flags_json === 'string' ? JSON.parse(red_flags_json) : red_flags_json;
     const hasRedFlag = Object.values(redFlags).some((v) => v === true);
 
-    // Determine completion
-    const configScoresCount = scoreValues.length;
-    const isComplete = configScoresCount > 0; // at least some scores filled
+    const isComplete = scoreValues.length > 0;
+    const now = new Date().toISOString();
 
     if (existing) {
-      // Update existing evaluation
-      const updated = update<Evaluation>('evaluations', existing.id, {
+      const updates = {
         scores_json: JSON.stringify(scores),
         reading_level: reading_level || null,
         red_flags_json: JSON.stringify(redFlags),
@@ -86,14 +121,16 @@ export async function POST(request: Request) {
         anecdotal_note: anecdotal_note || null,
         total_score: totalScore,
         is_complete: isComplete,
-        synced_at: new Date().toISOString(),
-      });
-      return NextResponse.json({ success: true, data: updated });
+        synced_at: now,
+        updated_at: now,
+      };
+      await db.update(evaluationsTable).set(updates).where(eq(evaluationsTable.id, existing.id));
+      return NextResponse.json({ success: true, data: { ...existing, ...updates } });
     }
 
     // Create new evaluation
     const newEvaluation: Evaluation = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       student_id,
       batch_id,
       pos_number,
@@ -107,15 +144,14 @@ export async function POST(request: Request) {
       total_score: totalScore,
       is_complete: isComplete,
       client_id: client_id || null,
-      synced_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      synced_at: now,
+      created_at: now,
+      updated_at: now,
     };
 
-    const created = create<Evaluation>('evaluations', newEvaluation);
-    return NextResponse.json({ success: true, data: created }, { status: 201 });
+    await db.insert(evaluationsTable).values(newEvaluation);
+    return NextResponse.json({ success: true, data: newEvaluation }, { status: 201 });
   } catch {
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }
-

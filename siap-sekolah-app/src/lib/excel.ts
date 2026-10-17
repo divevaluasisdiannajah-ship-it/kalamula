@@ -20,6 +20,7 @@ export const TEMPLATE_HEADERS: (keyof ExcelStudentRow)[] = [
   "Jenis_Kelamin",
   "Nama_Orang_Tua",
   "No_WhatsApp",
+  "Kelompok",
 ];
 
 const HEADER_LABELS: Record<string, string> = {
@@ -30,6 +31,7 @@ const HEADER_LABELS: Record<string, string> = {
   Jenis_Kelamin: "Jenis Kelamin (L/P)",
   Nama_Orang_Tua: "Nama Orang Tua",
   No_WhatsApp: "No WhatsApp",
+  Kelompok: "Kelompok (1/2/3)",
 };
 
 // ─── Generate Template ─────────────────────────────────────────
@@ -50,19 +52,17 @@ export function generateTemplate(): Buffer {
     { wch: 18 }, // Jenis_Kelamin
     { wch: 28 }, // Nama_Orang_Tua
     { wch: 16 }, // No_WhatsApp
+    { wch: 18 }, // Kelompok
   ];
 
-  // Add example row
-  const exampleRow = [
-    "PPDB-2026-001",
-    "Ahmad Putra Pratama",
-    "Ahmad",
-    "15/03/2020",
-    "L",
-    "Budi Pratama",
-    "08123456789",
+  // Add example rows (showing 3 groups, 4-5 kids each)
+  const exampleRows = [
+    ["PPDB-2026-001", "Ahmad Putra Pratama", "Ahmad", "15/03/2020", "L", "Budi Pratama", "08123456789", "Kelompok 1"],
+    ["PPDB-2026-002", "Alula Farzana Ayunindya", "Alula", "22/07/2020", "P", "Hendra Wijaya", "08123456780", "Kelompok 1"],
+    ["PPDB-2026-003", "Bilal Ramadhan", "Bilal", "10/05/2020", "L", "Farhan Ramadhan", "08123456781", "Kelompok 2"],
+    ["PPDB-2026-004", "Clarissa Aurelia", "Clarissa", "18/09/2020", "P", "Denny Setiawan", "08123456782", "Kelompok 3"],
   ];
-  XLSX.utils.sheet_add_aoa(ws, [exampleRow], { origin: "A2" });
+  XLSX.utils.sheet_add_aoa(ws, exampleRows, { origin: "A2" });
 
   XLSX.utils.book_append_sheet(wb, ws, "Data Siswa");
 
@@ -169,6 +169,21 @@ export function validateRows(
       warnings.push("No WhatsApp kosong");
     }
 
+    // ── Batch Capacity Warning (Maksimal 15 anak per gelombang) ─
+    if (rows.length > 15 && index === 0) {
+      warnings.push(
+        `Perhatian: Kuota observasi ideal adalah maksimal 15 anak per gelombang (File ini memuat ${rows.length} anak).`
+      );
+    }
+
+    // ── Normalisasi Kelompok ──────────────────────────────────
+    if (row.Kelompok?.trim()) {
+      const normalized = normalizeGroup(row.Kelompok);
+      if (normalized) {
+        row.Kelompok = normalized;
+      }
+    }
+
     return {
       row_index: index + 2, // +1 for 0-index, +1 for header row
       data: row,
@@ -178,6 +193,79 @@ export function validateRows(
       is_duplicate,
     };
   });
+}
+
+// ─── Group Normalizer & Auto-Assignment ────────────────────────
+
+export function normalizeGroup(input?: string | null): string | null {
+  if (!input) return null;
+  const trimmed = input.trim();
+  const match = trimmed.match(/(\d+)/);
+  if (match) {
+    return `Kelompok ${match[1]}`;
+  }
+  return trimmed || null;
+}
+
+/**
+ * Auto-assigns students to observation groups (minimal 4, maksimal 5 per kelompok)
+ * Balancing gender (L/P) across the groups.
+ * Capacity per wave is max 15 students:
+ * - N <= 5: 1 group
+ * - N <= 10: 2 groups (e.g. 10 -> 5 & 5)
+ * - N >= 11: 3 groups (e.g. 12 -> 4, 4, 4; 15 -> 5, 5, 5)
+ */
+export function autoAssignObservationGroups<
+  T extends { gender?: string; Jenis_Kelamin?: string; observation_group?: string | null; Kelompok?: string }
+>(items: T[]): T[] {
+  if (!items || items.length === 0) return items;
+
+  const total = items.length;
+  let groupCount = 1;
+  if (total <= 5) {
+    groupCount = 1;
+  } else if (total <= 10) {
+    groupCount = 2;
+  } else {
+    groupCount = 3;
+  }
+
+  const males: T[] = [];
+  const females: T[] = [];
+  const others: T[] = [];
+
+  items.forEach((item) => {
+    const g = (item.gender || item.Jenis_Kelamin || "").toUpperCase();
+    if (g === "L" || g.startsWith("LAKI")) {
+      males.push(item);
+    } else if (g === "P" || g.startsWith("PEREM") || g.startsWith("WANITA")) {
+      females.push(item);
+    } else {
+      others.push(item);
+    }
+  });
+
+  let groupIndex = 0;
+  const assign = (list: T[]) => {
+    list.forEach((item) => {
+      const existing = item.observation_group || normalizeGroup(item.Kelompok);
+      if (existing) {
+        if ("observation_group" in item) item.observation_group = existing;
+        if ("Kelompok" in item) item.Kelompok = existing;
+      } else {
+        const groupLabel = `Kelompok ${(groupIndex % groupCount) + 1}`;
+        if ("observation_group" in item) item.observation_group = groupLabel;
+        if ("Kelompok" in item) item.Kelompok = groupLabel;
+        groupIndex++;
+      }
+    });
+  };
+
+  assign(males);
+  assign(females);
+  assign(others);
+
+  return items;
 }
 
 // ─── Date Parser (Flexible) ───────────────────────────────────
@@ -233,12 +321,13 @@ export function exportStudentsToExcel(students: Student[]): Buffer {
     s.gender,
     s.parent_name || "",
     s.phone || "",
+    s.observation_group || "",
   ]);
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
   ws["!cols"] = [
     { wch: 16 }, { wch: 28 }, { wch: 16 },
-    { wch: 20 }, { wch: 18 }, { wch: 28 }, { wch: 16 },
+    { wch: 20 }, { wch: 18 }, { wch: 28 }, { wch: 16 }, { wch: 18 },
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Data Siswa");

@@ -80,11 +80,70 @@ export interface Student {
   parent_name: string | null;
   phone: string | null;
   batch_id: string | null;
+  observation_group: string | null; // e.g. "Kelompok 1", "Kelompok 2", "Kelompok 3"
   avatar_seed: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
+
+// ─── 6 Fondasi Transisi PAUD-SD Kemendikbudristek ─────────────
+
+export type FoundationNumber = 1 | 2 | 3 | 4 | 5 | 6;
+
+export const FOUNDATION_LABELS: Record<
+  FoundationNumber,
+  { name: string; short: string; focus: string; color: string; badgeBg: string; badgeText: string }
+> = {
+  1: {
+    name: "Mengenal Nilai Agama dan Budi Pekerti",
+    short: "Agama & Budi Pekerti",
+    focus: "Adab, kesopanan, kata santun, dan pengenalan adab dasar",
+    color: "#7D5327",
+    badgeBg: "bg-[#EFE7D6]",
+    badgeText: "text-[#7D5327]",
+  },
+  2: {
+    name: "Keterampilan Sosial dan Bahasa untuk Berinteraksi",
+    short: "Sosial & Bahasa",
+    focus: "Komunikasi dua arah, menyimak instruksi, kerja sama, dan berbagi",
+    color: "#36506C",
+    badgeBg: "bg-[#E4EAF2]",
+    badgeText: "text-[#36506C]",
+  },
+  3: {
+    name: "Kematangan Emosi di Lingkungan Belajar",
+    short: "Kematangan Emosi",
+    focus: "Regulasi diri, kemandirian berpisah dari orang tua, dan toleransi aturan/kesulitan",
+    color: "#8C3713",
+    badgeBg: "bg-[#F9E6DC]",
+    badgeText: "text-[#8C3713]",
+  },
+  4: {
+    name: "Kematangan Kognitif untuk Melakukan Kegiatan Belajar",
+    short: "Kognitif & Literasi",
+    focus: "Dasar literasi, pra-numerasi, pemecahan masalah spasial, dan logika dasar",
+    color: "#486B5A",
+    badgeBg: "bg-[#E4EFE9]",
+    badgeText: "text-[#486B5A]",
+  },
+  5: {
+    name: "Pengembangan Keterampilan Motorik dan Perawatan Diri",
+    short: "Motorik & Self-Care",
+    focus: "Motorik kasar, motorik halus/genggaman pensil, dan kemandirian toilet/urus barang",
+    color: "#22352B",
+    badgeBg: "bg-[#F3EFE6]",
+    badgeText: "text-[#22352B]",
+  },
+  6: {
+    name: "Pemaknaan Belajar yang Positif dan Menyenangkan",
+    short: "Pemaknaan Belajar",
+    focus: "Antusiasme, keceriaan saat bersekolah, rasa ingin tahu, dan daya juang",
+    color: "#B85627",
+    badgeBg: "bg-[#F9E6DC]",
+    badgeText: "text-[#B85627]",
+  },
+};
 
 // ─── Assessment Config Types ───────────────────────────────────
 
@@ -99,6 +158,7 @@ export interface Indicator {
   id: string;          // e.g. "1.1", "2.3"
   label: string;
   description: string;
+  foundation?: FoundationNumber; // 1 s.d. 6 Fondasi Kemendikbud
   score_descriptors: ScoreDescriptors;
 }
 
@@ -203,6 +263,7 @@ export interface StudentProfile {
   has_any_red_flag: boolean;
   reading_level: ReadingLevel | null;
   pos_scores: Record<number, number | null>; // { 1: avg, 2: avg, ... }
+  foundation_scores?: Record<FoundationNumber, number | null>; // 6 Fondasi scores (1.0 - 4.0)
 }
 
 /** Summary stats for dashboard */
@@ -280,6 +341,7 @@ export interface ExcelStudentRow {
   Jenis_Kelamin: string; // "L" | "P" | "Laki-laki" | "Perempuan"
   Nama_Orang_Tua?: string;
   No_WhatsApp?: string;
+  Kelompok?: string; // e.g. "Kelompok 1", "Kelompok 2", "Kelompok 3"
 }
 
 /** Validation result for each Excel row */

@@ -1,12 +1,13 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-import { findAll, create, generateId } from '@/lib/db';
+import { getDB, batches as batchesTable } from '@/db';
 import { getSessionFromRequest, requireRole } from '@/lib/auth';
 import type { Batch } from '@/types';
 
 export async function GET() {
   try {
-    const batches = findAll<Batch>('batches');
+    const db = getDB();
+    const batches = (await db.select().from(batchesTable).all()) as Batch[];
     batches.sort((a, b) => new Date(b.batch_date).getTime() - new Date(a.batch_date).getTime());
     return NextResponse.json({ success: true, data: batches });
   } catch {
@@ -16,7 +17,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request);
     const auth = requireRole(session, 'admin');
     if (!auth.authorized) {
       return NextResponse.json({ success: false, error: auth.error }, { status: 403 });
@@ -25,21 +26,22 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { batch_name, batch_date, notes } = body;
 
+    const db = getDB();
+    const now = new Date().toISOString();
     const newBatch: Batch = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       batch_name,
       batch_date,
       notes: notes || null,
       status: 'draft',
       created_by: session!.user_id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: now,
+      updated_at: now,
     };
 
-    const created = create<Batch>('batches', newBatch);
-    return NextResponse.json({ success: true, data: created }, { status: 201 });
+    await db.insert(batchesTable).values(newBatch);
+    return NextResponse.json({ success: true, data: newBatch }, { status: 201 });
   } catch {
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
