@@ -1,13 +1,29 @@
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { NextResponse } from 'next/server';
-import { getDB, batches as batchesTable } from '@/db';
+import { getDB, batches as batchesTable, students as studentsTable } from '@/db';
 import { getSessionFromRequest, requireRole } from '@/lib/auth';
 import type { Batch } from '@/types';
 
 export async function GET() {
   try {
     const db = getDB();
-    const batches = (await db.select().from(batchesTable).all()) as Batch[];
+    const allBatches = (await db.select().from(batchesTable).all()) as Batch[];
+    const allStudents = await db.select({ id: studentsTable.id, batch_id: studentsTable.batch_id }).from(studentsTable).all();
+
+    const counts: Record<string, number> = {};
+    allStudents.forEach((s) => {
+      if (s.batch_id) {
+        counts[s.batch_id] = (counts[s.batch_id] || 0) + 1;
+      }
+    });
+
+    const batches = allBatches.map((b) => ({
+      ...b,
+      student_count: counts[b.id] || 0,
+    }));
+
     batches.sort((a, b) => new Date(b.batch_date).getTime() - new Date(a.batch_date).getTime());
     return NextResponse.json({ success: true, data: batches });
   } catch {

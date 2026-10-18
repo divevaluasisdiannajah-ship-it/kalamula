@@ -4,6 +4,7 @@ export const runtime = 'edge';
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Batch } from "@/types";
 
 interface PosInfo {
   name: string;
@@ -55,34 +56,76 @@ export default function EvaluatorLoginPage() {
   const router = useRouter();
   const [pin, setPin] = useState("");
   const [posNumber, setPosNumber] = useState<number | null>(1); // Default to Pos 1 as in reference
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const submitLogin = useCallback(async (pinValue: string, pos: number) => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin: pinValue, pos_number: pos }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem("session", JSON.stringify(data.data.session));
-        localStorage.setItem("token", data.data.token);
-        router.push(`/evaluator/${pos}`);
-      } else {
-        setError("PIN salah. Silakan coba lagi.");
-        setPin("");
+  useEffect(() => {
+    async function loadBatches() {
+      try {
+        const res = await fetch("/api/batches");
+        if (res.ok) {
+          const json = await res.json();
+          const list: Batch[] = json.data || [];
+          setBatches(list);
+          if (list.length > 0) {
+            const saved =
+              typeof window !== "undefined"
+                ? localStorage.getItem("kalamula_evaluator_batch_id")
+                : null;
+            const chosen =
+              list.find((b) => b.id === saved) ||
+              list.find((b) => b.status === "active" && (b.student_count || 0) > 0) ||
+              list.find((b) => (b.student_count || 0) > 0) ||
+              list.find((b) => b.status === "active") ||
+              list[0];
+            setSelectedBatchId(chosen.id);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("kalamula_evaluator_batch_id", chosen.id);
+            }
+          }
+        }
+      } catch {
+        // network prefetch fail-safe
       }
-    } catch {
-      setError("Koneksi gagal. Periksa jaringan Anda.");
-      setPin("");
-    } finally {
-      setLoading(false);
     }
-  }, [router]);
+    loadBatches();
+  }, []);
+
+  const submitLogin = useCallback(
+    async (pinValue: string, pos: number) => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: pinValue, pos_number: pos }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem("session", JSON.stringify(data.data.session));
+          localStorage.setItem("token", data.data.token);
+          if (selectedBatchId) {
+            localStorage.setItem("kalamula_evaluator_batch_id", selectedBatchId);
+            router.push(`/evaluator/${pos}?batch_id=${selectedBatchId}`);
+          } else {
+            router.push(`/evaluator/${pos}`);
+          }
+        } else {
+          setError("PIN salah. Silakan coba lagi.");
+          setPin("");
+        }
+      } catch {
+        setError("Koneksi gagal. Periksa jaringan Anda.");
+        setPin("");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router, selectedBatchId]
+  );
 
   const handlePinInput = useCallback((digit: string) => {
     if (loading) return;
@@ -151,6 +194,55 @@ export default function EvaluatorLoginPage() {
             </p>
           </div>
         </div>
+
+        {/* Pilihan Gelombang Observasi */}
+        {batches.length > 0 && (
+          <div className="bg-white rounded-2xl p-3.5 border border-[#E8E2D8] shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-[#F6F2E9] border border-[#E8E2D8] text-[#486B5A] flex items-center justify-center flex-shrink-0">
+                <i className="mdi mdi-calendar-clock text-xl" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] leading-tight">
+                  Gelombang Observasi
+                </p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-extrabold text-[#22352B] truncate">
+                    {batches.find((b) => b.id === selectedBatchId)?.batch_name || "Pilih Gelombang"}
+                  </span>
+                  {selectedBatchId && (
+                    <span className="text-[11px] font-bold text-[#486B5A]">
+                      ({batches.find((b) => b.id === selectedBatchId)?.student_count ?? 0} Siswa)
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <label htmlFor="batch-select-entrance" className="sr-only">
+                Pilih Gelombang
+              </label>
+              <select
+                id="batch-select-entrance"
+                value={selectedBatchId}
+                onChange={(e) => {
+                  setSelectedBatchId(e.target.value);
+                  if (typeof window !== "undefined") {
+                    localStorage.setItem("kalamula_evaluator_batch_id", e.target.value);
+                  }
+                }}
+                className="w-full sm:w-auto bg-[#FAF8F5] border border-[#DDD0B8] text-[#22352B] font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#486B5A] cursor-pointer"
+              >
+                {batches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.batch_name} ({b.student_count ?? 0} Siswa){b.status === "active" ? " • Aktif" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Section: PILIH POS OBSERVASI (1 S.D. 5) */}
         <div className="space-y-2.5">

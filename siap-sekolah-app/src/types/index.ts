@@ -65,6 +65,7 @@ export interface Batch {
   batch_date: string; // ISO date YYYY-MM-DD
   status: BatchStatus;
   notes: string | null;
+  student_count?: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;

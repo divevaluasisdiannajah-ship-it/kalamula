@@ -2,16 +2,18 @@
 export const runtime = 'edge';
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Student, Evaluation, AssessmentConfig, Batch } from "@/types";
 
 export default function EvaluatorStudentListPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const posNumber = Number(params.pos);
 
   const [batch, setBatch] = useState<Batch | null>(null);
+  const [batches, setBatches] = useState<Batch[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [config, setConfig] = useState<AssessmentConfig | null>(null);
@@ -23,25 +25,11 @@ export default function EvaluatorStudentListPage() {
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [showRotationGuide, setShowRotationGuide] = useState(false);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Get active batch
-      const batchRes = await fetch("/api/batches");
-      if (!batchRes.ok) throw new Error("Gagal mengambil data gelombang");
-
-      const batchData = await batchRes.json();
-      const activeBatch =
-        (batchData.data || []).find((b: { status: string }) => b.status === "active") ||
-        batchData.data?.[0];
-
-      if (activeBatch) {
-        setBatch(activeBatch);
-        setActiveBatchId(activeBatch.id);
-
+  const loadBatchStudents = useCallback(
+    async (targetBatchId: string) => {
+      try {
         // Load students for this batch
-        const sRes = await fetch(`/api/students?batch_id=${activeBatch.id}`);
+        const sRes = await fetch(`/api/students?batch_id=${targetBatchId}`);
         if (sRes.ok) {
           const sData = await sRes.json();
           setStudents(sData.data || []);
@@ -51,15 +39,60 @@ export default function EvaluatorStudentListPage() {
 
         // Load evaluations for this batch & pos
         const eRes = await fetch(
-          `/api/evaluations?batch_id=${activeBatch.id}&pos_number=${posNumber}`
+          `/api/evaluations?batch_id=${targetBatchId}&pos_number=${posNumber}`
         );
         if (eRes.ok) {
           const eData = await eRes.json();
           setEvaluations(eData.data || []);
         }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Gagal memuat data siswa.";
+        setError(msg);
+      }
+    },
+    [posNumber]
+  );
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 1. Get all batches
+      const batchRes = await fetch("/api/batches");
+      if (!batchRes.ok) throw new Error("Gagal mengambil data gelombang");
+
+      const batchData = await batchRes.json();
+      const allBatches: Batch[] = batchData.data || [];
+      setBatches(allBatches);
+
+      if (allBatches.length > 0) {
+        const urlBatchId = searchParams.get("batch_id") || searchParams.get("batch");
+        const savedBatchId =
+          typeof window !== "undefined"
+            ? localStorage.getItem("kalamula_evaluator_batch_id")
+            : null;
+        const requestedId = urlBatchId || savedBatchId;
+
+        let selected = allBatches.find((b) => b.id === requestedId);
+        if (!selected) {
+          // Smart priority: active batch with students > any batch with students > active batch > first batch
+          selected =
+            allBatches.find((b) => b.status === "active" && (b.student_count || 0) > 0) ||
+            allBatches.find((b) => (b.student_count || 0) > 0) ||
+            allBatches.find((b) => b.status === "active") ||
+            allBatches[0];
+        }
+
+        setBatch(selected);
+        setActiveBatchId(selected.id);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("kalamula_evaluator_batch_id", selected.id);
+        }
+
+        await loadBatchStudents(selected.id);
       }
 
-      // Load config for this pos
+      // 2. Load config for this pos
       const cRes = await fetch("/api/configs");
       if (cRes.ok) {
         const cData = await cRes.json();
@@ -74,7 +107,21 @@ export default function EvaluatorStudentListPage() {
     } finally {
       setLoading(false);
     }
-  }, [posNumber]);
+  }, [posNumber, searchParams, loadBatchStudents]);
+
+  const handleBatchChange = async (newBatchId: string) => {
+    const selected = batches.find((b) => b.id === newBatchId);
+    if (!selected) return;
+    setBatch(selected);
+    setActiveBatchId(newBatchId);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("kalamula_evaluator_batch_id", newBatchId);
+    }
+    router.replace(`/evaluator/${posNumber}?batch_id=${newBatchId}`);
+    setLoading(true);
+    await loadBatchStudents(newBatchId);
+    setLoading(false);
+  };
 
   useEffect(() => {
     loadData();
@@ -218,6 +265,48 @@ export default function EvaluatorStudentListPage() {
             </div>
           </div>
         </div>
+
+        {/* Selector Gelombang Observasi */}
+        {batches.length > 0 && (
+          <div className="bg-white rounded-2xl p-3 border border-[#E8E2D8] shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-[#F6F2E9] border border-[#E8E2D8] text-[#486B5A] flex items-center justify-center flex-shrink-0">
+                <i className="mdi mdi-calendar-clock text-lg" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] leading-tight">
+                  Gelombang Observasi
+                </p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-extrabold text-[#22352B] truncate">
+                    {batch?.batch_name || "Pilih Gelombang"}
+                  </span>
+                  <span className="text-[11px] font-bold text-[#486B5A]">
+                    ({students.length} Siswa)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <label htmlFor="batch-select-pos" className="sr-only">
+                Pilih Gelombang
+              </label>
+              <select
+                id="batch-select-pos"
+                value={activeBatchId || ""}
+                onChange={(e) => handleBatchChange(e.target.value)}
+                className="w-full sm:w-auto bg-[#FAF8F5] border border-[#DDD0B8] text-[#22352B] font-bold text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#486B5A] cursor-pointer"
+              >
+                {batches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.batch_name} ({b.student_count ?? 0} Siswa){b.status === "active" ? " • Aktif" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Banner Hero Pos Aktif (Solid Terracotta #B85627) */}
         <div className="bg-[#B85627] rounded-3xl p-5 shadow-sm text-white space-y-3.5">
@@ -471,6 +560,46 @@ export default function EvaluatorStudentListPage() {
                 className="h-28 bg-white rounded-[1.85rem] border border-[#E8E2D8] p-4.5 animate-pulse"
               />
             ))}
+          </div>
+        ) : !error && students.length === 0 ? (
+          <div className="p-6 sm:p-8 bg-white rounded-3xl border border-[#E8E2D8] shadow-xs text-center space-y-3">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#F6F2E9] border border-[#E8E2D8] flex items-center justify-center text-[#B85627]">
+              <i className="mdi mdi-account-group-outline text-3xl" />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-[#22352B]">
+                Gelombang &ldquo;{batch?.batch_name}&rdquo; Belum Ada Siswa
+              </p>
+              <p className="text-xs text-[#565C58] mt-1 max-w-sm mx-auto leading-relaxed">
+                Belum ada data siswa yang didaftarkan pada gelombang observasi ini.
+              </p>
+            </div>
+
+            {/* Tombol Cepat Pindah ke Gelombang Lain yang Memiliki Siswa */}
+            {batches.some((b) => b.id !== activeBatchId && (b.student_count ?? 0) > 0) && (
+              <div className="pt-3 border-t border-[#E8E2D8]/60 space-y-2">
+                <p className="text-[11px] font-bold text-[#787F7A]">
+                  Pindah ke gelombang yang sudah berisi siswa:
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {batches
+                    .filter((b) => b.id !== activeBatchId && (b.student_count ?? 0) > 0)
+                    .map((b) => (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => handleBatchChange(b.id)}
+                        className="bg-[#E4EFE9] border border-[#CBE0D4] text-[#486B5A] hover:bg-[#D6E6DC] px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                      >
+                        <i className="mdi mdi-swap-horizontal" />
+                        <span>
+                          {b.batch_name} ({b.student_count} Siswa)
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : !error && filteredStudents.length === 0 ? (
           <div className="p-8 bg-white rounded-3xl border border-[#E8E2D8] shadow-xs text-center space-y-1">
