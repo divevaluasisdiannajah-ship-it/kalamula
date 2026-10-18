@@ -1,4 +1,6 @@
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { getDB, assessmentConfigs as configsTable } from '@/db';
