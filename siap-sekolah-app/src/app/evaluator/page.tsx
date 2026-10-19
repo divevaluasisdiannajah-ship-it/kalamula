@@ -176,7 +176,7 @@ export default function EvaluatorLoginPage() {
           </Link>
 
           <span className="bg-[#F9E6DC] text-[#B85627] text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
-            EVALUATOR
+            OBSERVASI SPMB
           </span>
         </div>
 
@@ -187,7 +187,7 @@ export default function EvaluatorLoginPage() {
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-[#22352B] tracking-tight leading-tight">
-              Ruang Observasi Pos Evaluator
+              Ruang Observasi SPMB
             </h1>
             <p className="text-xs text-[#565C58] mt-1">
               Pilih pos observasi Anda dan masukkan PIN 4-digit

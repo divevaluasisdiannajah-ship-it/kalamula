@@ -47,7 +47,7 @@ export default function Home() {
             PILIH RUANG MASUK
           </p>
 
-          {/* 1. Guru Kelas 1 (Fase A) */}
+          {/* 1. Assesmen Kualitatif Kelas */}
           <Link
             href="/teacher"
             className="bg-white rounded-3xl p-4 sm:p-4.5 border border-[#E8E2D8]/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none group flex items-center justify-between cursor-pointer"
@@ -58,7 +58,7 @@ export default function Home() {
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-base text-[#22352B] leading-snug">
-                  Guru Kelas 1 (Fase A)
+                  Assesmen Kualitatif Kelas
                 </p>
                 <p className="text-xs text-[#565C58] mt-0.5 truncate leading-relaxed">
                   Morning Briefing, Peta Tumbuh & Jurnal Harian
@@ -70,7 +70,7 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* 2. Evaluator Pos 1 s.d. 5 */}
+          {/* 2. Observasi SPMB */}
           <Link
             href="/evaluator"
             className="bg-white rounded-3xl p-4 sm:p-4.5 border border-[#E8E2D8]/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#B85627] focus-visible:ring-offset-2 focus-visible:outline-none group flex items-center justify-between cursor-pointer"
@@ -81,7 +81,7 @@ export default function Home() {
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-base text-[#22352B] leading-snug">
-                  Evaluator Pos 1 s.d. 5
+                  Observasi SPMB
                 </p>
                 <p className="text-xs text-[#565C58] mt-0.5 truncate leading-relaxed">
                   Observasi Rubrik, Pra-Literasi & Catatan Khusus
@@ -93,7 +93,7 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* 3. Koordinator Asesmen / Admin */}
+          {/* 3. Admin SPMB */}
           <Link
             href="/admin"
             className="bg-white rounded-3xl p-4 sm:p-4.5 border border-[#E8E2D8]/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#36506C] focus-visible:ring-offset-2 focus-visible:outline-none group flex items-center justify-between cursor-pointer"
@@ -104,7 +104,7 @@ export default function Home() {
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-base text-[#22352B] leading-snug">
-                  Koordinator Asesmen / Admin
+                  Admin SPMB
                 </p>
                 <p className="text-xs text-[#565C58] mt-0.5 truncate leading-relaxed">
                   Kelola Gelombang, Pembagian Kelas & PDF Rekap

@@ -82,7 +82,7 @@ export function AdminSidebar() {
             <i className="mdi mdi-shield-account-outline text-lg" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#22352B]">Admin PPDB</p>
+            <p className="text-xs font-bold text-[#22352B]">Admin SPMB</p>
             <p className="text-[10px] text-[#787F7A] font-medium">Koordinator Asesmen</p>
           </div>
         </div>
