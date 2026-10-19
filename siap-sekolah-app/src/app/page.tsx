@@ -47,7 +47,7 @@ export default function Home() {
             PILIH RUANG MASUK
           </p>
 
-          {/* 1. Assesmen Kualitatif Kelas */}
+          {/* 1. Asesmen Kualitatif untuk Diferensiasi Pembelajaran */}
           <Link
             href="/teacher"
             className="bg-white rounded-3xl p-4 sm:p-4.5 border border-[#E8E2D8]/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none group flex items-center justify-between cursor-pointer"
@@ -58,7 +58,7 @@ export default function Home() {
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-base text-[#22352B] leading-snug">
-                  Assesmen Kualitatif Kelas
+                  Asesmen Kualitatif untuk Diferensiasi Pembelajaran
                 </p>
                 <p className="text-xs text-[#565C58] mt-0.5 truncate leading-relaxed">
                   Morning Briefing, Peta Tumbuh & Jurnal Harian

@@ -133,7 +133,7 @@ export default function TeacherPortalPage() {
               kalamula
             </span>
             <span className="bg-[#E4EFE9] text-[#486B5A] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full ml-1">
-              ASESMEN KELAS
+              DIFERENSIASI
             </span>
           </div>
 
@@ -148,8 +148,8 @@ export default function TeacherPortalPage() {
 
         {/* Page Title & Subtitle */}
         <div>
-          <h1 className="text-2xl font-extrabold text-[#22352B] tracking-tight">
-            Assesmen Kualitatif Kelas
+          <h1 className="text-2xl font-extrabold text-[#22352B] tracking-tight leading-snug">
+            Asesmen Kualitatif untuk Diferensiasi Pembelajaran
           </h1>
           <p className="text-xs text-[#565C58] mt-1">
             Kelas 1 (Fase A) • Morning Briefing, Peta Tumbuh & Jurnal Harian
