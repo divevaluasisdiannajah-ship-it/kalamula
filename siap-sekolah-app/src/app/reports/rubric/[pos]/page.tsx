@@ -18,7 +18,7 @@ const DEFAULT_CONFIGS: Record<number, {
   1: {
     pos_name: "Kedatangan, Kemandirian & Kematangan Emosi",
     pos_description: "Observasi saat anak tiba, berpisah dari orang tua, dan interaksi awal",
-    focus: "Kemandirian berpisah, merapikan barang bawaan di loker, dan kesantunan mengantre",
+    focus: "Kedatangan, Kemandirian & Emosi",
     indicators: [
       {
         id: "1.1",
@@ -66,7 +66,7 @@ const DEFAULT_CONFIGS: Record<number, {
   2: {
     pos_name: "Motorik Kasar & Koordinasi Fisik",
     pos_description: "Observasi kemampuan gerak tubuh, keseimbangan, dan koordinasi mata-tangan",
-    focus: "Keseimbangan meniti papan titian, melompat 2 kaki, dan lempar-tangkap bola",
+    focus: "Motorik Kasar & Koordinasi Fisik",
     indicators: [
       {
         id: "2.1",
@@ -100,9 +100,9 @@ const DEFAULT_CONFIGS: Record<number, {
     ],
   },
   3: {
-    pos_name: "Kematangan Kognitif & Numerasi Dasar",
+    pos_name: "Kematangan Kognitif & Berhitung",
     pos_description: "Observasi kemampuan berpikir logis, pola, perbandingan, dan pemecahan masalah",
-    focus: "Klasifikasi atribut, melanjutkan pola berulang, dan pemecahan masalah sederhana",
+    focus: "Kematangan Kognitif & Berhitung",
     indicators: [
       {
         id: "3.1",
@@ -138,7 +138,7 @@ const DEFAULT_CONFIGS: Record<number, {
   4: {
     pos_name: "Bahasa Lisan, Pra-Literasi & Motorik Halus",
     pos_description: "Observasi kemampuan berbahasa, pra-membaca, dan kontrol motorik halus",
-    focus: "Menyimak cerita lisan, komunikasi ide, pincer grasp, dan tahap kesiapan membaca",
+    focus: "Bahasa Lisan & Motorik Halus",
     indicators: [
       {
         id: "4.1",
@@ -187,7 +187,7 @@ const DEFAULT_CONFIGS: Record<number, {
   5: {
     pos_name: "Bermain Bebas, Istirahat & Interaksi Kelompok",
     pos_description: "Observasi interaksi saat bermain bebas, makan snack bersama, dan regulasi emosi kelompok",
-    focus: "Bermain kooperatif, berbagi mainan/snack, empati, dan antusiasme belajar",
+    focus: "Bermain Bebas, Istirahat & Interaksi",
     indicators: [
       {
         id: "5.1",
@@ -239,6 +239,15 @@ const READING_LEVEL_OPTIONS: { level: ReadingLevel; name: string; desc: string }
   { level: "L2", name: "Tingkat 2: Huruf & Bunyi", desc: "Mengenal bentuk & bunyi huruf vokal serta konsonan dasar." },
   { level: "L3", name: "Tingkat 3: Membaca Suku Kata", desc: "Membaca gabungan suku kata sederhana (bu-ku, bo-la)." },
   { level: "L4", name: "Tingkat 4: Membaca Kalimat Lancar", desc: "Membaca kalimat pendek dengan lancar & memahami arti cerita." },
+];
+
+// Sample default students matching the reference mockup
+const SAMPLE_STUDENTS = [
+  { id: "sample-1", nickname: "Rayyan", full_name: "Rayyan", registration_no: "PPDB-2026-001" },
+  { id: "sample-2", nickname: "Rizky", full_name: "Rizky", registration_no: "PPDB-2026-004" },
+  { id: "sample-3", nickname: "Alvaro", full_name: "Alvaro", registration_no: "PPDB-2026-007" },
+  { id: "sample-4", nickname: "Gibran", full_name: "Gibran", registration_no: "PPDB-2026-010" },
+  { id: "sample-5", nickname: "Kenzie", full_name: "Kenzie", registration_no: "PPDB-2026-013" },
 ];
 
 export default function PosRubricPrintPage() {
@@ -324,27 +333,8 @@ export default function PosRubricPrintPage() {
     window.print();
   };
 
-  // Filter students by selected group (or blank dummy placeholders if no students)
-  const groupStudents = useMemo(() => {
-    if (selectedGroup === "blank") {
-      return [null, null, null, null, null];
-    }
-    const filtered = students.filter((s) => s.observation_group === selectedGroup);
-    // Pad to 5 slots for clean matrix columns
-    const result: (Student | null)[] = [...filtered];
-    while (result.length < 5) {
-      result.push(null);
-    }
-    return result.slice(0, 5);
-  }, [students, selectedGroup]);
-
-  // Selected student for single format
-  const currentSingleStudent = useMemo(() => {
-    return students.find((s) => s.id === selectedStudentId) || (students.length > 0 ? students[0] : null);
-  }, [students, selectedStudentId]);
-
   // Active indicators for current view
-  // If Super Observer: Pos 1, 3, 4, 5 combined!
+  // If Super Observer: Pos 1, 3, 4, 5 combined
   // If Station Evaluator: specific Pos
   const activeIndicators = useMemo(() => {
     if (isSuperObserver) {
@@ -387,7 +377,72 @@ export default function PosRubricPrintPage() {
     }));
   }, [isSuperObserver, posNumber, allConfigs]);
 
-  // Red flags for single format or matrix
+  // Display indicators normalized to exactly 6 slots (matching reference layout 2 cols x 3 rows)
+  const displayIndicators = useMemo(() => {
+    const list: {
+      id: string;
+      label: string;
+      description: string;
+      isPlaceholder?: boolean;
+    }[] = [];
+
+    activeIndicators.forEach((ind) => {
+      list.push({
+        id: ind.id,
+        label: ind.label,
+        description: ind.description,
+        isPlaceholder: false,
+      });
+    });
+
+    while (list.length < 6) {
+      const idx = list.length + 1;
+      list.push({
+        id: `${idx}`,
+        label: `[Indikator ${idx}]`,
+        description: `[Deskripsi singkat indikator, maks. 2 baris]`,
+        isPlaceholder: true,
+      });
+    }
+
+    return list.slice(0, 6);
+  }, [activeIndicators]);
+
+  // Students for the 5 rows in matrix format
+  const displayStudents = useMemo(() => {
+    if (selectedGroup === "blank") {
+      return [1, 2, 3, 4, 5].map((i) => ({
+        id: "",
+        nickname: "........................",
+        full_name: "................................",
+        registration_no: `PPDB-2026-.....`,
+      }));
+    }
+
+    const filtered = students.filter((s) => s.observation_group === selectedGroup);
+    if (filtered.length > 0) {
+      const list = [...filtered];
+      while (list.length < 5) {
+        list.push({
+          id: "",
+          nickname: "........................",
+          full_name: "................................",
+          registration_no: `PPDB-2026-00${list.length + 1}`,
+        } as Student);
+      }
+      return list.slice(0, 5);
+    }
+
+    // Default sample when group has no students loaded yet (matches reference image)
+    return SAMPLE_STUDENTS;
+  }, [students, selectedGroup]);
+
+  // Selected student for single format
+  const currentSingleStudent = useMemo(() => {
+    return students.find((s) => s.id === selectedStudentId) || (students.length > 0 ? students[0] : null);
+  }, [students, selectedStudentId]);
+
+  // Red flags for single format
   const activeRedFlags = useMemo(() => {
     if (isSuperObserver) {
       const posList = [1, 3, 4, 5];
@@ -410,6 +465,15 @@ export default function PosRubricPrintPage() {
     year: "numeric",
   });
 
+  const activeFocusText = useMemo(() => {
+    if (isSuperObserver) {
+      return "Super Observer (Pos 1, 3, 4, 5) Terpadu";
+    }
+    const defaultCfg = DEFAULT_CONFIGS[posNumber];
+    const customCfg = allConfigs[posNumber];
+    return defaultCfg?.focus || customCfg?.pos_name || "Kedatangan, Kemandirian & Emosi";
+  }, [isSuperObserver, posNumber, allConfigs]);
+
   return (
     <div className="min-h-screen bg-[#F6F2E9] text-[#22352B] py-4 sm:py-6 px-2 sm:px-6 print:bg-white print:p-0 print:min-h-0 font-sans">
       {/* ─── Embedded Print Stylesheet (Strict A4 Layout) ─── */}
@@ -417,7 +481,7 @@ export default function PosRubricPrintPage() {
         @media print {
           @page {
             size: ${orientation === "landscape" ? "A4 landscape" : "A4 portrait"};
-            margin: 5mm 6mm 5mm 6mm;
+            margin: 6mm 7mm 6mm 7mm;
           }
           html, body {
             background: #ffffff !important;
@@ -450,17 +514,17 @@ export default function PosRubricPrintPage() {
       `}</style>
 
       {/* ─── Top Floating Action Bar (Hidden on Print) ─── */}
-      <div className="max-w-[940px] mx-auto mb-4 space-y-3 print-hidden-nav">
-        {/* Navigation & Controls */}
+      <div className="max-w-[840px] mx-auto mb-4 space-y-2.5 print-hidden-nav">
+        {/* Main Bar */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 bg-white p-3.5 rounded-2xl border border-[#E8E2D8] shadow-2xs">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.back()}
-              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] px-3 py-1.5 text-xs font-bold rounded-full border border-[#E8E2D8] transition-colors flex items-center gap-1.5 cursor-pointer"
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/admin"
+              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] px-3.5 py-1.5 text-xs font-bold rounded-full border border-[#E8E2D8] transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <i className="mdi mdi-arrow-left text-base" />
-              <span>Kembali</span>
-            </button>
+              <i className="mdi mdi-chevron-left text-base" />
+              <span>Dashboard Admin</span>
+            </Link>
 
             {/* Pos & Super Observer Switcher */}
             <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
@@ -469,8 +533,9 @@ export default function PosRubricPrintPage() {
                 return (
                   <button
                     key={pos}
+                    type="button"
                     onClick={() => router.push(`/reports/rubric/${pos}${selectedStudentId ? `?student_id=${selectedStudentId}` : ""}`)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1 ${
+                    className={`px-3 py-1 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1 ${
                       isActive
                         ? "bg-[#B85627] text-white shadow-xs"
                         : "bg-[#FAF8F5] text-[#565C58] hover:bg-[#EFECE4] border border-[#E8E2D8]"
@@ -482,6 +547,7 @@ export default function PosRubricPrintPage() {
               })}
 
               <button
+                type="button"
                 onClick={() => router.push(`/reports/rubric/so`)}
                 className={`px-3 py-1 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 ${
                   isSuperObserver
@@ -490,7 +556,7 @@ export default function PosRubricPrintPage() {
                 }`}
               >
                 <i className="mdi mdi-eye-check-outline text-sm" />
-                <span>Super Observer (Pos 1, 3, 4, 5)</span>
+                <span>Super Observer</span>
               </button>
             </div>
           </div>
@@ -498,21 +564,41 @@ export default function PosRubricPrintPage() {
           {/* Action buttons */}
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={handlePrint}
-              className="bg-[#B85627] hover:bg-[#A34B21] text-white px-4 py-1.5 text-xs font-extrabold rounded-full shadow-sm flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+              className="bg-[#B85627] hover:bg-[#A34B21] text-white px-5 py-2 text-xs font-extrabold rounded-full shadow-sm flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
             >
-              <i className="mdi mdi-printer text-base" />
-              <span>Cetak A4</span>
+              <i className="mdi mdi-printer-outline text-base" />
+              <span>Cetak Form A4</span>
             </button>
           </div>
         </div>
 
-        {/* Secondary Bar: Format Selection & Group Filter */}
+        {/* Secondary Bar: Group Filter, Format Mode, Orientation */}
         <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-3">
-            {/* Format Mode: Matrix vs Single */}
+            {/* Dropdown Pemilih Kelompok */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-[#787F7A] text-[11px] uppercase tracking-wider">
+                Kelompok:
+              </span>
+              <select
+                value={selectedGroup}
+                onChange={(e) => setSelectedGroup(e.target.value)}
+                className="bg-white border border-[#CBE0D4] rounded-xl px-3 py-1.5 text-xs font-bold text-[#22352B] focus:outline-none focus:ring-2 focus:ring-[#486B5A] cursor-pointer shadow-2xs"
+              >
+                <option value="Kelompok 1">Kelompok 1</option>
+                <option value="Kelompok 2">Kelompok 2</option>
+                <option value="Kelompok 3">Kelompok 3</option>
+                <option value="Kelompok 4">Kelompok 4</option>
+                <option value="blank">Formulir Kosong</option>
+              </select>
+            </div>
+
+            {/* Format Mode: Matriks Kelompok vs Detail Siswa */}
             <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#E8E2D8]">
               <button
+                type="button"
                 onClick={() => setPrintFormat("matrix")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   printFormat === "matrix"
@@ -521,9 +607,10 @@ export default function PosRubricPrintPage() {
                 }`}
               >
                 <i className="mdi mdi-table-large" />
-                <span>Matriks Kelompok (4-5 Anak)</span>
+                <span>Instrumen Lapangan (5 Siswa)</span>
               </button>
               <button
+                type="button"
                 onClick={() => setPrintFormat("single")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   printFormat === "single"
@@ -532,38 +619,18 @@ export default function PosRubricPrintPage() {
                 }`}
               >
                 <i className="mdi mdi-card-account-details-outline" />
-                <span>Detail Per Siswa</span>
+                <span>Rubrik Per Siswa</span>
               </button>
             </div>
 
-            {/* Filter Kelompok (Untuk Matrix) */}
-            {printFormat === "matrix" && (
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-[#565C58] text-[11px]">Pilih Kelompok:</span>
-                {["Kelompok 1", "Kelompok 2", "Kelompok 3", "blank"].map((grp) => (
-                  <button
-                    key={grp}
-                    onClick={() => setSelectedGroup(grp)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer border ${
-                      selectedGroup === grp
-                        ? "bg-[#EFE7D6] text-[#7D5327] border-[#DDD0B8]"
-                        : "bg-white text-[#565C58] border-[#E8E2D8] hover:bg-[#EFECE4]"
-                    }`}
-                  >
-                    {grp === "blank" ? "Formulir Kosong" : grp}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Pilih Siswa (Untuk Single) */}
+            {/* Pilih Siswa (Jika Single Mode) */}
             {printFormat === "single" && (
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-[#565C58] text-[11px]">Siswa:</span>
                 <select
                   value={selectedStudentId}
                   onChange={(e) => setSelectedStudentId(e.target.value)}
-                  className="bg-white border border-[#CBD5D0] rounded-lg px-2.5 py-1 text-xs font-bold text-[#22352B] outline-none"
+                  className="bg-white border border-[#CBD5D0] rounded-xl px-2.5 py-1 text-xs font-bold text-[#22352B] outline-none"
                 >
                   {students.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -578,6 +645,7 @@ export default function PosRubricPrintPage() {
           {/* Orientation Toggle */}
           <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#E8E2D8]">
             <button
+              type="button"
               onClick={() => setOrientation("portrait")}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
                 orientation === "portrait"
@@ -588,6 +656,7 @@ export default function PosRubricPrintPage() {
               Potret (A4)
             </button>
             <button
+              type="button"
               onClick={() => setOrientation("landscape")}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
                 orientation === "landscape"
@@ -599,352 +668,357 @@ export default function PosRubricPrintPage() {
             </button>
           </div>
         </div>
-
-        {/* Guidance Banner */}
-        <div className="bg-[#E4EFE9] border border-[#CBE0D4] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs text-[#486B5A]">
-          <div className="flex items-center gap-2">
-            <i className={`mdi ${isSuperObserver ? "mdi-eye-check-outline" : "mdi-clipboard-list-outline"} text-lg`} />
-            <span className="font-bold">
-              {isSuperObserver ? (
-                <>Lembar Terpadu Super Observer (Pos 1, 3, 4, 5) — Pemantauan kontinyu kelompok & interaksi santun</>
-              ) : (
-                <>Lembar Lapangan Pos {posNumber}: {DEFAULT_CONFIGS[posNumber]?.pos_name}</>
-              )}
-            </span>
-          </div>
-          <span className="text-[11px] font-semibold text-[#787F7A]">
-            12 Menit/Pos • Skala 1 (BM) s.d. 4 (MK)
-          </span>
-        </div>
       </div>
 
       {/* ═════════════════════════════════════════════════════════════════ */}
       {/* ─── A4 PRINT SHEET (LEMBAR OBSERVASI FISIK RESMI KALAMULA) ──── */}
       {/* ═════════════════════════════════════════════════════════════════ */}
-      <div className="a4-rubric-sheet max-w-[940px] mx-auto bg-white rounded-2xl shadow-sm p-4 sm:p-6 print:p-0 print:border-none print:shadow-none text-[#22352B] leading-tight text-[8.5pt] font-sans">
-        
-        {/* ─── 1. Kop Surat & Identitas ─── */}
-        <div className="flex items-center justify-between pb-2 mb-2 border-b-2 border-[#486B5A]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#D67443] text-white flex items-center justify-center text-lg flex-shrink-0 shadow-xs print:border print:border-[#D67443]">
+      <div className="a4-rubric-sheet max-w-[840px] mx-auto bg-white rounded-3xl shadow-sm border border-[#E8E2D8] p-5 sm:p-7 print:p-0 print:border-none print:shadow-none text-[#22352B] leading-tight text-[8.5pt] font-sans">
+
+        {/* ─── 1. Kop Instrumen Observasi ─── */}
+        <div className="flex items-center justify-between pb-2 mb-3 border-b-2 border-[#486B5A]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#D67443] text-white flex items-center justify-center text-2xl flex-shrink-0 shadow-xs print:border print:border-[#D67443]">
               <i className="mdi mdi-leaf" />
             </div>
             <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-base font-extrabold text-[#22352B] tracking-tight leading-none">
-                  kalamula
-                </span>
-                <span className="text-[9.5pt] font-bold text-[#486B5A] uppercase tracking-wider">
-                  • Instrumen Observasi Asesmen Diagnostik Kesiapan Belajar
-                </span>
-              </div>
-              <p className="text-[7.5pt] text-[#565C58] mt-0.5">
-                SDIT An-Najah • Pemetaan 6 Fondasi Transisi PAUD-SD Berbasis Standar Kemendikbudristek
+              <h1 className="text-base sm:text-lg font-extrabold text-[#22352B] tracking-tight leading-snug">
+                Instrumen Observasi Asesmen Diagnostik Kesiapan Belajar
+              </h1>
+              <p className="text-[10px] text-[#565C58] mt-0.5">
+                kalamula &bull; SDIT An-Najah &bull; Pemetaan 6 Fondasi Transisi PAUD–SD Berbasis Standar Kemendikbudristek
               </p>
             </div>
           </div>
 
-          <div className="text-right">
-            <span className={`font-extrabold px-2.5 py-0.5 rounded-full text-[8.5pt] text-white print:border ${
-              isSuperObserver ? "bg-[#486B5A] print:border-[#486B5A]" : "bg-[#B85627] print:border-[#B85627]"
-            }`}>
-              {isSuperObserver ? "SUPER OBSERVER (POS 1, 3, 4, 5)" : `POS OBSERVASI ${posNumber}`}
+          <div className="text-right flex-shrink-0">
+            <span
+              className={`font-extrabold px-3.5 py-1 rounded-full text-[10px] sm:text-xs text-white uppercase tracking-wide inline-block shadow-2xs print:border ${
+                isSuperObserver
+                  ? "bg-[#486B5A] print:border-[#486B5A]"
+                  : "bg-[#B85627] print:border-[#B85627]"
+              }`}
+            >
+              {isSuperObserver ? "SUPER OBSERVER" : `POS OBSERVASI ${posNumber}`}
             </span>
-            <p className="text-[7.5pt] text-[#787F7A] mt-0.5 font-mono">{currentDateFormatted}</p>
+            <p className="text-[9.5px] text-[#787F7A] font-semibold mt-1 text-right">
+              {currentDateFormatted}
+            </p>
           </div>
         </div>
 
-        {/* ─── 2. Header Info Pos & Kelompok ─── */}
-        <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-lg px-3 py-1.5 mb-2 flex items-center justify-between gap-2 text-[8pt]">
-          <div className="flex items-center gap-3">
-            <div>
-              <span className="text-[#787F7A] uppercase text-[7pt] font-bold block leading-none">FOKUS OBSERVASI</span>
-              <span className="font-extrabold text-[#22352B] text-[8.5pt]">
-                {isSuperObserver
-                  ? "Pendampingan Kelompok Berkelanjutan di Pos 1, 3, 4, 5 (Melewati Pos 2)"
-                  : DEFAULT_CONFIGS[posNumber]?.pos_name}
-              </span>
+        {/* ─── 2. Kotak Metadata Observasi (4 Kolom dalam 1 Baris) ─── */}
+        <div className="border-[1.5px] border-[#22352B]/75 rounded-2xl grid grid-cols-12 divide-x divide-stone-300 mb-3 bg-white">
+          {/* Kolom 1: FOKUS OBSERVASI */}
+          <div className="col-span-5 px-3.5 py-2">
+            <span className="text-[9px] uppercase font-bold text-[#787F7A] tracking-wider flex items-center gap-1 leading-none">
+              <i className="mdi mdi-bullseye-arrow text-xs text-[#787F7A]" />
+              <span>FOKUS OBSERVASI</span>
+            </span>
+            <div className="font-extrabold text-[#22352B] text-xs mt-1 truncate">
+              {activeFocusText}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {printFormat === "matrix" ? (
-              <div className="text-right">
-                <span className="text-[#787F7A] uppercase text-[7pt] font-bold block leading-none">KELOMPOK</span>
-                <span className="font-bold text-[#7D5327] bg-[#EFE7D6] px-2 py-0.5 rounded border border-[#DDD0B8]">
-                  {selectedGroup === "blank" ? "Formulir Lapangan (Kosong)" : selectedGroup}
-                </span>
-              </div>
-            ) : (
-              <div className="text-right">
-                <span className="text-[#787F7A] uppercase text-[7pt] font-bold block leading-none">SISWA OBSERVASI</span>
-                <span className="font-bold text-[#22352B]">
-                  {currentSingleStudent ? `${currentSingleStudent.full_name} (${currentSingleStudent.nickname})` : "............................"}
-                </span>
-              </div>
-            )}
-
-            <div className="text-right pl-2 border-l border-[#E8E2D8]">
-              <span className="text-[#787F7A] uppercase text-[7pt] font-bold block leading-none">DURASI SESI</span>
-              <span className="font-extrabold text-[#486B5A]">
-                {isSuperObserver ? "4 x 12 Mnt (Total 48 Mnt)" : "12 Menit"}
-              </span>
+          {/* Kolom 2: KELOMPOK */}
+          <div className="col-span-2 px-3 py-2">
+            <span className="text-[9px] uppercase font-bold text-[#787F7A] tracking-wider flex items-center gap-1 leading-none">
+              <i className="mdi mdi-account-group-outline text-xs text-[#787F7A]" />
+              <span>KELOMPOK</span>
+            </span>
+            <div className="font-extrabold text-[#22352B] text-xs mt-1 truncate">
+              {selectedGroup === "blank" ? "Formulir Kosong" : selectedGroup}
             </div>
+          </div>
+
+          {/* Kolom 3: DURASI */}
+          <div className="col-span-2 px-3 py-2">
+            <span className="text-[9px] uppercase font-bold text-[#787F7A] tracking-wider flex items-center gap-1 leading-none">
+              <i className="mdi mdi-timer-outline text-xs text-[#787F7A]" />
+              <span>DURASI</span>
+            </span>
+            <div className="font-extrabold text-[#22352B] text-xs mt-1">
+              {isSuperObserver ? "4 x 12 Menit" : "12 Menit"}
+            </div>
+          </div>
+
+          {/* Kolom 4: NAMA EVALUATOR */}
+          <div className="col-span-3 px-3 py-2">
+            <span className="text-[9px] uppercase font-bold text-[#787F7A] tracking-wider flex items-center gap-1 leading-none">
+              <i className="mdi mdi-account-edit-outline text-xs text-[#787F7A]" />
+              <span>NAMA EVALUATOR</span>
+            </span>
+            <div className="border-b border-stone-400 w-full h-4 mt-1" />
           </div>
         </div>
 
         {/* ═════════════════════════════════════════════════════════════════ */}
-        {/* ─── FORMAT A: MATRIKS KELOMPOK (1 Lembar untuk 4-5 Anak) ────── */}
+        {/* ─── FORMAT A: MATRIKS KELOMPOK (5 Siswa x 6 Indikator) ──────── */}
         {/* ═════════════════════════════════════════════════════════════════ */}
         {printFormat === "matrix" && (
-          <div className="space-y-2">
-            <div className="border border-[#CBD5D0] rounded-lg overflow-hidden">
-              <table className="w-full text-left text-[8pt] border-collapse">
-                <thead>
-                  <tr className="bg-[#E4EFE9] text-[#22352B] font-extrabold border-b border-[#CBD5D0]">
-                    <th className="py-1.5 px-2 w-[34%]">
-                      Indikator Asesmen & Pondasi Rujukan
-                    </th>
-                    {groupStudents.map((st, idx) => (
-                      <th
-                        key={idx}
-                        className="py-1.5 px-1.5 w-[13.2%] border-l border-[#CBD5D0] text-center align-top bg-[#F4F8F5]"
-                      >
-                        <div className="text-[7pt] text-[#486B5A] uppercase font-bold leading-none">
-                          Siswa {idx + 1}
-                        </div>
-                        <div className="font-bold text-[#22352B] text-[8pt] truncate mt-0.5">
-                          {st ? st.nickname || st.full_name.split(" ")[0] : `.................`}
-                        </div>
-                        <div className="text-[6.5pt] text-[#787F7A] font-mono leading-none mt-0.5">
-                          {st ? `${st.registration_no} • ${st.gender}` : `[ ] L  [ ] P`}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
+          <div className="space-y-3">
+            {/* ─── 3. Kotak Panduan Indikator (Grid 2 Kolom x 3 Baris = 6 Indikator) ─── */}
+            <div className="border-[1.5px] border-[#22352B]/75 rounded-2xl p-3.5 space-y-2.5 bg-white">
+              <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#22352B]">
+                <i className="mdi mdi-clipboard-text-outline text-sm text-[#486B5A]" />
+                <span>PANDUAN INDIKATOR</span>
+              </div>
 
-                <tbody className="divide-y divide-[#E8E2D8]">
-                  {activeIndicators.map((ind, idx) => {
-                    const fMeta = ind.foundation ? FOUNDATION_LABELS[ind.foundation] : null;
-
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+                {/* Kolom Kiri: Indikator 1, 2, 3 */}
+                <div className="space-y-2.5">
+                  {[1, 2, 3].map((num) => {
+                    const ind = displayIndicators[num - 1];
+                    const isPlaceholder = !ind || ind.isPlaceholder;
                     return (
-                      <tr key={ind.id} className={idx % 2 === 1 ? "bg-[#FAF8F5]/40" : "bg-white"}>
-                        {/* Kolom Indikator */}
-                        <td className="py-1 px-2 align-middle">
-                          <div className="flex items-start gap-1.5">
-                            <span className="w-4 h-4 rounded-full bg-[#B85627] text-white flex items-center justify-center font-extrabold text-[7pt] flex-shrink-0 mt-0.5">
-                              {ind.id}
-                            </span>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1 flex-wrap">
-                                <span className="font-bold text-[#22352B] text-[8pt] leading-tight">
-                                  {ind.label}
-                                </span>
-                                {fMeta && (
-                                  <span className={`text-[6.5pt] font-extrabold px-1 py-0.2 rounded border ${fMeta.badgeBg} ${fMeta.badgeText}`}>
-                                    {fMeta.short}
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-[7pt] text-[#565C58] block leading-tight mt-0.5">
-                                {ind.description}
-                              </span>
-                            </div>
+                      <div key={num} className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#22352B] text-white flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">
+                          {num}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-[#22352B] text-[11px] leading-tight">
+                            {isPlaceholder ? `[Indikator ${num}]` : ind.label}
                           </div>
-                        </td>
+                          <div className="text-[9.5px] text-[#565C58] leading-tight mt-0.5">
+                            {isPlaceholder ? `[Deskripsi singkat indikator, maks. 2 baris]` : ind.description}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                        {/* 5 Kolom Siswa */}
-                        {groupStudents.map((st, sIdx) => {
-                          const ev = st ? evaluations[`${st.id}_${ind.pos}`] : null;
-                          let sScore: ScoreValue | null = null;
-                          if (ev) {
-                            try {
-                              const sJson = JSON.parse(ev.scores_json || "{}");
-                              sScore = sJson[ind.id] || null;
-                            } catch {}
-                          }
+                {/* Kolom Kanan: Indikator 4, 5, 6 */}
+                <div className="space-y-2.5">
+                  {[4, 5, 6].map((num) => {
+                    const ind = displayIndicators[num - 1];
+                    const isPlaceholder = !ind || ind.isPlaceholder;
+                    return (
+                      <div key={num} className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#22352B] text-white flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">
+                          {num}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-[#22352B] text-[11px] leading-tight">
+                            {isPlaceholder ? `[Indikator ${num}]` : ind.label}
+                          </div>
+                          <div className="text-[9.5px] text-[#565C58] leading-tight mt-0.5">
+                            {isPlaceholder ? `[Deskripsi singkat indikator, maks. 2 baris]` : ind.description}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
-                          return (
-                            <td
-                              key={sIdx}
-                              className="py-1 px-1 border-l border-[#CBD5D0] align-middle text-center"
-                            >
-                              <div className="flex items-center justify-center gap-1">
-                                {[1, 2, 3, 4].map((s) => {
-                                  const isSelected = sScore === s;
+              {/* Sinyal Adaptif Notice at bottom of box */}
+              <div className="border-t border-stone-200 pt-2 flex items-center gap-1.5 text-[9.5px] text-[#565C58]">
+                <i className="mdi mdi-alert-circle-outline text-[#B85627] text-sm flex-shrink-0" />
+                <span>
+                  <strong>Sinyal adaptif:</strong> centang &ldquo;Perlu perhatian&rdquo; bila teramati cemas berlebih, <em>speech delay</em>, atau agresif.
+                </span>
+              </div>
+            </div>
+
+            {/* ─── 4. Bar Legenda Skor (1 BM – 4 MK) ─── */}
+            <div className="bg-[#F2F7F4] border border-[#CBE0D4] rounded-xl px-4 py-2.5 text-[10px] text-[#22352B] space-y-1.5">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+                <span className="font-extrabold">Skor:</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-4.5 h-4.5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9px]">1</span>
+                  <span>Belum Muncul (BM)</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-4.5 h-4.5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9px]">2</span>
+                  <span>Mulai Berkembang (MB)</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-4.5 h-4.5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9px]">3</span>
+                  <span>Mulai Mandiri (MM)</span>
+                </span>
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-4.5 h-4.5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9px]">4</span>
+                  <span>Membudaya/Konsisten (MK)</span>
+                </span>
+              </div>
+            </div>
+
+            {/* ─── 5. Tabel Utama Observasi (5 Siswa x 6 Kolom Indikator) ─── */}
+            <div className="border-[1.5px] border-[#22352B]/85 rounded-2xl overflow-hidden bg-white">
+              {/* Header Tabel */}
+              <div className="bg-[#F2F7F4] border-b border-[#22352B]/40 flex items-center">
+                <div className="w-[26%] px-3 py-2 font-extrabold text-[10px] text-[#22352B] uppercase tracking-wider">
+                  SISWA
+                </div>
+                <div className="w-[74%] grid grid-cols-6 divide-x divide-[#22352B]/20 py-1.5">
+                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                    <div key={num} className="text-center">
+                      <span className="w-5 h-5 rounded-full bg-[#22352B] text-white inline-flex items-center justify-center font-extrabold text-[10px]">
+                        {num}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Baris Siswa (5 Siswa per Lembar) */}
+              <div className="divide-y divide-[#22352B]/40">
+                {displayStudents.map((st, idx) => {
+                  const ev = st.id ? evaluations[`${st.id}_${posNumber}`] : null;
+                  let sScores: Record<string, number> = {};
+                  if (ev?.scores_json) {
+                    try {
+                      sScores = JSON.parse(ev.scores_json);
+                    } catch {}
+                  }
+                  let hasRf = false;
+                  if (ev?.red_flags_json) {
+                    try {
+                      const rfObj = JSON.parse(ev.red_flags_json);
+                      hasRf = Object.values(rfObj).some(Boolean);
+                    } catch {}
+                  }
+                  const hasAman = Boolean(ev?.is_complete && !hasRf);
+                  const note = ev?.anecdotal_note || "";
+
+                  return (
+                    <div key={idx} className="bg-white">
+                      {/* Sub-baris Atas: Nama Siswa + 6 Kolom Skor (Masing-masing 4 OMR Capsule) */}
+                      <div className="flex items-center border-b border-[#22352B]/15">
+                        {/* Kolom Kiri: Nomor + Nama & ID */}
+                        <div className="w-[26%] px-3 py-2">
+                          <div className="font-extrabold text-[#22352B] text-[11px] leading-tight truncate">
+                            {idx + 1} {st.nickname || st.full_name}
+                          </div>
+                          <div className="text-[9px] font-mono text-[#787F7A] mt-0.5">
+                            {st.registration_no}
+                          </div>
+                        </div>
+
+                        {/* Kolom Kanan: 6 Kolom Indikator, masing-masing 4 pill capsule [1] [2] [3] [4] */}
+                        <div className="w-[74%] grid grid-cols-6 divide-x divide-[#22352B]/20 py-2">
+                          {[1, 2, 3, 4, 5, 6].map((colIdx) => {
+                            const ind = displayIndicators[colIdx - 1];
+                            const recordedScore = ind && !ind.isPlaceholder ? sScores[ind.id] : null;
+
+                            return (
+                              <div key={colIdx} className="flex items-center justify-center gap-0.5 sm:gap-1 px-0.5">
+                                {[1, 2, 3, 4].map((score) => {
+                                  const isFilled = recordedScore === score;
                                   return (
                                     <span
-                                      key={s}
-                                      className={`w-4 h-4 rounded-full flex items-center justify-center text-[7.5pt] font-extrabold ${
-                                        isSelected
-                                          ? "bg-[#B85627] text-white ring-1 ring-[#B85627]"
-                                          : "border border-[#8F9691] text-[#22352B]"
+                                      key={score}
+                                      className={`w-3.5 sm:w-4 h-5 rounded-full border-[1.2px] flex items-center justify-center text-[8.5px] font-black transition-colors ${
+                                        isFilled
+                                          ? "bg-[#22352B] text-white border-[#22352B]"
+                                          : "bg-white text-[#22352B] border-[#22352B]/85"
                                       }`}
                                     >
-                                      {s}
+                                      {score}
                                     </span>
                                   );
                                 })}
                               </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
+                            );
+                          })}
+                        </div>
+                      </div>
 
-                  {/* Khusus Pos 4 atau Super Observer: Baris Tingkat Membaca */}
-                  {(posNumber === 4 || isSuperObserver) && (
-                    <tr className="bg-[#FAF4EB]">
-                      <td className="py-1.5 px-2 align-middle">
-                        <div className="flex items-start gap-1.5">
-                          <span className="w-4 h-4 rounded-full bg-[#7D5327] text-white flex items-center justify-center font-extrabold text-[7pt] flex-shrink-0 mt-0.5">
-                            <i className="mdi mdi-book-open-page-variant-outline text-[7pt]" />
-                          </span>
-                          <div>
-                            <span className="font-extrabold text-[#7D5327] text-[8pt]">
-                              Tingkat Kemampuan Membaca (L1 - L4)
-                            </span>
-                            <span className="text-[6.5pt] text-[#787F7A] block leading-none">
-                              L1: Simbol • L2: Huruf/Bunyi • L3: Suku Kata • L4: Kalimat
-                            </span>
+                      {/* Sub-baris Bawah: Sinyal Adaptif (Kotak Centang) + Catatan Anekdot (2 Garis Dotted) */}
+                      <div className="flex items-start">
+                        {/* Kolom Kiri: Sinyal Adaptif */}
+                        <div className="w-[26%] px-3 py-2 border-r border-[#22352B]/20">
+                          <div className="text-[8.5px] font-extrabold text-[#22352B] uppercase tracking-wider mb-1">
+                            Sinyal adaptif
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 text-[9px] text-[#22352B] font-medium">
+                              <span
+                                className={`w-3 h-3 rounded-[3px] border border-[#22352B] inline-flex items-center justify-center text-[8px] font-bold ${
+                                  hasAman ? "bg-[#486B5A] text-white border-[#486B5A]" : "bg-white"
+                                }`}
+                              >
+                                {hasAman ? "✓" : ""}
+                              </span>
+                              <span>Aman</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[9px] text-[#22352B] font-medium">
+                              <span
+                                className={`w-3 h-3 rounded-[3px] border border-[#22352B] inline-flex items-center justify-center text-[8px] font-bold ${
+                                  hasRf ? "bg-[#B85627] text-white border-[#B85627]" : "bg-white"
+                                }`}
+                              >
+                                {hasRf ? "✓" : ""}
+                              </span>
+                              <span>Perlu perhatian</span>
+                            </div>
                           </div>
                         </div>
-                      </td>
 
-                      {groupStudents.map((st, sIdx) => {
-                        const ev = st ? evaluations[`${st.id}_4`] : null;
-                        const rLevel = ev?.reading_level || null;
-
-                        return (
-                          <td
-                            key={sIdx}
-                            className="py-1 px-1 border-l border-[#CBD5D0] align-middle text-center"
-                          >
-                            <div className="flex items-center justify-center gap-0.5">
-                              {(["L1", "L2", "L3", "L4"] as ReadingLevel[]).map((rl) => {
-                                const isSel = rLevel === rl;
-                                return (
-                                  <span
-                                    key={rl}
-                                    className={`px-1 py-0.5 rounded text-[6.5pt] font-extrabold ${
-                                      isSel
-                                        ? "bg-[#7D5327] text-white"
-                                        : "border border-[#DDD0B8] text-[#7D5327] bg-white"
-                                    }`}
-                                  >
-                                    {rl}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  )}
-
-                  {/* Baris Catatan Perhatian Khusus / Red Flag */}
-                  <tr className="bg-[#FDF7F4]">
-                    <td className="py-1.5 px-2 align-middle">
-                      <div className="flex items-center gap-1.5">
-                        <i className="mdi mdi-alert-outline text-[#B85627] text-sm" />
-                        <span className="font-extrabold text-[#8C3713] text-[8pt]">
-                          Perhatian Khusus / Sinyal Adaptif
-                        </span>
-                      </div>
-                      <span className="text-[6.5pt] text-[#787F7A] block leading-none mt-0.5">
-                        Centang bila teramati: cemas berlebih / speech delay / agresif
-                      </span>
-                    </td>
-
-                    {groupStudents.map((st, sIdx) => {
-                      const ev = st ? evaluations[`${st.id}_${posNumber}`] : null;
-                      let hasRf = false;
-                      if (ev?.red_flags_json) {
-                        try {
-                          const rfObj = JSON.parse(ev.red_flags_json);
-                          hasRf = Object.values(rfObj).some(Boolean);
-                        } catch {}
-                      }
-
-                      return (
-                        <td
-                          key={sIdx}
-                          className="py-1 px-1 border-l border-[#CBD5D0] align-middle text-center"
-                        >
-                          <div className="flex items-center justify-center gap-1">
-                            <span className={`w-3.5 h-3.5 rounded border text-[7pt] flex items-center justify-center font-bold ${
-                              hasRf ? "bg-[#B85627] text-white border-[#B85627]" : "border-[#8C3713]/50 bg-white"
-                            }`}>
-                              {hasRf ? "✓" : ""}
-                            </span>
-                            <span className="text-[6.5pt] text-[#8C3713] font-bold">
-                              {hasRf ? "Ada Sinyal" : "[ ] Aman"}
-                            </span>
+                        {/* Kolom Kanan: Catatan Anekdot (2 Garis Dotted) */}
+                        <div className="w-[74%] px-3 py-2">
+                          <div className="text-[9px] font-bold text-[#22352B] mb-1">
+                            Catatan anekdot:
                           </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-
-                  {/* Baris Catatan Anekdot Lapangan per Anak */}
-                  <tr>
-                    <td className="py-2 px-2 align-top bg-[#FAF8F5]">
-                      <div className="flex items-center gap-1.5">
-                        <i className="mdi mdi-pencil-outline text-[#486B5A] text-sm" />
-                        <span className="font-extrabold text-[#22352B] text-[8pt]">
-                          Catatan Anekdot Lapangan
-                        </span>
-                      </div>
-                      <span className="text-[6.5pt] text-[#787F7A] block mt-0.5">
-                        Tulis respon spontan, kata santun, interaksi kawan
-                      </span>
-                    </td>
-
-                    {groupStudents.map((st, sIdx) => {
-                      const ev = st ? evaluations[`${st.id}_${posNumber}`] : null;
-                      const note = ev?.anecdotal_note || "";
-
-                      return (
-                        <td
-                          key={sIdx}
-                          className="py-1.5 px-1.5 border-l border-[#CBD5D0] align-top text-[7pt] text-[#22352B] h-14 bg-white"
-                        >
                           {note ? (
-                            <p className="italic leading-snug line-clamp-3">&ldquo;{note}&rdquo;</p>
-                          ) : (
-                            <div className="h-full space-y-2.5 pt-1">
-                              <div className="border-b border-dashed border-[#DDD7CE] h-2" />
-                              <div className="border-b border-dashed border-[#DDD7CE] h-2" />
+                            <div className="text-[9px] text-[#22352B] italic mb-1 leading-snug">
+                              &ldquo;{note}&rdquo;
                             </div>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                </tbody>
-              </table>
+                          ) : null}
+                          <div className="space-y-2 pt-0.5">
+                            <div className="border-b border-dotted border-stone-400 h-2.5 w-full" />
+                            <div className="border-b border-dotted border-stone-400 h-2.5 w-full" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Skala Keterangan & Pengesahan */}
-            <div className="grid grid-cols-12 gap-2 pt-1 border-t border-[#CBD5D0] items-center text-[7.5pt]">
-              <div className="col-span-8 text-[#565C58] space-y-0.5">
-                <p>
-                  <strong className="text-[#22352B]">Skala Skor:</strong> 1 = Belum Muncul (BM) • 2 = Mulai Berkembang (MB) • 3 = Mulai Mandiri (MM) • 4 = Membudaya/Konsisten (MK)
-                </p>
-                <p className="text-[7pt] text-[#787F7A]">
-                  *Rotasi 12 Menit: Pos 1 (Kedatangan) → Pos 2 (Motorik) → Pos 3 (Kognitif) → Pos 4 (Bahasa) → Pos 5 (Bermain/Snack).
-                </p>
+            {/* ─── 6. Footer Rotasi & Tanda Tangan ─── */}
+            <div className="flex items-end justify-between pt-2 text-[10px] text-[#22352B]">
+              {/* Rotasi 12 Menit */}
+              <div className="max-w-md text-[9.5px] leading-relaxed">
+                <span className="font-extrabold text-[#22352B]">Rotasi 12 menit: </span>
+                <span className={posNumber === 1 && !isSuperObserver ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
+                  Pos 1 Kedatangan
+                </span>
+                <span className="text-stone-400 mx-1">&rsaquo;</span>
+                <span className={posNumber === 2 ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
+                  Pos 2 Motorik
+                </span>
+                <span className="text-stone-400 mx-1">&rsaquo;</span>
+                <span className={posNumber === 3 ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
+                  Pos 3 Kognitif
+                </span>
+                <span className="text-stone-400 mx-1">&rsaquo;</span>
+                <span className={posNumber === 4 ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
+                  Pos 4 Bahasa
+                </span>
+                <span className="text-stone-400 mx-1">&rsaquo;</span>
+                <span className={posNumber === 5 ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
+                  Pos 5 Bermain/Snack
+                </span>
+                {isSuperObserver && (
+                  <div className="mt-0.5 font-bold underline text-[#486B5A]">
+                    Super Observer: Memandu Pos 1 &rarr; 3 &rarr; 4 &rarr; 5
+                  </div>
+                )}
               </div>
 
-              <div className="col-span-4 text-center">
-                <span className="text-[7pt] text-[#787F7A] block">Guru Pengamat Lapangan</span>
-                <div className="h-6 flex items-end justify-center">
-                  <span className="font-bold text-[#22352B] underline text-[8pt]">
-                    ( ............................................................ )
-                  </span>
+              {/* Blok Tanda Tangan */}
+              <div className="text-center w-52">
+                <div className="font-bold text-[#22352B] text-[10px]">
+                  Guru Pengamat Lapangan
+                </div>
+                <div className="border-b border-stone-400 w-44 mt-8 mx-auto" />
+                <div className="text-[8.5px] text-[#787F7A] mt-1">
+                  ( nama &amp; tanda tangan )
                 </div>
               </div>
             </div>
@@ -955,31 +1029,31 @@ export default function PosRubricPrintPage() {
         {/* ─── FORMAT B: DETAIL PER SISWA (Full Deskriptor Rubrik) ──────── */}
         {/* ═════════════════════════════════════════════════════════════════ */}
         {printFormat === "single" && (
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {/* Kotak Identitas Siswa */}
-            <div className="border border-[#E8E2D8] rounded-xl p-2.5 bg-[#FAF8F5]/60 text-[8pt]">
-              <div className="grid grid-cols-4 gap-2">
+            <div className="border border-[#E8E2D8] rounded-2xl p-3 bg-[#FAF8F5]/70 text-[8.5pt]">
+              <div className="grid grid-cols-4 gap-3">
                 <div>
-                  <span className="text-[7pt] uppercase font-bold text-[#787F7A] block leading-none">Nama Siswa</span>
-                  <span className="font-bold text-[#22352B] mt-0.5 block truncate">
+                  <span className="text-[7.5pt] uppercase font-bold text-[#787F7A] block leading-none">Nama Siswa</span>
+                  <span className="font-bold text-[#22352B] mt-1 block truncate">
                     {currentSingleStudent?.full_name || "...................................................."}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[7pt] uppercase font-bold text-[#787F7A] block leading-none">Panggilan & Usia</span>
-                  <span className="font-bold text-[#22352B] mt-0.5 block">
+                  <span className="text-[7.5pt] uppercase font-bold text-[#787F7A] block leading-none">Panggilan & Usia</span>
+                  <span className="font-bold text-[#22352B] mt-1 block">
                     {currentSingleStudent ? `"${currentSingleStudent.nickname}"` : "........................"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[7pt] uppercase font-bold text-[#787F7A] block leading-none">No. Reg / JK / Kelompok</span>
-                  <span className="font-mono font-bold text-[#22352B] mt-0.5 block">
+                  <span className="text-[7.5pt] uppercase font-bold text-[#787F7A] block leading-none">No. Reg / JK / Kelompok</span>
+                  <span className="font-mono font-bold text-[#22352B] mt-1 block">
                     {currentSingleStudent ? `${currentSingleStudent.registration_no} • ${currentSingleStudent.gender} • ${currentSingleStudent.observation_group || "-"}` : "PPDB-2026-..... • [ ] L [ ] P"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[7pt] uppercase font-bold text-[#787F7A] block leading-none">Guru Pengamat</span>
-                  <span className="font-bold text-[#22352B] mt-0.5 block">
+                  <span className="text-[7.5pt] uppercase font-bold text-[#787F7A] block leading-none">Guru Pengamat</span>
+                  <span className="font-bold text-[#22352B] mt-1 block">
                     {isSuperObserver ? "Super Observer Lapangan" : `Evaluator Pos ${posNumber}`}
                   </span>
                 </div>
@@ -987,16 +1061,16 @@ export default function PosRubricPrintPage() {
             </div>
 
             {/* Tabel Detail Rubrik */}
-            <div className="border border-[#CBD5D0] rounded-xl overflow-hidden">
+            <div className="border border-[#CBD5D0] rounded-2xl overflow-hidden bg-white">
               <table className="w-full text-left text-[8pt] border-collapse">
                 <thead>
                   <tr className="bg-[#E4EFE9] text-[#22352B] font-extrabold border-b border-[#CBD5D0]">
-                    <th className="py-1.5 px-2 w-[24%]">Indikator Observasi</th>
-                    <th className="py-1.5 px-2 w-[18%]">1 — Belum Muncul (BM)</th>
-                    <th className="py-1.5 px-2 w-[18%]">2 — Bimbingan (MB)</th>
-                    <th className="py-1.5 px-2 w-[18%]">3 — Mandiri (MM)</th>
-                    <th className="py-1.5 px-2 w-[18%]">4 — Konsisten (MK)</th>
-                    <th className="py-1.5 px-1.5 w-[4%] text-center">Skor</th>
+                    <th className="py-2 px-2.5 w-[25%]">Indikator Observasi</th>
+                    <th className="py-2 px-2 w-[17%]">1 — Belum Muncul (BM)</th>
+                    <th className="py-2 px-2 w-[17%]">2 — Bimbingan (MB)</th>
+                    <th className="py-2 px-2 w-[17%]">3 — Mandiri (MM)</th>
+                    <th className="py-2 px-2 w-[17%]">4 — Konsisten (MK)</th>
+                    <th className="py-2 px-1.5 w-[7%] text-center">Skor</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E8E2D8]">
@@ -1013,9 +1087,9 @@ export default function PosRubricPrintPage() {
 
                     return (
                       <tr key={ind.id} className={idx % 2 === 1 ? "bg-[#FAF8F5]/50" : "bg-white"}>
-                        <td className="py-1.5 px-2 align-top">
+                        <td className="py-2 px-2.5 align-top">
                           <div className="flex items-start gap-1.5">
-                            <span className="w-4 h-4 rounded-full bg-[#B85627] text-white flex items-center justify-center font-extrabold text-[7pt] flex-shrink-0 mt-0.5">
+                            <span className="w-4.5 h-4.5 rounded-full bg-[#B85627] text-white flex items-center justify-center font-extrabold text-[7.5pt] flex-shrink-0 mt-0.5">
                               {ind.id}
                             </span>
                             <div>
@@ -1032,20 +1106,20 @@ export default function PosRubricPrintPage() {
                           </div>
                         </td>
 
-                        <td className={`py-1.5 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 1 ? "bg-[#FCEEEF] font-bold text-[#B83A35]" : ""}`}>
+                        <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 1 ? "bg-[#FCEEEF] font-bold text-[#B83A35]" : ""}`}>
                           {ind.score_descriptors["1"] || "-"}
                         </td>
-                        <td className={`py-1.5 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 2 ? "bg-[#F9E6DC] font-bold text-[#8C3713]" : ""}`}>
+                        <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 2 ? "bg-[#F9E6DC] font-bold text-[#8C3713]" : ""}`}>
                           {ind.score_descriptors["2"] || "-"}
                         </td>
-                        <td className={`py-1.5 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 3 ? "bg-[#E4EFE9] font-bold text-[#486B5A]" : ""}`}>
+                        <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 3 ? "bg-[#E4EFE9] font-bold text-[#486B5A]" : ""}`}>
                           {ind.score_descriptors["3"] || "-"}
                         </td>
-                        <td className={`py-1.5 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 4 ? "bg-[#D6E6DC] font-bold text-[#22352B]" : ""}`}>
+                        <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 4 ? "bg-[#D6E6DC] font-bold text-[#22352B]" : ""}`}>
                           {ind.score_descriptors["4"] || "-"}
                         </td>
 
-                        <td className="py-1.5 px-1 align-middle text-center">
+                        <td className="py-2 px-1 align-middle text-center">
                           <div className="flex flex-col items-center gap-0.5">
                             {[1, 2, 3, 4].map((s) => {
                               const isChosen = currentScore === s;
@@ -1072,16 +1146,17 @@ export default function PosRubricPrintPage() {
             </div>
 
             {/* Reading Level & Red Flags */}
-            <div className="grid grid-cols-2 gap-2 text-[8pt]">
+            <div className="grid grid-cols-2 gap-3 text-[8pt]">
               {/* Membaca */}
               {(posNumber === 4 || isSuperObserver) && (
-                <div className="border border-[#CBD5D0] rounded-xl p-2 bg-[#FAF4EB]">
-                  <span className="font-extrabold text-[#7D5327] block text-[8pt] mb-1">
-                    Tingkat Kemampuan Membaca (Centang salah satu)
+                <div className="border border-[#CBD5D0] rounded-2xl p-2.5 bg-[#FAF4EB]">
+                  <span className="font-extrabold text-[#7D5327] block text-[8pt] mb-1.5 flex items-center gap-1">
+                    <i className="mdi mdi-book-open-page-variant-outline" />
+                    <span>Tingkat Kemampuan Membaca (Centang salah satu)</span>
                   </span>
                   <div className="grid grid-cols-2 gap-1.5">
                     {READING_LEVEL_OPTIONS.map((rl) => (
-                      <div key={rl.level} className="bg-white p-1 rounded border border-[#DDD0B8] flex items-center gap-1.5">
+                      <div key={rl.level} className="bg-white p-1.5 rounded-xl border border-[#DDD0B8] flex items-center gap-1.5">
                         <span className="w-3.5 h-3.5 rounded border border-[#7D5327] flex items-center justify-center text-[7pt] font-bold">
                           [ ]
                         </span>
@@ -1095,17 +1170,18 @@ export default function PosRubricPrintPage() {
               )}
 
               {/* Red Flags */}
-              <div className={`border border-[#F1CFC0] rounded-xl p-2 bg-[#FDF7F4] ${!(posNumber === 4 || isSuperObserver) ? "col-span-2" : ""}`}>
-                <span className="font-extrabold text-[#8C3713] block text-[8pt] mb-1">
-                  Sinyal Perhatian Khusus / Pendampingan
+              <div className={`border border-[#F1CFC0] rounded-2xl p-2.5 bg-[#FDF7F4] ${!(posNumber === 4 || isSuperObserver) ? "col-span-2" : ""}`}>
+                <span className="font-extrabold text-[#8C3713] block text-[8pt] mb-1.5 flex items-center gap-1">
+                  <i className="mdi mdi-alert-outline text-[#B85627]" />
+                  <span>Sinyal Perhatian Khusus / Pendampingan</span>
                 </span>
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-2 gap-1.5">
                   {activeRedFlags.slice(0, 4).map((rf) => (
-                    <div key={rf.id} className="bg-white/80 p-1 rounded border border-[#F1CFC0]/60 flex items-center gap-1.5 text-[7pt]">
+                    <div key={rf.id} className="bg-white/80 p-1.5 rounded-xl border border-[#F1CFC0]/60 flex items-center gap-1.5 text-[7pt]">
                       <span className="w-3.5 h-3.5 rounded border border-[#8C3713]/60 flex items-center justify-center font-bold">
                         [ ]
                       </span>
-                      <span className="truncate">{rf.label}</span>
+                      <span className="truncate text-[#22352B] font-medium">{rf.label}</span>
                     </div>
                   ))}
                 </div>
@@ -1113,9 +1189,10 @@ export default function PosRubricPrintPage() {
             </div>
 
             {/* Catatan Anekdot */}
-            <div className="border border-[#CBD5D0] rounded-xl p-2.5 bg-white text-[8pt]">
-              <span className="font-extrabold text-[#22352B] block text-[8pt] mb-1">
-                Catatan Anekdot Pengamatan Guru:
+            <div className="border border-[#CBD5D0] rounded-2xl p-3 bg-white text-[8pt]">
+              <span className="font-extrabold text-[#22352B] block text-[8pt] mb-1 flex items-center gap-1">
+                <i className="mdi mdi-pencil-outline text-[#486B5A]" />
+                <span>Catatan Anekdot Pengamatan Guru:</span>
               </span>
               <div className="space-y-3 pt-1">
                 <div className="border-b border-dashed border-[#DDD7CE] h-3" />
