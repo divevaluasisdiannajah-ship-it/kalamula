@@ -52,11 +52,11 @@ export function MorningBrief({
           </div>
 
           <h2 className="text-base sm:text-lg font-bold text-[#1E2320] tracking-tight leading-snug">
-            Memandu Masa Transisi PAUD ke SD dengan Hangat &amp; Berkesinambungan
+            Memandu Diferensiasi Pembelajaran Mendalam dengan Hangat &amp; Berkesinambungan
           </h2>
 
           <p className="text-xs sm:text-[13px] text-[#565C58] leading-relaxed">
-            Fokus utama masa transisi adalah menumbuhkan rasa aman, mengenalkan budaya kelas ramah anak, dan memetakan fondasi literasi awal secara bertahap tanpa beban tes tertulis calistung.
+            Fokus utama adalah menumbuhkan rasa aman, mengenalkan budaya kelas ramah anak, dan memetakan capaian 8 dimensi profil lulusan secara bertahap tanpa beban tes tertulis berlebih.
           </p>
         </div>
 

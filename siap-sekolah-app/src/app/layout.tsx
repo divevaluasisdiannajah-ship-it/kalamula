@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     template: "%s | kalamula",
   },
   description:
-    "kalamula: Memandu Transisi, Memetakan Fondasi. Asesmen Diagnostik Kesiapan Belajar Calon Siswa SD.",
-  keywords: ["kalamula", "PPDB", "asesmen", "kesiapan sekolah", "PAUD", "SD", "diagnostik", "transisi"],
+    "kalamula: Memandu Pembelajaran, Memetakan Potensi. Platform Asesmen Diagnostik & Diferensiasi Pembelajaran Deep Learning SD (8 Dimensi Profil Lulusan).",
+  keywords: ["kalamula", "asesmen", "diferensiasi", "deep learning", "profil lulusan", "SD", "diagnostik", "SPMB"],
   authors: [{ name: "Tim Kalamula" }],
   manifest: "/manifest.json",
   appleWebApp: {
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "kalamula",
     title: "kalamula",
-    description: "Memandu Transisi, Memetakan Fondasi.",
+    description: "Memandu Pembelajaran, Memetakan Potensi. Platform Asesmen Diagnostik & Diferensiasi Pembelajaran Deep Learning SD.",
   },
   other: {
     google: "notranslate",

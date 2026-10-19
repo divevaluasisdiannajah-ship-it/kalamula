@@ -686,7 +686,7 @@ export default function PosRubricPrintPage() {
                 Instrumen Observasi Asesmen Diagnostik Kesiapan Belajar
               </h1>
               <p className="text-[10px] text-[#565C58] mt-0.5">
-                kalamula &bull; SDIT An-Najah &bull; Pemetaan 6 Fondasi Transisi PAUD–SD Berbasis Standar Kemendikbudristek
+                kalamula &bull; SDIT An-Najah &bull; Pemetaan Fondasi Belajar &amp; Diferensiasi Pembelajaran Deep Learning SD
               </p>
             </div>
           </div>

@@ -537,7 +537,7 @@ export default function TeacherPortalPage() {
           <div className="bg-white rounded-3xl p-5 border border-[#E8E2D8]/60 shadow-sm space-y-4">
             <div>
               <h3 className="text-base font-extrabold text-[#22352B]">
-                Panduan MPLS Ramah Transisi PAUD ke SD
+                Panduan MPLS &amp; Adaptasi Fondasi Belajar SD
               </h3>
               <p className="text-xs text-[#565C58] mt-0.5">
                 Fokus adaptasi sosio-emosional 2 minggu pertama sekolah

@@ -355,7 +355,7 @@ export default function StudentReportPage() {
               <span className="text-[10px] font-bold text-[#787F7A] block mt-0.5">/ 4.0</span>
             </div>
             <div className="flex-1 bg-[#E4EFE9] text-[#486B5A] p-2.5 rounded-2xl text-xs font-semibold leading-snug border border-[#CBE0D4]">
-              Rata-rata capaian 6 fondasi transisi PAUD ke SD.
+              Rata-rata capaian fondasi belajar &amp; profil lulusan.
             </div>
           </div>
 
@@ -432,7 +432,7 @@ export default function StudentReportPage() {
               </h3>
             </div>
             <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-[#E4EAF2] text-[#36506C]">
-              6 Fondasi Transisi PAUD-SD
+              Fondasi Belajar &amp; Profil Lulusan
             </span>
           </div>
 
@@ -711,7 +711,7 @@ export default function StudentReportPage() {
                   <i className="mdi mdi-chart-box-outline text-sm text-[#36506C]" />
                   <span>Rincian Skor Capaian</span>
                 </h4>
-                <span className="text-[10px] font-semibold text-[#565C58]">6 Fondasi Transisi PAUD-SD</span>
+                <span className="text-[10px] font-semibold text-[#565C58]">Fondasi Belajar &amp; Profil Lulusan</span>
               </div>
 
               <div className="space-y-1">

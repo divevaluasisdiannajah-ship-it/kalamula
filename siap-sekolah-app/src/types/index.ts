@@ -369,3 +369,167 @@ export interface LoginPayload {
   pin: string;
   pos_number?: number; // for evaluator login
 }
+
+// ─── 8 Dimensi Profil Lulusan Pembelajaran Mendalam (Deep Learning) ───
+
+export type DeepLearningDimensionId =
+  | "faith"          // 1. Keimanan dan Ketakwaan kepada Tuhan YME
+  | "citizenship"    // 2. Kewargaan (Citizenship)
+  | "critical"       // 3. Penalaran Kritis (Critical Thinking)
+  | "creativity"     // 4. Kreativitas (Creativity)
+  | "collaboration"  // 5. Kolaborasi (Collaboration)
+  | "independence"   // 6. Kemandirian (Self-Reliance / Agency)
+  | "health"         // 7. Kesehatan (Health & Well-being)
+  | "communication"; // 8. Komunikasi (Communication)
+
+export interface DeepLearningDimensionInfo {
+  id: DeepLearningDimensionId;
+  number: number;
+  name: string;
+  english: string;
+  focus: string;
+  color: string;
+  badgeBg: string;
+  badgeText: string;
+  mdiIcon: string;
+}
+
+export const DEEP_LEARNING_DIMENSIONS: Record<DeepLearningDimensionId, DeepLearningDimensionInfo> = {
+  faith: {
+    id: "faith",
+    number: 1,
+    name: "Keimanan & Ketakwaan",
+    english: "Faith & Spiritual Values",
+    focus: "Spiritualitas, integritas moral, kejujuran, dan adab mulia dalam keseharian",
+    color: "#7D5327",
+    badgeBg: "bg-[#EFE7D6]",
+    badgeText: "text-[#7D5327]",
+    mdiIcon: "mdi-hands-pray",
+  },
+  citizenship: {
+    id: "citizenship",
+    number: 2,
+    name: "Kewargaan",
+    english: "Citizenship & Responsibility",
+    focus: "Kepedulian sosial, cinta lingkungan, gotong royong, dan tanggung jawab nyata",
+    color: "#36506C",
+    badgeBg: "bg-[#E4EAF2]",
+    badgeText: "text-[#36506C]",
+    mdiIcon: "mdi-earth",
+  },
+  critical: {
+    id: "critical",
+    number: 3,
+    name: "Penalaran Kritis",
+    english: "Critical Thinking",
+    focus: "Berpikir logis, analitis, evaluasi fakta objektif, dan pemikiran reflektif",
+    color: "#486B5A",
+    badgeBg: "bg-[#E4EFE9]",
+    badgeText: "text-[#486B5A]",
+    mdiIcon: "mdi-brain",
+  },
+  creativity: {
+    id: "creativity",
+    number: 4,
+    name: "Kreativitas",
+    english: "Creativity & Innovation",
+    focus: "Eksplorasi ide orisinal, fleksibilitas berpikir, dan solusi inovatif bermanfaat",
+    color: "#B85627",
+    badgeBg: "bg-[#F9E6DC]",
+    badgeText: "text-[#B85627]",
+    mdiIcon: "mdi-lightbulb-on-outline",
+  },
+  collaboration: {
+    id: "collaboration",
+    number: 5,
+    name: "Kolaborasi",
+    english: "Collaboration & Teamwork",
+    focus: "Kerjasama sinergis, saling menghargai peran, dan mencapai tujuan bersama",
+    color: "#22352B",
+    badgeBg: "bg-[#EFECE4]",
+    badgeText: "text-[#22352B]",
+    mdiIcon: "mdi-account-group-outline",
+  },
+  independence: {
+    id: "independence",
+    number: 6,
+    name: "Kemandirian",
+    english: "Independence & Agency",
+    focus: "Regulasi diri, inisiatif belajar, ketangguhan (resilience), dan daya juang",
+    color: "#7D5327",
+    badgeBg: "bg-[#FAF8F5]",
+    badgeText: "text-[#7D5327]",
+    mdiIcon: "mdi-compass-outline",
+  },
+  health: {
+    id: "health",
+    number: 7,
+    name: "Kesehatan",
+    english: "Health & Well-being",
+    focus: "Kebugaran fisik, motorik seimbang, kesehatan mental, dan pola hidup sehat",
+    color: "#486B5A",
+    badgeBg: "bg-[#F2F7F4]",
+    badgeText: "text-[#486B5A]",
+    mdiIcon: "mdi-heart-pulse",
+  },
+  communication: {
+    id: "communication",
+    number: 8,
+    name: "Komunikasi",
+    english: "Communication",
+    focus: "Gagasan jelas, santun, efektif lisan-tulisan, dan aktif menjadi pendengar",
+    color: "#36506C",
+    badgeBg: "bg-[#E8EFF7]",
+    badgeText: "text-[#36506C]",
+    mdiIcon: "mdi-message-text-outline",
+  },
+};
+
+// ─── Classroom System (Kelas 1A - 6B) Types ─────────────────────
+
+export interface Classroom {
+  id: string; // e.g. "1A", "1B", ... "6B"
+  grade: number; // 1..6
+  section: "A" | "B";
+  name: string; // "Kelas 1A"
+  teacher_name?: string | null;
+  pin: string; // default "1234"
+  academic_year?: string;
+  student_count?: number;
+}
+
+export interface ClassroomStudent {
+  id: string;
+  classroom_id: string; // "1A", etc.
+  nisn: string;
+  full_name: string;
+  nickname: string;
+  gender: "L" | "P";
+  learning_group?: string; // "Kelompok Intervensi", "Kelompok Reguler", "Kelompok Pengayaan"
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface ClassroomObjective {
+  id: string;
+  classroom_id: string; // "1A" etc or "all"
+  subject: string; // "Bahasa Indonesia", "Matematika", "IPAS", "Pendidikan Agama", "Karakter", dll.
+  tp_code: string; // e.g. "TP-1.1", "TP-MAT-01"
+  tp_title: string;
+  tp_description: string;
+  dimension_id: DeepLearningDimensionId;
+  target_term?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ClassroomAssessment {
+  id: string;
+  classroom_id: string;
+  student_id: string;
+  objective_id: string;
+  score_level: 1 | 2 | 3 | 4; // 1: Perlu Bimbingan, 2: Cukup, 3: Berkembang Baik, 4: Mahir
+  anecdotal_note?: string | null;
+  assessed_at: string;
+}
+

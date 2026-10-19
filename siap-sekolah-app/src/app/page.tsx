@@ -31,7 +31,7 @@ export default function Home() {
             kalamula
           </h1>
           <p className="text-xs sm:text-sm text-[#565C58] mt-2 font-medium tracking-normal">
-            Memandu Transisi, Memetakan Fondasi
+            Memandu Pembelajaran, Memetakan Potensi
           </p>
 
           {/* Status Pill */}
@@ -49,7 +49,7 @@ export default function Home() {
 
           {/* 1. Asesmen Kualitatif untuk Diferensiasi Pembelajaran */}
           <Link
-            href="/teacher"
+            href="/classroom/select"
             className="bg-white rounded-3xl p-4 sm:p-4.5 border border-[#E8E2D8]/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none group flex items-center justify-between cursor-pointer"
           >
             <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
@@ -61,7 +61,7 @@ export default function Home() {
                   Asesmen Kualitatif untuk Diferensiasi Pembelajaran
                 </p>
                 <p className="text-xs text-[#565C58] mt-0.5 truncate leading-relaxed">
-                  Morning Briefing, Peta Tumbuh & Jurnal Harian
+                  Pilih Jenjang Kelas 1-6 &amp; Calon Siswa Baru
                 </p>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function Home() {
           Hari ini kita mengamati ritme belajar Ananda tanpa tergesa.
         </p>
         <p className="text-[11px] text-[#787F7A]">
-          kalamula &bull; Ruang Observasi Transisi PAUD ke SD
+          kalamula &bull; Platform Asesmen Diagnostik &amp; Diferensiasi Pembelajaran Deep Learning SD
         </p>
       </div>
     </main>

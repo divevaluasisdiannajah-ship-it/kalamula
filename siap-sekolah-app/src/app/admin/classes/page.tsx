@@ -26,6 +26,70 @@ export default function AdminClassesPage() {
   const [swapReason, setSwapReason] = useState("");
   const [swapping, setSwapping] = useState(false);
 
+  // Tab State: SPMB Class Balancer vs Classroom PIN Management
+  const [activeTab, setActiveTab] = useState<"spmb" | "pins">("spmb");
+
+  // Classroom PIN Management State (Kelas 1A - 6B)
+  const [classList, setClassList] = useState<Array<{
+    id: string;
+    grade: number;
+    section: "A" | "B";
+    name: string;
+    teacher_name?: string | null;
+    pin: string;
+    student_count?: number;
+  }>>([]);
+  const [pinInputs, setPinInputs] = useState<Record<string, string>>({});
+  const [savingPinId, setSavingPinId] = useState<string | null>(null);
+  const [pinNotice, setPinNotice] = useState<string>("");
+
+  const loadClassList = useCallback(async () => {
+    try {
+      const res = await fetch("/api/classrooms?admin=true");
+      if (res.ok) {
+        const json = await res.json();
+        const list = json.data || [];
+        setClassList(list);
+        const initialInputs: Record<string, string> = {};
+        list.forEach((c: { id: string; pin: string }) => {
+          initialInputs[c.id] = c.pin || "1234";
+        });
+        setPinInputs(initialInputs);
+      }
+    } catch {
+      // offline fallback
+    }
+  }, []);
+
+  const handleUpdatePin = async (id: string) => {
+    const newPin = pinInputs[id];
+    if (!newPin || newPin.length < 4) {
+      alert("PIN harus minimal 4 karakter");
+      return;
+    }
+    setSavingPinId(id);
+    setPinNotice("");
+    try {
+      const res = await fetch(`/api/classrooms/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ new_pin: newPin }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setPinNotice(`PIN Kelas ${id} berhasil diperbarui menjadi ${newPin}`);
+        setTimeout(() => setPinNotice(""), 3000);
+        loadClassList();
+      } else {
+        alert(json.error || "Gagal memperbarui PIN");
+      }
+    } catch {
+      alert("Koneksi gagal");
+    } finally {
+      setSavingPinId(null);
+    }
+  };
+
   const loadBatches = useCallback(async () => {
     try {
       const res = await fetch("/api/batches");
@@ -68,7 +132,8 @@ export default function AdminClassesPage() {
 
   useEffect(() => {
     loadBatches();
-  }, [loadBatches]);
+    loadClassList();
+  }, [loadBatches, loadClassList]);
 
   useEffect(() => {
     if (selectedBatchId) {
@@ -155,16 +220,47 @@ export default function AdminClassesPage() {
         </span>
       </div>
 
-      {/* Header & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#22352B] tracking-tight">
-            Pembagian Kelas Otomatis
-          </h1>
-          <p className="text-xs sm:text-sm text-[#565C58] mt-1">
-            Penyeimbang Kelas 1A & 1B secara merata berbasis profil asesmen calon siswa.
-          </p>
-        </div>
+      {/* Segmented Tab Switcher */}
+      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-[#EFECE4] rounded-2xl w-fit">
+        <button
+          type="button"
+          onClick={() => setActiveTab("spmb")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+            activeTab === "spmb"
+              ? "bg-white text-[#22352B] shadow-2xs"
+              : "text-[#565C58] hover:text-[#22352B]"
+          }`}
+        >
+          <i className="mdi mdi-scale-balance text-base" />
+          <span>Pembagian Kelas SPMB (Calon Siswa)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("pins")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+            activeTab === "pins"
+              ? "bg-white text-[#22352B] shadow-2xs"
+              : "text-[#565C58] hover:text-[#22352B]"
+          }`}
+        >
+          <i className="mdi mdi-shield-key-outline text-base" />
+          <span>Kelola Akses &amp; PIN Guru Kelas (1A s.d. 6B)</span>
+        </button>
+      </div>
+
+      {activeTab === "spmb" && (
+        <div className="space-y-6">
+          {/* Header & Controls */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#22352B] tracking-tight">
+                Pembagian Kelas Otomatis
+              </h1>
+              <p className="text-xs sm:text-sm text-[#565C58] mt-1">
+                Penyeimbang Kelas 1A & 1B secara merata berbasis profil asesmen calon siswa.
+              </p>
+            </div>
 
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full md:w-auto">
           <select
@@ -337,6 +433,107 @@ export default function AdminClassesPage() {
           </div>
         </div>
       </div>
+      </div>
+      )}
+
+      {/* ─── TAB 2: TEACHER PIN MANAGEMENT (KELAS 1A - 6B) ─── */}
+      {activeTab === "pins" && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#22352B] tracking-tight">
+                Pengaturan Akses &amp; PIN Guru Kelas (1A s.d. 6B)
+              </h2>
+              <p className="text-xs sm:text-sm text-[#565C58] mt-1">
+                Kelola 4-digit PIN masuk untuk guru masing-masing rombel ruang kelas SDIT An-Najah.
+              </p>
+            </div>
+
+            <div className="inline-flex items-center gap-2 bg-[#E4EFE9] text-[#486B5A] px-3.5 py-1.5 rounded-full text-xs font-extrabold border border-[#CBE0D4]">
+              <i className="mdi mdi-lock-check-outline text-base" />
+              <span>12 Rombel Aktif</span>
+            </div>
+          </div>
+
+          {pinNotice && (
+            <div className="p-4 bg-[#E4EFE9] text-[#486B5A] text-xs font-bold rounded-2xl border border-[#CBE0D4] flex items-center gap-2 shadow-2xs animate-in fade-in">
+              <i className="mdi mdi-check-circle text-lg" />
+              <span>{pinNotice}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {classList.map((c) => {
+              const currentInput = pinInputs[c.id] || "";
+              const isSaving = savingPinId === c.id;
+
+              return (
+                <div
+                  key={c.id}
+                  className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-2xs space-y-4 flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-black text-[#22352B]">
+                        {c.name}
+                      </span>
+                      <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#EFECE4] text-[#22352B]">
+                        {c.grade <= 2 ? "Fase A" : c.grade <= 4 ? "Fase B" : "Fase C"}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-[#565C58] flex items-center gap-1.5">
+                      <i className="mdi mdi-account-tie-outline text-sm text-[#486B5A]" />
+                      <span className="font-semibold">{c.teacher_name || "Guru Kelas"}</span>
+                    </p>
+
+                    <p className="text-[11px] text-[#787F7A]">
+                      {c.student_count ?? 0} Siswa Terdaftar &bull; T.A. 2026/2027
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-[#F6F3EC] space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-[#787F7A] block">
+                      4-Digit PIN Masuk:
+                    </label>
+
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <i className="mdi mdi-key-outline absolute left-3 top-2.5 text-base text-[#787F7A]" />
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={currentInput}
+                          onChange={(e) =>
+                            setPinInputs({
+                              ...pinInputs,
+                              [c.id]: e.target.value,
+                            })
+                          }
+                          className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#E8E2D8] text-xs font-mono font-bold text-[#22352B] focus:outline-none focus:ring-2 focus:ring-[#486B5A]"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={isSaving || currentInput === c.pin}
+                        onClick={() => handleUpdatePin(c.id)}
+                        className="px-3.5 py-2 rounded-xl bg-[#486B5A] hover:bg-[#22352B] disabled:opacity-40 text-white text-xs font-bold transition-all cursor-pointer flex-shrink-0"
+                      >
+                        {isSaving ? "Menyimpan..." : "Simpan"}
+                      </button>
+                    </div>
+
+                    <p className="text-[10px] text-[#787F7A]">
+                      PIN saat ini: <code className="font-mono font-bold text-[#22352B]">{c.pin}</code>
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Manual Swap Reason Modal */}
       {swapTarget && (

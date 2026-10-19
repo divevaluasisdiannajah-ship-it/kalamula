@@ -285,7 +285,7 @@ export default function BatchReportPDFPage() {
                   Rekapitulasi Observasi Kesiapan Belajar Calon Siswa
                 </h1>
                 <p className="text-xs text-stone-600 font-medium">
-                  Asesmen Diagnostik Awal Transisi PAUD ke SD (Fase A) · kalamula: Memandu Transisi, Memetakan Fondasi
+                  Asesmen Diagnostik &amp; Diferensiasi Pembelajaran Deep Learning SD · kalamula: Memandu Pembelajaran, Memetakan Potensi
                 </p>
               </div>
             </div>
