@@ -238,12 +238,12 @@ export default function StudentsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-5 font-sans">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-5 font-sans">
       {/* Top Bar */}
       <div className="flex items-center justify-between pb-1">
         <Link
           href="/admin"
-          className="bg-white border border-[#E8E2D8] text-[#22352B] px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1 shadow-xs"
+          className="bg-white border border-[#E8E2D8] text-[#22352B] px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1 shadow-2xs active:scale-[0.96]"
         >
           <i className="mdi mdi-chevron-left text-base" />
           <span>Dashboard Admin</span>
@@ -256,11 +256,11 @@ export default function StudentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#22352B] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-[#22352B] tracking-tight">
             Data Calon Siswa
           </h1>
-          <p className="text-xs text-[#565C58] mt-1">
-            {students.length} calon siswa terdaftar dalam sistem asesmen
+          <p className="text-xs text-[#565C58] mt-0.5">
+            <span className="font-mono tabular-nums font-bold text-[#22352B]">{students.length}</span> calon siswa terdaftar dalam sistem asesmen
           </p>
         </div>
 
@@ -269,7 +269,7 @@ export default function StudentsPage() {
             type="button"
             onClick={handleAutoAssignGroups}
             disabled={autoAssigning}
-            className="h-10 bg-[#EFE7D6] hover:bg-[#E4D8BE] text-[#7D5327] font-extrabold px-3.5 text-xs rounded-xl shadow-xs border border-[#DDD0B8] transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="h-9 sm:h-10 bg-[#EFE7D6] hover:bg-[#E4D8BE] text-[#7D5327] font-bold px-3 text-xs rounded-xl shadow-2xs border border-[#DDD0B8] transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-[0.96]"
             title="Bagi siswa ke dalam Kelompok 1, 2, 3 secara seimbang (gender balance)"
           >
             <i
@@ -277,36 +277,36 @@ export default function StudentsPage() {
                 autoAssigning ? "mdi-loading mdi-spin" : "mdi-account-group-outline"
               } text-base`}
             />
-            <span>{autoAssigning ? "Membagi..." : "Bagi Kelompok Otomatis"}</span>
+            <span>{autoAssigning ? "Membagi..." : "Bagi Kelompok"}</span>
           </button>
           <a
             href="/api/students/template"
-            className="h-10 bg-white text-[#22352B] font-bold px-3.5 text-xs rounded-xl shadow-xs border border-[#E8E2D8] hover:bg-[#FAF8F5] transition flex items-center gap-1.5"
+            className="h-9 sm:h-10 bg-white text-[#22352B] font-bold px-3 text-xs rounded-xl shadow-2xs border border-[#E8E2D8] hover:bg-[#FAF8F5] transition flex items-center gap-1.5 active:scale-[0.96]"
           >
             <i className="mdi mdi-download text-base text-[#787F7A]" />
-            <span>Template Excel</span>
+            <span>Template</span>
           </a>
           <button
             onClick={() => setShowImport(true)}
-            className="h-10 bg-[#E4EFE9] text-[#486B5A] font-bold px-3.5 text-xs rounded-xl shadow-xs hover:bg-[#D4E2D8] transition flex items-center gap-1.5 cursor-pointer"
+            className="h-9 sm:h-10 bg-[#E4EFE9] text-[#486B5A] font-bold px-3 text-xs rounded-xl shadow-2xs hover:bg-[#D4E2D8] transition flex items-center gap-1.5 cursor-pointer active:scale-[0.96]"
           >
-            <i className="mdi mdi-tray-arrow-up text-lg" />
+            <i className="mdi mdi-tray-arrow-up text-base" />
             <span>Import Excel</span>
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-10 bg-[#B85627] hover:bg-[#A34A1F] text-white font-extrabold px-4 text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+            className="h-9 sm:h-10 bg-[#B85627] hover:bg-[#A34A1F] text-white font-bold px-3.5 text-xs rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer active:scale-[0.96]"
           >
-            <i className="mdi mdi-plus text-lg" />
+            <i className="mdi mdi-plus text-base" />
             <span>Tambah Siswa</span>
           </button>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-3xl border border-[#E8E2D8]/60 shadow-sm flex flex-col sm:flex-row gap-2.5">
-        <div className="relative flex-1 bg-[#FAF8F5] rounded-2xl border border-[#DDD7CE] px-3.5 py-2 flex items-center gap-2">
-          <i className="mdi mdi-magnify text-lg text-[#787F7A] flex-shrink-0" />
+      <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-[#E8E2D8] shadow-xs flex flex-col sm:flex-row gap-2.5">
+        <div className="relative flex-1 bg-[#FAF8F5] rounded-xl border border-[#E8E2D8] px-3 py-1.5 flex items-center gap-2">
+          <i className="mdi mdi-magnify text-base text-[#787F7A] flex-shrink-0" />
           <input
             type="text"
             value={searchQuery}
@@ -317,7 +317,7 @@ export default function StudentsPage() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="text-[#787F7A] hover:text-[#22352B] p-0.5"
+              className="text-[#787F7A] hover:text-[#22352B] p-0.5 cursor-pointer"
             >
               <i className="mdi mdi-close" />
             </button>
@@ -327,7 +327,7 @@ export default function StudentsPage() {
         <select
           value={filterBatch}
           onChange={(e) => setFilterBatch(e.target.value)}
-          className="h-10 rounded-2xl px-3.5 text-xs bg-[#FAF8F5] text-[#22352B] font-bold border border-[#DDD7CE] focus:outline-none cursor-pointer"
+          className="h-9 rounded-xl px-3 text-xs bg-[#FAF8F5] text-[#22352B] font-bold border border-[#E8E2D8] focus:outline-none cursor-pointer"
         >
           <option value="all">Semua Gelombang</option>
           {batches.map((b) => (
@@ -338,12 +338,12 @@ export default function StudentsPage() {
         </select>
 
         {/* View Toggle */}
-        <div className="flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-2xl border border-[#DDD7CE]">
+        <div className="flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-xl border border-[#E8E2D8]">
           <button
             onClick={() => setViewMode("cards")}
-            className={`h-8 px-3 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+            className={`h-7 px-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer active:scale-[0.96] ${
               viewMode === "cards"
-                ? "bg-[#B85627] text-white shadow-xs"
+                ? "bg-[#B85627] text-white shadow-2xs"
                 : "text-[#565C58] hover:text-[#22352B]"
             }`}
             title="Tampilan Kartu"
@@ -352,9 +352,9 @@ export default function StudentsPage() {
           </button>
           <button
             onClick={() => setViewMode("table")}
-            className={`h-8 px-3 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+            className={`h-7 px-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer active:scale-[0.96] ${
               viewMode === "table"
-                ? "bg-[#B85627] text-white shadow-xs"
+                ? "bg-[#B85627] text-white shadow-2xs"
                 : "text-[#565C58] hover:text-[#22352B]"
             }`}
             title="Tampilan Tabel"

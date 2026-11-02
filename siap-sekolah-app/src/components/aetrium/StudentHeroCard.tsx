@@ -82,70 +82,75 @@ export function StudentHeroCard({
     return (
       <article
         onClick={onClick}
-        className={`bg-white rounded-[1.85rem] p-4 sm:p-5 border border-[#E8E2D8]/60 shadow-[0_4px_20px_-2px_rgba(30,35,32,0.04)] font-sans ${
-          onClick ? "cursor-pointer active:scale-[0.99] transition-all" : ""
+        className={`bg-white rounded-2xl p-4 border border-[#E8E2D8] shadow-xs font-sans ${
+          onClick ? "cursor-pointer active:scale-[0.98] transition-all hover:border-[#DDD7CE]" : ""
         } ${className}`}
       >
         {/* Top Info Row */}
         <div className="flex items-center gap-3.5">
-          {/* Avatar bulat #486B5A */}
-          <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-[#486B5A] text-white flex items-center justify-center font-extrabold text-base flex-shrink-0 shadow-xs">
+          {/* Avatar konsentris #486B5A */}
+          <div className="w-12 h-12 rounded-xl bg-[#486B5A] text-white flex items-center justify-center font-bold text-base flex-shrink-0 shadow-2xs">
             {initials}
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-lg sm:text-xl font-black text-[#22352B] tracking-tight">
-                {student.nickname}
-              </h3>
-              <span className="bg-[#EFECE4] text-[#787F7A] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                {ageDisplay}
-              </span>
-              {student.observation_group && (
-                <span className="bg-[#EFE7D6] text-[#7D5327] border border-[#DDD0B8] text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                  <i className="mdi mdi-account-group text-xs" />
-                  <span>{student.observation_group}</span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-baseline gap-2 min-w-0">
+                <h3 className="text-lg font-black text-[#22352B] tracking-tight truncate">
+                  {student.nickname}
+                </h3>
+                <span className="text-xs text-[#787F7A] truncate font-normal">
+                  ({student.full_name})
                 </span>
-              )}
+              </div>
+
               {hasRedFlag && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#F9E6DC] text-[#8C3713] border border-[#F1CFC0]">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F9E6DC] text-[#8C3713] border border-[#F1CFC0]">
                   <i className="mdi mdi-alert text-xs text-[#B85627]" />
                   <span>Perhatian Khusus</span>
                 </span>
               )}
             </div>
 
-            <p className="text-xs sm:text-[13px] font-medium text-[#565C58] truncate mt-0.5">
-              {student.full_name}
-            </p>
-
-            <p className="text-xs text-[#787F7A] mt-0.5">
-              ID: <span className="font-mono font-semibold text-[#22352B]">{student.registration_no}</span> · JK:{" "}
-              <span className="font-bold text-[#22352B]">{student.gender || (isMale ? "L" : "P")}</span>
+            {/* Consolidated Metadata Row */}
+            <p className="text-xs text-[#565C58] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
+              {student.observation_group && (
+                <span className="font-bold text-[#7D5327] bg-[#EFE7D6] px-2 py-0.5 rounded-md text-[10.5px]">
+                  {student.observation_group}
+                </span>
+              )}
+              {student.observation_group && <span>&bull;</span>}
+              <span>{ageDisplay}</span>
+              <span>&bull;</span>
+              <span>JK: {student.gender || (isMale ? "L" : "P")}</span>
+              <span>&bull;</span>
+              <span className="font-mono tabular-nums text-[#22352B]">
+                ID: {student.registration_no}
+              </span>
             </p>
           </div>
         </div>
 
         {/* Garis Pemisah Tipis */}
-        <div className="border-t border-[#EFECE4] my-3.5" />
+        <div className="border-t border-[#FAF8F5] my-3" />
 
         {/* Baris Bawah: Label Kemandirian, Status Pill, Ceklis Selesai */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A]">
-              KEMANDIRIAN
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#787F7A]">
+              KEMANDIRIAN:
             </span>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4] text-xs font-bold shadow-2xs">
-              <i className="mdi mdi-shield-check-outline text-sm" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4] text-xs font-bold shadow-2xs">
+              <i className="mdi mdi-shield-check-outline text-xs" />
               <span>{continuum.text}</span>
             </div>
           </div>
 
           <div
-            className="w-7 h-7 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center flex-shrink-0 ml-auto shadow-2xs"
+            className="w-6 h-6 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center flex-shrink-0 ml-auto shadow-2xs"
             title="Selesai diamati"
           >
-            <i className="mdi mdi-check text-base font-bold" />
+            <i className="mdi mdi-check text-sm font-bold" />
           </div>
         </div>
       </article>
