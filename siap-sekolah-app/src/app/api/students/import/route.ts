@@ -25,7 +25,14 @@ export async function POST(request: Request) {
     const rows = parseExcelBuffer(arrayBuffer);
 
     if (rows.length === 0) {
-      return NextResponse.json({ success: false, error: 'File Excel kosong' }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "File Excel kosong atau kolom data siswa tidak terdeteksi. Gunakan template resmi atau pastikan ada kolom Nama Lengkap dan No Pendaftaran.",
+        },
+        { status: 400 }
+      );
     }
 
     const db = getDB();
@@ -101,7 +108,10 @@ export async function POST(request: Request) {
       success: true,
       data: { imported, skipped, total: results.length, errors: results.filter((r) => !r.is_valid) },
     });
-  } catch {
-    return NextResponse.json({ success: false, error: 'Gagal mengimport data' }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: (error as Error).message || "Gagal mengimport data" },
+      { status: 500 }
+    );
   }
 }

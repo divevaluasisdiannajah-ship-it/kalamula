@@ -69,31 +69,167 @@ export function generateTemplate(): Buffer {
   return Buffer.from(XLSX.write(wb, { type: "buffer", bookType: "xlsx" }));
 }
 
+// ─── Header Normalizer (Fuzzy Matcher) ─────────────────────────
+
+export function normalizeHeaderKey(rawKey: unknown): keyof ExcelStudentRow | null {
+  if (!rawKey) return null;
+  const clean = String(rawKey).toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  if (
+    clean.includes("pendaftaran") ||
+    clean.includes("registrasi") ||
+    clean === "noreg" ||
+    clean === "nopen" ||
+    clean === "nisn" ||
+    clean === "no" ||
+    clean === "id"
+  ) {
+    return "No_Pendaftaran";
+  }
+  if (clean.includes("panggilan") || clean.includes("nickname") || clean === "nick") {
+    return "Nama_Panggilan";
+  }
+  if (
+    clean.includes("lengkap") ||
+    clean.includes("siswa") ||
+    clean.includes("anak") ||
+    clean.includes("peserta") ||
+    clean === "nama"
+  ) {
+    return "Nama_Lengkap";
+  }
+  if (
+    clean.includes("lahir") ||
+    clean.includes("dob") ||
+    clean.includes("birth") ||
+    clean === "tgl"
+  ) {
+    return "Tanggal_Lahir";
+  }
+  if (
+    clean.includes("kelamin") ||
+    clean.includes("gender") ||
+    clean.includes("sex") ||
+    clean === "lp" ||
+    clean === "jk"
+  ) {
+    return "Jenis_Kelamin";
+  }
+  if (
+    clean.includes("orangtua") ||
+    clean.includes("ortu") ||
+    clean.includes("ayah") ||
+    clean.includes("ibu") ||
+    clean.includes("wali") ||
+    clean.includes("parent")
+  ) {
+    return "Nama_Orang_Tua";
+  }
+  if (
+    clean.includes("whatsapp") ||
+    clean.includes("wa") ||
+    clean.includes("hp") ||
+    clean.includes("telepon") ||
+    clean.includes("telp") ||
+    clean.includes("phone") ||
+    clean.includes("kontak")
+  ) {
+    return "No_WhatsApp";
+  }
+  if (
+    clean.includes("kelompok") ||
+    clean.includes("grup") ||
+    clean.includes("group") ||
+    clean.includes("rombel") ||
+    clean.includes("kelas")
+  ) {
+    return "Kelompok";
+  }
+  return null;
+}
+
 // ─── Parse Uploaded Excel ──────────────────────────────────────
 
 export function parseExcelBuffer(buffer: ArrayBuffer): ExcelStudentRow[] {
   const wb = XLSX.read(buffer, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rawRows = XLSX.utils.sheet_to_json<Record<string, string>>(ws, {
+
+  // Find the first sheet with content
+  let sheetName = wb.SheetNames[0];
+  for (const name of wb.SheetNames) {
+    const s = wb.Sheets[name];
+    if (s && s["!ref"]) {
+      sheetName = name;
+      break;
+    }
+  }
+  const ws = wb.Sheets[sheetName];
+  if (!ws) return [];
+
+  const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, {
     defval: "",
   });
 
-  // Map display headers back to field keys
-  const headerMap: Record<string, keyof ExcelStudentRow> = {};
-  for (const [key, label] of Object.entries(HEADER_LABELS)) {
-    headerMap[label] = key as keyof ExcelStudentRow;
+  if (rawRows.length === 0) return [];
+
+  // If row 1 was a title header, check if headers start on a lower row
+  const firstRowKeys = Object.keys(rawRows[0] || {});
+  const recognizedCount = firstRowKeys.filter((k) => normalizeHeaderKey(k) !== null).length;
+
+  let effectiveRows: Record<string, unknown>[] = rawRows;
+
+  if (recognizedCount === 0) {
+    const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1 });
+    const headerRowIndex = aoa.findIndex((row) => {
+      if (!Array.isArray(row)) return false;
+      const matches = row.filter((cell) => normalizeHeaderKey(cell) !== null);
+      return matches.length >= 2;
+    });
+
+    if (headerRowIndex !== -1) {
+      const headerRow = aoa[headerRowIndex] as unknown[];
+      const dataRows = aoa.slice(headerRowIndex + 1);
+      effectiveRows = dataRows.map((r) => {
+        const rowObj: Record<string, unknown> = {};
+        if (Array.isArray(r)) {
+          r.forEach((cellVal, colIdx) => {
+            const h = headerRow[colIdx];
+            if (h) rowObj[String(h)] = cellVal;
+          });
+        }
+        return rowObj;
+      });
+    }
   }
 
-  return rawRows.map((raw) => {
+  const results: ExcelStudentRow[] = [];
+
+  for (const raw of effectiveRows) {
     const row: Partial<ExcelStudentRow> = {};
     for (const [rawKey, rawValue] of Object.entries(raw)) {
-      const mappedKey = headerMap[rawKey] || rawKey;
-      if (TEMPLATE_HEADERS.includes(mappedKey as keyof ExcelStudentRow)) {
-        (row as Record<string, string>)[mappedKey] = String(rawValue).trim();
+      const mappedKey = normalizeHeaderKey(rawKey);
+      if (mappedKey) {
+        if (mappedKey === "Tanggal_Lahir") {
+          const parsed = parseDateFlexible(rawValue);
+          row[mappedKey] = parsed ? formatDateDisplay(parsed) : String(rawValue ?? "").trim();
+        } else {
+          row[mappedKey] = String(rawValue ?? "").trim();
+        }
       }
     }
-    return row as ExcelStudentRow;
-  });
+
+    // Ignore empty lines
+    const hasAnyData = Object.values(row).some((v) => v && String(v).trim().length > 0);
+    if (!hasAnyData) continue;
+
+    // Auto-fill nickname from full name if missing
+    if (row.Nama_Lengkap && !row.Nama_Panggilan) {
+      row.Nama_Panggilan = row.Nama_Lengkap.trim().split(/\s+/)[0];
+    }
+
+    results.push(row as ExcelStudentRow);
+  }
+
+  return results;
 }
 
 // ─── Validate Rows ─────────────────────────────────────────────
@@ -270,28 +406,77 @@ export function autoAssignObservationGroups<
 
 // ─── Date Parser (Flexible) ───────────────────────────────────
 
-export function parseDateFlexible(dateStr: string): string | null {
-  // Try DD/MM/YYYY
+export function parseDateFlexible(val: unknown): string | null {
+  if (val === null || val === undefined) return null;
+
+  // 1. Date instance
+  if (val instanceof Date && !isNaN(val.getTime())) {
+    const y = val.getFullYear();
+    const m = String(val.getMonth() + 1).padStart(2, "0");
+    const d = String(val.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  // 2. Excel numeric serial date code (e.g. 43600 or "43600")
+  if (typeof val === "number" || (typeof val === "string" && /^\d{4,5}(\.\d+)?$/.test(val.trim()))) {
+    const num = typeof val === "number" ? val : parseFloat(val);
+    try {
+      const parsed = XLSX.SSF.parse_date_code(num);
+      if (parsed && parsed.y && parsed.m && parsed.d) {
+        const y = parsed.y;
+        const m = String(parsed.m).padStart(2, "0");
+        const d = String(parsed.d).padStart(2, "0");
+        if (y >= 1990 && y <= 2035) {
+          return `${y}-${m}-${d}`;
+        }
+      }
+    } catch {
+      // fallback to string parsing
+    }
+  }
+
+  const dateStr = String(val).trim();
+  if (!dateStr) return null;
+
+  // 3. DD/MM/YYYY or D/M/YYYY or DD-MM-YYYY or DD.MM.YYYY
   let match = dateStr.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/);
   if (match) {
     const [, d, m, y] = match;
     const day = parseInt(d, 10);
     const month = parseInt(m, 10);
     const year = parseInt(y, 10);
-    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 2015 && year <= 2025) {
-      return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 1990 && year <= 2035) {
+      return `${y}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     }
   }
 
-  // Try YYYY-MM-DD
+  // 4. YYYY-MM-DD or YYYY/MM/DD
   match = dateStr.match(/^(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})$/);
   if (match) {
     const [, y, m, d] = match;
     const day = parseInt(d, 10);
     const month = parseInt(m, 10);
     const year = parseInt(y, 10);
-    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 2015 && year <= 2025) {
-      return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 1990 && year <= 2035) {
+      return `${y}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
+  }
+
+  // 5. 2-digit year: DD/MM/YY or M/D/YY (e.g. 15/05/19 or 5/15/19)
+  match = dateStr.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2})$/);
+  if (match) {
+    const [, part1, part2, yy] = match;
+    const p1 = parseInt(part1, 10);
+    const p2 = parseInt(part2, 10);
+    const fullYear = 2000 + parseInt(yy, 10);
+    let d = p1;
+    let m = p2;
+    if (p1 <= 12 && p2 > 12) {
+      m = p1;
+      d = p2;
+    }
+    if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return `${fullYear}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     }
   }
 
@@ -302,8 +487,28 @@ export function parseDateFlexible(dateStr: string): string | null {
 
 export function normalizeGender(input: string): "L" | "P" | null {
   const lower = input.toLowerCase().trim();
-  if (lower === "l" || lower === "laki-laki" || lower === "laki" || lower === "male") return "L";
-  if (lower === "p" || lower === "perempuan" || lower === "female" || lower === "wanita") return "P";
+  if (
+    lower === "l" ||
+    lower === "laki-laki" ||
+    lower === "laki" ||
+    lower === "laki - laki" ||
+    lower === "pria" ||
+    lower === "cowok" ||
+    lower === "male" ||
+    lower === "m"
+  ) {
+    return "L";
+  }
+  if (
+    lower === "p" ||
+    lower === "perempuan" ||
+    lower === "wanita" ||
+    lower === "cewek" ||
+    lower === "female" ||
+    lower === "f"
+  ) {
+    return "P";
+  }
   return null;
 }
 

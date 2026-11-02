@@ -90,27 +90,35 @@ export default function StudentsPage() {
   });
 
   // ─── Import Handlers ──────────────────────────────────────
-  const handleFileUpload = async (file: File) => {
-    if (!importBatchId) {
-      alert("Pilih gelombang terlebih dahulu");
+  const handleFileUpload = async (file: File, batchIdToUse?: string) => {
+    const activeBatch = batchIdToUse || importBatchId;
+    if (!activeBatch) {
+      alert("Pilih gelombang observasi terlebih dahulu sebelum memilih berkas.");
       return;
     }
     setImportLoading(true);
+    setImportResults(null);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("batch_id", importBatchId);
+    formData.append("batch_id", activeBatch);
 
     try {
       const res = await fetch("/api/students/import?preview_only=true", {
         method: "POST",
         body: formData,
       });
-      if (res.ok) {
-        const data = await res.json();
-        setImportResults(data.data?.errors || []);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const results = data.data?.results || [];
+        setImportResults(results);
+        if (results.length === 0) {
+          alert("File Excel terbaca, namun tidak ditemukan baris data calon siswa. Pastikan format kolom sesuai template.");
+        }
+      } else {
+        alert(data.error || "Gagal memproses file Excel");
       }
     } catch {
-      alert("Gagal memproses file");
+      alert("Gagal memproses file Excel. Pastikan file berformat .xlsx");
     } finally {
       setImportLoading(false);
     }
@@ -118,7 +126,10 @@ export default function StudentsPage() {
 
   const confirmImport = async () => {
     const file = fileInputRef.current?.files?.[0];
-    if (!file || !importBatchId) return;
+    if (!file || !importBatchId) {
+      alert("Pilih gelombang dan berkas Excel terlebih dahulu.");
+      return;
+    }
 
     setImportLoading(true);
     const formData = new FormData();
@@ -130,15 +141,18 @@ export default function StudentsPage() {
         method: "POST",
         body: formData,
       });
-      if (res.ok) {
-        const data = await res.json();
-        alert(`Berhasil import ${data.data?.imported || 0} siswa!`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(`Berhasil import ${data.data?.imported || 0} siswa ke Gelombang!`);
         setShowImport(false);
         setImportResults(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
         loadData();
+      } else {
+        alert(data.error || "Gagal mengimport data siswa");
       }
     } catch {
-      alert("Gagal import data");
+      alert("Gagal import data siswa");
     } finally {
       setImportLoading(false);
     }
@@ -287,7 +301,12 @@ export default function StudentsPage() {
             <span>Template</span>
           </a>
           <button
-            onClick={() => setShowImport(true)}
+            onClick={() => {
+              if (!importBatchId) {
+                setImportBatchId(filterBatch !== "all" ? filterBatch : (batches[0]?.id || ""));
+              }
+              setShowImport(true);
+            }}
             className="h-9 sm:h-10 bg-[#E4EFE9] text-[#486B5A] font-bold px-3 text-xs rounded-xl shadow-2xs hover:bg-[#D4E2D8] transition flex items-center gap-1.5 cursor-pointer active:scale-[0.96]"
           >
             <i className="mdi mdi-tray-arrow-up text-base" />
@@ -564,7 +583,13 @@ export default function StudentsPage() {
                 </label>
                 <select
                   value={importBatchId}
-                  onChange={(e) => setImportBatchId(e.target.value)}
+                  onChange={(e) => {
+                    const newBatch = e.target.value;
+                    setImportBatchId(newBatch);
+                    if (newBatch && fileInputRef.current?.files?.[0]) {
+                      handleFileUpload(fileInputRef.current.files[0], newBatch);
+                    }
+                  }}
                   className="w-full h-11 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-bold focus:outline-none"
                 >
                   <option value="">Pilih Gelombang...</option>
@@ -583,7 +608,7 @@ export default function StudentsPage() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".xlsx"
+                  accept=".xlsx, .xls"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleFileUpload(file);
@@ -593,21 +618,74 @@ export default function StudentsPage() {
               </div>
 
               {importLoading && (
-                <div className="text-center py-4 text-xs font-bold text-[#B85627] animate-pulse">
-                  Sedang memvalidasi baris Excel...
+                <div className="text-center py-4 text-xs font-bold text-[#B85627] animate-pulse flex items-center justify-center gap-2">
+                  <i className="mdi mdi-loading mdi-spin text-base" />
+                  <span>Sedang memvalidasi dan mencocokkan kolom data siswa...</span>
                 </div>
               )}
 
               {importResults && (
-                <div className="p-3 bg-[#FAF8F5] rounded-2xl border border-[#E8E2D8] space-y-2 text-xs">
+                <div className="p-3.5 bg-[#FAF8F5] rounded-2xl border border-[#E8E2D8] space-y-3 text-xs">
                   <div className="flex items-center justify-between font-bold">
-                    <span className="text-[#486B5A]">
+                    <span className="text-[#486B5A] flex items-center gap-1.5">
+                      <i className="mdi mdi-check-circle text-base" />
                       Valid: {importResults.filter((r) => r.is_valid).length} siswa
                     </span>
-                    <span className="text-[#8C3713]">
+                    <span className="text-[#8C3713] flex items-center gap-1.5">
+                      <i className="mdi mdi-alert-circle text-base" />
                       Error: {importResults.filter((r) => !r.is_valid).length} baris
                     </span>
                   </div>
+
+                  {/* Rincian baris error jika ada */}
+                  {importResults.some((r) => !r.is_valid) && (
+                    <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                      <p className="text-[11px] font-bold text-[#8C3713]">
+                        Baris yang perlu diperbaiki:
+                      </p>
+                      {importResults
+                        .filter((r) => !r.is_valid)
+                        .map((r, i) => (
+                          <div
+                            key={i}
+                            className="bg-white p-2 rounded-xl border border-[#F0D5C9] text-[11px] text-[#22352B]"
+                          >
+                            <span className="font-bold text-[#B85627]">
+                              Baris {r.row_index} ({r.data.Nama_Lengkap || "Tanpa Nama"}):
+                            </span>{" "}
+                            {r.errors.join(", ")}
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Preview calon siswa valid yang siap di-import */}
+                  {importResults.some((r) => r.is_valid) && (
+                    <div className="max-h-40 overflow-y-auto space-y-1 pr-1">
+                      <p className="text-[11px] font-bold text-[#486B5A]">
+                        Siap Di-Import ({importResults.filter((r) => r.is_valid).length} Siswa):
+                      </p>
+                      <div className="bg-white p-2 rounded-xl border border-[#CBE0D4] divide-y divide-[#F0EDE6] text-[11px]">
+                        {importResults
+                          .filter((r) => r.is_valid)
+                          .map((r, i) => (
+                            <div key={i} className="py-1.5 flex items-center justify-between gap-2">
+                              <div>
+                                <span className="font-bold text-[#22352B]">
+                                  {r.data.Nama_Lengkap}
+                                </span>
+                                <span className="text-[#565C58] text-[10px] ml-1.5 font-mono">
+                                  ({r.data.No_Pendaftaran})
+                                </span>
+                              </div>
+                              <span className="text-[#486B5A] font-semibold text-[10px] bg-[#E4EFE9] px-2 py-0.5 rounded-full flex-shrink-0">
+                                {r.data.Kelompok || "Auto-Kelompok"} &bull; {r.data.Jenis_Kelamin}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -617,6 +695,7 @@ export default function StudentsPage() {
                   onClick={() => {
                     setShowImport(false);
                     setImportResults(null);
+                    if (fileInputRef.current) fileInputRef.current.value = "";
                   }}
                   className="flex-1 py-2.5 rounded-xl bg-[#F3EFE6] text-[#22352B] text-xs font-bold hover:bg-[#EAE4D8] transition"
                 >
@@ -627,9 +706,10 @@ export default function StudentsPage() {
                     type="button"
                     onClick={confirmImport}
                     disabled={importLoading}
-                    className="flex-1 py-2.5 rounded-xl bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-extrabold shadow-xs transition"
+                    className="flex-1 py-2.5 rounded-xl bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-extrabold shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    Simpan Import
+                    <i className="mdi mdi-tray-arrow-down text-base" />
+                    <span>Simpan Import ({importResults.filter((r) => r.is_valid).length} Siswa)</span>
                   </button>
                 )}
               </div>
