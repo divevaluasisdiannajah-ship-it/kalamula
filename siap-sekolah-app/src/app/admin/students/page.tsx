@@ -38,6 +38,40 @@ export default function StudentsPage() {
     observation_group: "",
   });
   const [addSubmitting, setAddSubmitting] = useState(false);
+  const [deletingDummy, setDeletingDummy] = useState(false);
+
+  const hasDummyData = batches.some(
+    (b) =>
+      b.created_by === "system-seed" ||
+      b.batch_name.includes("56 Siswa") ||
+      b.batch_name.includes("TP 2026/2027") ||
+      b.id.startsWith("batch-demo")
+  );
+
+  const handleCleanDummy = async () => {
+    if (
+      !confirm(
+        "Hapus semua data dummy bawaan sistem (56 siswa dummy & batch sampel)? Data siswa dan gelombang riil yang Anda upload tidak akan terhapus."
+      )
+    ) {
+      return;
+    }
+    setDeletingDummy(true);
+    try {
+      const res = await fetch("/api/seed", { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert("Data dummy berhasil dibersihkan dari database!");
+        loadData();
+      } else {
+        alert(data.error || "Gagal membersihkan data dummy");
+      }
+    } catch {
+      alert("Gagal membersihkan data dummy. Periksa koneksi.");
+    } finally {
+      setDeletingDummy(false);
+    }
+  };
 
   const loadData = useCallback(async () => {
     try {
@@ -279,6 +313,22 @@ export default function StudentsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {hasDummyData && (
+            <button
+              type="button"
+              onClick={handleCleanDummy}
+              disabled={deletingDummy}
+              className="h-9 sm:h-10 bg-[#F9E6DC] hover:bg-[#F2D7CA] text-[#8C3713] font-bold px-3 text-xs rounded-xl shadow-2xs border border-[#F1CFC0] transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-[0.96]"
+              title="Bersihkan 56 siswa dummy dan gelombang demo bawaan"
+            >
+              <i
+                className={`mdi ${
+                  deletingDummy ? "mdi-loading mdi-spin" : "mdi-broom"
+                } text-base`}
+              />
+              <span>{deletingDummy ? "Menghapus..." : "Hapus Dummy"}</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={handleAutoAssignGroups}

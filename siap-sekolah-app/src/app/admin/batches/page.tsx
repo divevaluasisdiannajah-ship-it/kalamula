@@ -14,6 +14,38 @@ export default function BatchManagerPage() {
   const [editBatch, setEditBatch] = useState<Batch | null>(null);
   const [form, setForm] = useState({ batch_name: "", batch_date: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [deletingDummy, setDeletingDummy] = useState(false);
+
+  const isDummyBatch = (b: Batch) =>
+    b.created_by === "system-seed" ||
+    b.batch_name.includes("56 Siswa") ||
+    b.batch_name.includes("TP 2026/2027") ||
+    b.id.startsWith("batch-demo");
+
+  const handleCleanDummy = async () => {
+    if (
+      !confirm(
+        "Hapus semua data dummy bawaan sistem (56 siswa dummy & batch sampel)? Data gelombang dan siswa riil yang Anda buat tidak akan terhapus."
+      )
+    ) {
+      return;
+    }
+    setDeletingDummy(true);
+    try {
+      const res = await fetch("/api/seed", { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert("Data dummy berhasil dibersihkan dari database!");
+        loadBatches();
+      } else {
+        alert(data.error || "Gagal menghapus data dummy");
+      }
+    } catch {
+      alert("Gagal menghapus data dummy. Periksa koneksi.");
+    } finally {
+      setDeletingDummy(false);
+    }
+  };
 
   const loadBatches = useCallback(async () => {
     try {
@@ -102,12 +134,24 @@ export default function BatchManagerPage() {
   };
 
   const handleDelete = async (batch: Batch) => {
-    if (!confirm(`Hapus gelombang "${batch.batch_name}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+    const isDummy = isDummyBatch(batch);
+    const msg = isDummy
+      ? `Hapus gelombang sampel "${batch.batch_name}" beserta seluruh data siswanya?`
+      : batch.status === "draft"
+      ? `Hapus gelombang "${batch.batch_name}"? Tindakan ini tidak dapat dibatalkan.`
+      : `Hapus gelombang "${batch.batch_name}" beserta SEMUA siswa dan data evaluasi di dalamnya? Tindakan ini tidak dapat dibatalkan.`;
+
+    if (!confirm(msg)) return;
     try {
-      await fetch(`/api/batches/${batch.id}`, { method: "DELETE" });
-      loadBatches();
+      const res = await fetch(`/api/batches/${batch.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        loadBatches();
+      } else {
+        alert(data.error || "Gagal menghapus gelombang");
+      }
     } catch {
-      /* handle error */
+      alert("Gagal menghapus gelombang");
     }
   };
 
@@ -137,13 +181,26 @@ export default function BatchManagerPage() {
             Atur jadwal dan status aktif gelombang asesmen diagnostik kesiapan belajar calon siswa
           </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-[#B85627] hover:bg-[#A34A1F] text-white font-bold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer active:scale-[0.96]"
-        >
-          <i className="mdi mdi-plus text-lg" />
-          <span>Tambah Gelombang Baru</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {batches.some(isDummyBatch) && (
+            <button
+              onClick={handleCleanDummy}
+              disabled={deletingDummy}
+              className="bg-[#F9E6DC] hover:bg-[#F2D7CA] text-[#8C3713] font-bold px-3.5 py-2.5 rounded-xl border border-[#F1CFC0] shadow-xs transition flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer active:scale-[0.96] disabled:opacity-50"
+              title="Bersihkan 56 siswa dummy dan gelombang demo bawaan"
+            >
+              <i className={`mdi ${deletingDummy ? "mdi-loading mdi-spin" : "mdi-broom"} text-lg`} />
+              <span>{deletingDummy ? "Menghapus..." : "Hapus Data Dummy"}</span>
+            </button>
+          )}
+          <button
+            onClick={openCreate}
+            className="bg-[#B85627] hover:bg-[#A34A1F] text-white font-bold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer active:scale-[0.96]"
+          >
+            <i className="mdi mdi-plus text-lg" />
+            <span>Tambah Gelombang Baru</span>
+          </button>
+        </div>
       </div>
 
       {/* Batch List */}
@@ -183,6 +240,11 @@ export default function BatchManagerPage() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-base text-[#22352B]">{batch.batch_name}</h3>
                         <StatusBadge status={batch.status} />
+                        {isDummyBatch(batch) && (
+                          <span className="bg-[#FFF4E5] text-[#B85627] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#FED7AA]">
+                            Data Dummy
+                          </span>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#565C58] mt-0.5">
                         <span className="flex items-center gap-1 font-medium">
@@ -203,39 +265,21 @@ export default function BatchManagerPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end border-t sm:border-t-0 pt-2.5 sm:pt-0 flex-shrink-0">
                   {batch.status === "draft" && (
-                    <>
-                      <button
-                        onClick={() => handleStatusChange(batch, "active")}
-                        className="h-8 sm:h-9 bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#D4E2D8] active:scale-[0.96] transition-all cursor-pointer"
-                      >
-                        <i className="mdi mdi-play text-base" />
-                        <span>Aktifkan</span>
-                      </button>
-                      <button
-                        onClick={() => openEdit(batch)}
-                        className="h-8 sm:h-9 bg-[#FAF8F5] text-[#22352B] px-2.5 text-xs rounded-xl border border-[#E8E2D8] hover:bg-[#F3EFE6] active:scale-[0.96] transition-all cursor-pointer"
-                        title="Edit Gelombang"
-                        aria-label="Edit Gelombang"
-                      >
-                        <i className="mdi mdi-pencil-outline text-base" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(batch)}
-                        className="h-8 sm:h-9 bg-[#F9E6DC] text-[#8C3713] px-2.5 text-xs rounded-xl border border-[#F1CFC0] hover:bg-[#F2D7CA] active:scale-[0.96] transition-all cursor-pointer"
-                        title="Hapus Gelombang"
-                        aria-label="Hapus Gelombang"
-                      >
-                        <i className="mdi mdi-trash-can-outline text-base" />
-                      </button>
-                    </>
+                    <button
+                      onClick={() => handleStatusChange(batch, "active")}
+                      className="h-8 sm:h-9 bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#D4E2D8] active:scale-[0.96] transition-all cursor-pointer"
+                    >
+                      <i className="mdi mdi-play text-base" />
+                      <span>Aktifkan</span>
+                    </button>
                   )}
                   {batch.status === "active" && (
                     <button
                       onClick={() => handleStatusChange(batch, "locked")}
-                      className="h-8 sm:h-9 bg-[#F9E6DC] text-[#8C3713] border border-[#F1CFC0] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#F2D7CA] active:scale-[0.96] transition-all cursor-pointer"
+                      className="h-8 sm:h-9 bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#EFECE4] active:scale-[0.96] transition-all cursor-pointer"
                     >
                       <i className="mdi mdi-lock-outline text-base" />
-                      <span>Kunci Gelombang</span>
+                      <span>Kunci</span>
                     </button>
                   )}
                   {batch.status === "locked" && (
@@ -244,6 +288,22 @@ export default function BatchManagerPage() {
                       <span>Terkunci</span>
                     </span>
                   )}
+                  <button
+                    onClick={() => openEdit(batch)}
+                    className="h-8 sm:h-9 bg-[#FAF8F5] text-[#22352B] px-2.5 text-xs rounded-xl border border-[#E8E2D8] hover:bg-[#F3EFE6] active:scale-[0.96] transition-all cursor-pointer"
+                    title="Edit Gelombang"
+                    aria-label="Edit Gelombang"
+                  >
+                    <i className="mdi mdi-pencil-outline text-base" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(batch)}
+                    className="h-8 sm:h-9 bg-[#F9E6DC] text-[#8C3713] px-2.5 text-xs rounded-xl border border-[#F1CFC0] hover:bg-[#F2D7CA] active:scale-[0.96] transition-all cursor-pointer"
+                    title={isDummyBatch(batch) ? "Hapus Gelombang Dummy" : "Hapus Gelombang"}
+                    aria-label="Hapus Gelombang"
+                  >
+                    <i className="mdi mdi-trash-can-outline text-base" />
+                  </button>
                 </div>
               </div>
             </div>

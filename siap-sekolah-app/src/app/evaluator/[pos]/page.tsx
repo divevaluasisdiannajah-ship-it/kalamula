@@ -242,7 +242,7 @@ export default function EvaluatorStudentListPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Link
-              href={`/reports/rubric/${posNumber}`}
+              href={`/reports/rubric/${posNumber}${activeBatchId ? `?batch_id=${activeBatchId}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white border border-[#E8E2D8] text-[#B85627] hover:bg-[#FAF8F5] px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"
@@ -255,7 +255,7 @@ export default function EvaluatorStudentListPage() {
 
             {posNumber === 1 && (
               <Link
-                href="/reports/rubric/so"
+                href={`/reports/rubric/so${activeBatchId ? `?batch_id=${activeBatchId}` : ""}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-[#E4EFE9] border border-[#CBE0D4] text-[#486B5A] hover:bg-[#D6E6DC] px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"

@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
-import { getDB, batches as batchesTable, students as studentsTable } from '@/db';
+import { getDB, batches as batchesTable, students as studentsTable, evaluations as evaluationsTable, parentResponses as parentResponsesTable } from '@/db';
 import { getSessionFromRequest, requireRole } from '@/lib/auth';
 import type { Batch, Student } from '@/types';
 
@@ -113,16 +113,30 @@ export async function DELETE(
     if (!batch) {
       return NextResponse.json({ success: false, error: 'Batch tidak ditemukan' }, { status: 404 });
     }
-    if (batch.status !== 'draft') {
-      return NextResponse.json(
-        { success: false, error: 'Hanya batch draft yang bisa dihapus' },
-        { status: 400 }
-      );
+
+    // Cascade delete students, evaluations, parent responses in this batch
+    const batchStudents = (await db
+      .select()
+      .from(studentsTable)
+      .where(eq(studentsTable.batch_id, id))
+      .all()) as Student[];
+
+    for (const s of batchStudents) {
+      await db.delete(evaluationsTable).where(eq(evaluationsTable.student_id, s.id));
+      await db.delete(parentResponsesTable).where(eq(parentResponsesTable.student_id, s.id));
     }
 
+    await db.delete(studentsTable).where(eq(studentsTable.batch_id, id));
     await db.delete(batchesTable).where(eq(batchesTable.id, id));
-    return NextResponse.json({ success: true, data: { message: 'Batch berhasil dihapus' } });
-  } catch {
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        message: `Gelombang "${batch.batch_name}" dan ${batchStudents.length} siswa berhasil dihapus`,
+        deletedStudents: batchStudents.length,
+      },
+    });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: (error as Error).message || 'Internal Server Error' }, { status: 500 });
   }
 }

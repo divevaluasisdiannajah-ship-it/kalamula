@@ -462,7 +462,7 @@ export default function EvaluatorLoginPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <Link
-                  href={`/reports/rubric/${posNumber}`}
+                  href={`/reports/rubric/${posNumber}${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 text-xs shadow-2xs active:scale-[0.96]"
@@ -471,7 +471,7 @@ export default function EvaluatorLoginPage() {
                   <span>Lembar Pos {posNumber}</span>
                 </Link>
                 <Link
-                  href="/reports/rubric/so"
+                  href={`/reports/rubric/so${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-[#E4EFE9] hover:bg-[#D4E6DC] text-[#486B5A] border border-[#CBE0D4] px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 text-xs shadow-2xs active:scale-[0.96]"

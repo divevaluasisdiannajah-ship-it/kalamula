@@ -222,3 +222,55 @@ export async function POST() {
     return NextResponse.json({ success: false, error: 'Gagal memproses seeding dataset' }, { status: 500 });
   }
 }
+
+export async function DELETE() {
+  try {
+    const db = getDB();
+
+    // Find all batches that look like dummy / demo batches
+    const allBatches = (await db.select().from(batchesTable).all()) as Batch[];
+    const dummyBatches = allBatches.filter(
+      (b) =>
+        b.created_by === "system-seed" ||
+        b.batch_name.includes("56 Siswa") ||
+        b.batch_name.includes("TP 2026/2027") ||
+        b.id.startsWith("batch-demo")
+    );
+
+    let deletedStudents = 0;
+    let deletedEvaluations = 0;
+    let deletedBatches = 0;
+
+    for (const b of dummyBatches) {
+      const students = (await db
+        .select()
+        .from(studentsTable)
+        .where(eq(studentsTable.batch_id, b.id))
+        .all()) as Student[];
+
+      for (const s of students) {
+        await db.delete(evaluationsTable).where(eq(evaluationsTable.student_id, s.id));
+        await db.delete(parentResponsesTable).where(eq(parentResponsesTable.student_id, s.id));
+        deletedEvaluations++;
+      }
+
+      await db.delete(studentsTable).where(eq(studentsTable.batch_id, b.id));
+      deletedStudents += students.length;
+
+      await db.delete(batchesTable).where(eq(batchesTable.id, b.id));
+      deletedBatches++;
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Berhasil membersihkan ${deletedBatches} gelombang demo, ${deletedStudents} siswa dummy, dan riwayat observasinya.`,
+      data: { deletedBatches, deletedStudents, deletedEvaluations },
+    });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json(
+      { success: false, error: (err as Error).message || "Gagal membersihkan data dummy" },
+      { status: 500 }
+    );
+  }
+}

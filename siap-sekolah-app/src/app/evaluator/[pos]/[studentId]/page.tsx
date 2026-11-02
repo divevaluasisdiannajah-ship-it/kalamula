@@ -321,7 +321,7 @@ export default function EvaluationFormPage() {
           </button>
           <div className="flex items-center gap-2">
             <Link
-              href={`/reports/rubric/${posNumber}?student_id=${studentId}`}
+              href={`/reports/rubric/${posNumber}?student_id=${studentId}${student?.batch_id || batchId ? `&batch_id=${student?.batch_id || batchId}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E8E2D8] text-xs font-bold text-[#B85627] hover:bg-[#FAF8F5] shadow-2xs transition-colors cursor-pointer active:scale-[0.96]"

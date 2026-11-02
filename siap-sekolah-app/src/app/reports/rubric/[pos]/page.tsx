@@ -4,7 +4,7 @@ export const runtime = 'edge';
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import type { Student, AssessmentConfigParsed, ScoreValue, ReadingLevel, Evaluation, FoundationNumber } from "@/types";
+import type { Student, Batch, AssessmentConfigParsed, ScoreValue, ReadingLevel, Evaluation, FoundationNumber } from "@/types";
 import { FOUNDATION_LABELS } from "@/types";
 
 // Default configs lengkap 5 Pos dengan 6 Fondasi Kemendikbudristek
@@ -266,6 +266,8 @@ export default function PosRubricPrintPage() {
   const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
 
   // Data states
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>("");
   const [allConfigs, setAllConfigs] = useState<Record<number, AssessmentConfigParsed>>({});
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string>(initialStudentId);
@@ -275,19 +277,43 @@ export default function PosRubricPrintPage() {
   const [teacherList, setTeacherList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch configs, students, evaluations, school profile & teachers
+  // Fetch configs, batches, students, evaluations, school profile & teachers
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
+      // 1. Fetch batches first to know the active wave
+      const bRes = await fetch("/api/batches");
+      let batchList: Batch[] = [];
+      if (bRes.ok) {
+        const bData = await bRes.json();
+        batchList = bData.data || [];
+        setBatches(batchList);
+      }
+
+      const urlBatchId = searchParams.get("batch_id");
+      const savedBatchId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("kalamula_evaluator_batch_id")
+          : null;
+      // Prefer batch from URL/storage, or the user's latest real batch (non-dummy)
+      const realBatch = batchList.find(
+        (b) => !b.batch_name.includes("56 Siswa") && !b.batch_name.includes("TP 2026/2027")
+      );
+      const activeBatchId =
+        urlBatchId || savedBatchId || (realBatch ? realBatch.id : (batchList[0]?.id || ""));
+
+      setSelectedBatchId(activeBatchId);
+
+      // 2. Fetch parallel data using active batch ID
       const [cRes, sRes, eRes, pRes, tRes] = await Promise.all([
         fetch("/api/configs"),
-        fetch("/api/students"),
-        fetch("/api/evaluations"),
+        fetch(activeBatchId ? `/api/students?batch_id=${activeBatchId}` : "/api/students"),
+        fetch(activeBatchId ? `/api/evaluations?batch_id=${activeBatchId}` : "/api/evaluations"),
         fetch("/api/school"),
         fetch("/api/teachers"),
       ]);
 
-      // 1. Fetch configs
+      // Configs
       if (cRes.ok) {
         const cData = await cRes.json();
         const list = cData.data || [];
@@ -304,7 +330,7 @@ export default function PosRubricPrintPage() {
         setAllConfigs(cfgMap);
       }
 
-      // 2. Fetch students
+      // Students
       if (sRes.ok) {
         const sData = await sRes.json();
         const stList: Student[] = sData.data || [];
@@ -314,7 +340,7 @@ export default function PosRubricPrintPage() {
         }
       }
 
-      // 3. Fetch evaluations
+      // Evaluations
       if (eRes.ok) {
         const eData = await eRes.json();
         const evList: Evaluation[] = eData.data || [];
@@ -325,13 +351,13 @@ export default function PosRubricPrintPage() {
         setEvaluations(evMap);
       }
 
-      // 4. Fetch school profile
+      // School Profile
       if (pRes.ok) {
         const pData = await pRes.json();
         setSchoolProfile(pData.data);
       }
 
-      // 5. Fetch teachers
+      // Teachers
       if (tRes.ok) {
         const tData = await tRes.json();
         const tList = tData.data || [];
@@ -346,7 +372,44 @@ export default function PosRubricPrintPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedStudentId, posNumber]);
+  }, [searchParams, selectedStudentId, posNumber]);
+
+  const handleBatchChange = async (newBatchId: string) => {
+    setSelectedBatchId(newBatchId);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("kalamula_evaluator_batch_id", newBatchId);
+    }
+    try {
+      setLoading(true);
+      const [sRes, eRes] = await Promise.all([
+        fetch(newBatchId ? `/api/students?batch_id=${newBatchId}` : "/api/students"),
+        fetch(newBatchId ? `/api/evaluations?batch_id=${newBatchId}` : "/api/evaluations"),
+      ]);
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        const stList: Student[] = sData.data || [];
+        setStudents(stList);
+        if (stList.length > 0) {
+          setSelectedStudentId(stList[0].id);
+        } else {
+          setSelectedStudentId("");
+        }
+      }
+      if (eRes.ok) {
+        const eData = await eRes.json();
+        const evList: Evaluation[] = eData.data || [];
+        const evMap: Record<string, Evaluation> = {};
+        evList.forEach((ev) => {
+          evMap[`${ev.student_id}_${ev.pos_number}`] = ev;
+        });
+        setEvaluations(evMap);
+      }
+    } catch (err) {
+      console.error("Gagal mengganti gelombang:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -456,9 +519,19 @@ export default function PosRubricPrintPage() {
       return list.slice(0, 5);
     }
 
-    // Default sample when group has no students loaded yet (matches reference image)
-    return SAMPLE_STUDENTS;
+    // If group has no students in this batch, return 5 blank dotted rows
+    return [1, 2, 3, 4, 5].map((i) => ({
+      id: "",
+      nickname: "........................",
+      full_name: "................................",
+      registration_no: "PPDB-2026-.....",
+    }));
   }, [students, selectedGroup]);
+
+  // Current batch object
+  const currentBatch = useMemo(() => {
+    return batches.find((b) => b.id === selectedBatchId) || null;
+  }, [batches, selectedBatchId]);
 
   // Selected student for single format
   const currentSingleStudent = useMemo(() => {
@@ -557,7 +630,7 @@ export default function PosRubricPrintPage() {
                   <button
                     key={pos}
                     type="button"
-                    onClick={() => router.push(`/reports/rubric/${pos}${selectedStudentId ? `?student_id=${selectedStudentId}` : ""}`)}
+                    onClick={() => router.push(`/reports/rubric/${pos}?batch_id=${selectedBatchId}${selectedStudentId ? `&student_id=${selectedStudentId}` : ""}`)}
                     className={`px-3 py-1 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1 ${
                       isActive
                         ? "bg-[#B85627] text-white shadow-xs"
@@ -571,7 +644,7 @@ export default function PosRubricPrintPage() {
 
               <button
                 type="button"
-                onClick={() => router.push(`/reports/rubric/so`)}
+                onClick={() => router.push(`/reports/rubric/so?batch_id=${selectedBatchId}`)}
                 className={`px-3 py-1 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 ${
                   isSuperObserver
                     ? "bg-[#486B5A] text-white shadow-xs"
@@ -600,6 +673,24 @@ export default function PosRubricPrintPage() {
         {/* Secondary Bar: Group Filter, Format Mode, Orientation */}
         <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-3">
+            {/* Dropdown Pemilih Gelombang */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-[#787F7A] text-[11px] uppercase tracking-wider">
+                Gelombang:
+              </span>
+              <select
+                value={selectedBatchId}
+                onChange={(e) => handleBatchChange(e.target.value)}
+                className="bg-white border border-[#CBE0D4] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#22352B] focus:outline-none focus:ring-2 focus:ring-[#486B5A] cursor-pointer shadow-2xs max-w-[210px] truncate"
+              >
+                {batches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.batch_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Dropdown Pemilih Kelompok */}
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-[#787F7A] text-[11px] uppercase tracking-wider">
@@ -728,7 +819,7 @@ export default function PosRubricPrintPage() {
                 Instrumen Observasi Asesmen Diagnostik Kesiapan Belajar
               </h1>
               <p className="text-[10px] text-[#565C58] mt-0.5">
-                kalamula &bull; {schoolProfile?.school_name || "SDIT An-Najah"} &bull; {schoolProfile?.foundation_name || "Yayasan Pendidikan Islam An-Najah"} &bull; T.A. {schoolProfile?.academic_year || "2026/2027"}
+                kalamula &bull; {schoolProfile?.school_name || "SDIT An-Najah"} &bull; {currentBatch ? currentBatch.batch_name : (schoolProfile?.foundation_name || "Yayasan Pendidikan Islam An-Najah")} &bull; T.A. {schoolProfile?.academic_year || "2026/2027"}
               </p>
             </div>
           </div>
@@ -771,6 +862,11 @@ export default function PosRubricPrintPage() {
             <div className="font-extrabold text-[#22352B] text-xs mt-1 truncate">
               {selectedGroup === "blank" ? "Formulir Kosong" : selectedGroup}
             </div>
+            {currentBatch && (
+              <div className="text-[8.5px] text-[#787F7A] truncate font-medium mt-0.5">
+                {currentBatch.batch_name}
+              </div>
+            )}
           </div>
 
           {/* Kolom 3: DURASI */}
