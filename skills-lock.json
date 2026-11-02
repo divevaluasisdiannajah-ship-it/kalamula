@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "variant": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/variant/SKILL.md",
+      "computedHash": "e924db65a7f161327c469e16ace0298186363b07c0bd7a769c827115baff5c12"
+    }
+  }
+}
