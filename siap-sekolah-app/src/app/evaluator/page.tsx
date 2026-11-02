@@ -368,7 +368,7 @@ export default function EvaluatorLoginPage() {
                       type="button"
                       onClick={() => handlePinInput(String(num))}
                       disabled={loading}
-                      className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50"
+                      className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                       aria-label={`Digit ${num}`}
                     >
                       {num}
@@ -381,7 +381,7 @@ export default function EvaluatorLoginPage() {
                     type="button"
                     onClick={() => handlePinInput("0")}
                     disabled={loading}
-                    className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50"
+                    className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                     aria-label="Digit 0"
                   >
                     0
@@ -391,7 +391,7 @@ export default function EvaluatorLoginPage() {
                     type="button"
                     onClick={handleDelete}
                     disabled={loading || pin.length === 0}
-                    className="bg-[#F9E6DC] text-[#B85627] border border-[#F1CFC0] rounded-xl h-12 font-bold hover:bg-[#F2D7CA] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-40"
+                    className="bg-[#F9E6DC] text-[#B85627] border border-[#F1CFC0] rounded-xl h-12 font-bold hover:bg-[#F2D7CA] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                     aria-label="Hapus satu digit"
                   >
                     <i className="mdi mdi-backspace-outline text-xl" />

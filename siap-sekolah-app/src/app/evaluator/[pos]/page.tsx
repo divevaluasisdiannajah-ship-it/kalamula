@@ -619,7 +619,16 @@ export default function EvaluatorStudentListPage() {
                   <article
                     key={student.id}
                     onClick={() => router.push(targetUrl)}
-                    className="bg-[#FDF7F4] border border-[#F1CFC0] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98]"
+                    tabIndex={0}
+                    role="link"
+                    aria-label={`Buka observasi ${student.nickname || student.full_name}, status dengan bimbingan`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        router.push(targetUrl);
+                      }
+                    }}
+                    className="bg-[#FDF7F4] border border-[#F1CFC0] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     {/* Baris Atas */}
                     <div className="flex items-start justify-between gap-3">
@@ -629,10 +638,10 @@ export default function EvaluatorStudentListPage() {
                           {student.nickname ? student.nickname.charAt(0).toUpperCase() : student.full_name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-base font-bold text-[#22352B] leading-tight truncate">
+                          <h3 className="text-base font-bold text-[#22352B] leading-tight truncate" title={student.nickname || student.full_name}>
                             {student.nickname || student.full_name}
                           </h3>
-                          <p className="text-xs text-[#565C58] mt-0.5 truncate">
+                          <p className="text-xs text-[#565C58] mt-0.5 truncate" title={student.full_name}>
                             {student.full_name}
                           </p>
                           <p className="text-[11px] text-[#787F7A] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
@@ -670,7 +679,7 @@ export default function EvaluatorStudentListPage() {
                           e.stopPropagation();
                           router.push(targetUrl);
                         }}
-                        className="bg-[#F9E6DC] text-[#8C3713] hover:bg-[#F2D7CA] text-xs font-bold px-3 py-1 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96]"
+                        className="bg-[#F9E6DC] text-[#8C3713] hover:bg-[#F2D7CA] text-xs font-bold px-3 py-1 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                       >
                         <span>Lihat Jurnal</span>
                         <i className="mdi mdi-chevron-right text-sm" />
@@ -686,7 +695,16 @@ export default function EvaluatorStudentListPage() {
                   <article
                     key={student.id}
                     onClick={() => router.push(targetUrl)}
-                    className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98]"
+                    tabIndex={0}
+                    role="link"
+                    aria-label={`Buka observasi ${student.nickname || student.full_name}, status mandiri dan konsisten`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        router.push(targetUrl);
+                      }
+                    }}
+                    className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     {/* Baris Atas */}
                     <div className="flex items-start justify-between gap-3">
@@ -696,10 +714,10 @@ export default function EvaluatorStudentListPage() {
                           {student.nickname ? student.nickname.charAt(0).toUpperCase() : student.full_name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-base font-bold text-[#22352B] leading-tight truncate">
+                          <h3 className="text-base font-bold text-[#22352B] leading-tight truncate" title={student.nickname || student.full_name}>
                             {student.nickname || student.full_name}
                           </h3>
-                          <p className="text-xs text-[#565C58] mt-0.5 truncate">
+                          <p className="text-xs text-[#565C58] mt-0.5 truncate" title={student.full_name}>
                             {student.full_name}
                           </p>
                           <p className="text-[11px] text-[#787F7A] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
@@ -737,7 +755,7 @@ export default function EvaluatorStudentListPage() {
                           e.stopPropagation();
                           router.push(targetUrl);
                         }}
-                        className="bg-[#F3EFE6] text-[#22352B] hover:bg-[#EAE4D8] text-xs font-bold px-3 py-1 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96]"
+                        className="bg-[#F3EFE6] text-[#22352B] hover:bg-[#EAE4D8] text-xs font-bold px-3 py-1 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                       >
                         <span>Lihat Jurnal</span>
                         <i className="mdi mdi-chevron-right text-sm" />
@@ -752,7 +770,16 @@ export default function EvaluatorStudentListPage() {
                 <article
                   key={student.id}
                   onClick={() => router.push(targetUrl)}
-                  className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98]"
+                  tabIndex={0}
+                  role="link"
+                  aria-label={`Buka observasi ${student.nickname || student.full_name}, status belum observasi`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(targetUrl);
+                    }
+                  }}
+                  className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
                   {/* Baris Atas */}
                   <div className="flex items-start justify-between gap-3">
@@ -761,10 +788,10 @@ export default function EvaluatorStudentListPage() {
                         {student.nickname ? student.nickname.charAt(0).toUpperCase() : student.full_name.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-base font-bold text-[#22352B] leading-tight truncate">
+                        <h3 className="text-base font-bold text-[#22352B] leading-tight truncate" title={student.nickname || student.full_name}>
                           {student.nickname || student.full_name}
                         </h3>
-                        <p className="text-xs text-[#565C58] mt-0.5 truncate">
+                        <p className="text-xs text-[#565C58] mt-0.5 truncate" title={student.full_name}>
                           {student.full_name}
                         </p>
                         <p className="text-[11px] text-[#787F7A] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
@@ -796,7 +823,7 @@ export default function EvaluatorStudentListPage() {
                         e.stopPropagation();
                         router.push(targetUrl);
                       }}
-                      className="bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-bold px-3.5 py-1.5 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96]"
+                      className="bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-bold px-3.5 py-1.5 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
                     >
                       <i className="mdi mdi-pencil-outline text-xs" />
                       <span>Catat Observasi</span>

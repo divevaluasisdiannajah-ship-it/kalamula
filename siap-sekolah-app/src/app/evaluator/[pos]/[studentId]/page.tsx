@@ -460,7 +460,7 @@ export default function EvaluationFormPage() {
                         role="button"
                         aria-pressed={isSelected}
                         onClick={() => setScores((prev) => ({ ...prev, [indicator.id]: val }))}
-                        className={`h-13 sm:h-14 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer active:scale-[0.96] focus-visible:outline-none ${
+                        className={`h-13 sm:h-14 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none ${
                           isSelected
                             ? config.selected
                             : "bg-[#FAF8F5] text-[#22352B] hover:bg-white border border-[#E8E2D8] font-semibold"
@@ -518,7 +518,7 @@ export default function EvaluationFormPage() {
                     role="radio"
                     aria-checked={isSelected}
                     onClick={() => setReadingLevel(rl.value)}
-                    className={`p-3.5 rounded-xl text-left transition-all text-xs min-h-[84px] flex flex-col justify-between cursor-pointer active:scale-[0.96] focus-visible:outline-none ${
+                    className={`p-3.5 rounded-xl text-left transition-all text-xs min-h-[84px] flex flex-col justify-between cursor-pointer active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none ${
                       isSelected
                         ? "bg-[#EFE7D6] border-2 border-[#7D5327] shadow-2xs text-[#22352B] font-bold"
                         : "bg-[#FAF8F5] text-[#22352B] hover:bg-white border border-[#E8E2D8]"

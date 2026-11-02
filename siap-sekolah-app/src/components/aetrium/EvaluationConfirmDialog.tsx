@@ -90,15 +90,15 @@ export function EvaluationConfirmDialog({
 
         {/* Student & Pos Recap */}
         <div className="bg-[#FAF8F5] rounded-xl p-3.5 border border-[#E8E2D8] space-y-2 text-xs">
-          <div className="flex justify-between items-center">
-            <span className="text-[#565C58] font-normal">Ananda:</span>
-            <span className="font-bold text-[#22352B]">
+          <div className="flex justify-between items-start gap-2">
+            <span className="text-[#565C58] font-normal flex-shrink-0">Ananda:</span>
+            <span className="font-bold text-[#22352B] text-right truncate min-w-0" title={`${studentNickname} (${studentName})`}>
               {studentNickname} <span className="font-normal text-[#787F7A]">({studentName})</span>
             </span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[#565C58] font-normal">Pos Asesmen:</span>
-            <span className="font-semibold text-[#22352B]">Pos {posNumber} — {posName}</span>
+          <div className="flex justify-between items-center gap-2">
+            <span className="text-[#565C58] font-normal flex-shrink-0">Pos Asesmen:</span>
+            <span className="font-semibold text-[#22352B] text-right truncate">Pos {posNumber} — {posName}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-[#565C58] font-normal">Indikator Dinilai:</span>
@@ -146,7 +146,7 @@ export function EvaluationConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="w-full sm:w-auto h-10 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#22352B] text-xs font-bold px-4 py-2 rounded-xl border border-[#E8E2D8] transition-colors text-center cursor-pointer disabled:opacity-50 active:scale-[0.96]"
+            className="w-full sm:w-auto h-10 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#22352B] text-xs font-bold px-4 py-2 rounded-xl border border-[#E8E2D8] transition-all text-center cursor-pointer disabled:opacity-50 active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             Periksa Ulang
           </button>
@@ -154,7 +154,7 @@ export function EvaluationConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={isSaving}
-            className="w-full sm:w-auto h-10 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs font-bold px-5 py-2 rounded-xl shadow-xs transition-all active:scale-[0.96] text-center inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto h-10 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs font-bold px-5 py-2 rounded-xl shadow-xs transition-all active:scale-[0.96] text-center inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             {isSaving ? (
               <span>Menyimpan...</span>

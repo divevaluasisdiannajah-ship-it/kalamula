@@ -96,10 +96,10 @@ export function StudentHeroCard({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-baseline gap-2 min-w-0">
-                <h3 className="text-lg font-extrabold text-[#22352B] tracking-tight truncate">
+                <h3 className="text-lg font-extrabold text-[#22352B] tracking-tight truncate" title={student.nickname}>
                   {student.nickname}
                 </h3>
-                <span className="text-xs text-[#787F7A] truncate font-normal">
+                <span className="text-xs text-[#787F7A] truncate font-normal" title={student.full_name}>
                   ({student.full_name})
                 </span>
               </div>
@@ -190,11 +190,11 @@ export function StudentHeroCard({
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base font-bold text-[#22352B] truncate tracking-tight">
+              <h3 className="text-base font-bold text-[#22352B] truncate tracking-tight" title={student.full_name}>
                 {student.full_name}
               </h3>
               {student.nickname && (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8]">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8]" title={student.nickname}>
                   &ldquo;{student.nickname}&rdquo;
                 </span>
               )}
