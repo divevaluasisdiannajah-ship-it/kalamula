@@ -506,6 +506,8 @@ export interface ClassroomStudent {
   nickname: string;
   gender: "L" | "P";
   learning_group?: string; // "Kelompok Intervensi", "Kelompok Reguler", "Kelompok Pengayaan"
+  literacy_level?: "L1" | "L2" | "L3" | "L4";
+  numeracy_level?: "L1" | "L2" | "L3" | "L4";
   notes?: string | null;
   created_at: string;
 }
@@ -532,4 +534,345 @@ export interface ClassroomAssessment {
   anecdotal_note?: string | null;
   assessed_at: string;
 }
+
+// ─── School Profile & Teacher Staff Types ────────────────────────
+
+export interface SchoolProfile {
+  id: string;
+  foundation_name: string; // e.g. "Yayasan Pendidikan Islam An-Najah"
+  school_name: string;     // e.g. "SDIT An-Najah"
+  npsn: string;            // e.g. "20212345"
+  address: string;         // e.g. "Jl. Pendidikan Karakter No. 10"
+  subdistrict: string;     // e.g. "Kec. Cikarang Barat"
+  city: string;            // e.g. "Kabupaten Bekasi"
+  province: string;        // e.g. "Jawa Barat"
+  postal_code: string;     // e.g. "17530"
+  phone: string;           // e.g. "021-89012345"
+  whatsapp: string;        // e.g. "081234567890"
+  email: string;           // e.g. "sdit.annajah@sch.id"
+  website: string;         // e.g. "observasi.sdiannajah.ai.id"
+  principal_name: string;  // e.g. "Ustadz H. Ahmad Syaikhu, M.Pd.I."
+  principal_nip: string;   // e.g. "19780512 200501 1 003"
+  academic_year: string;   // e.g. "2026/2027"
+  active_semester: "Ganjil" | "Genap";
+  logo_url: string;        // e.g. "/icons/icon-192x192.png"
+  updated_at: string;
+}
+
+export type TeacherRole = "homeroom" | "subject" | "evaluator" | "management";
+
+export interface TeacherStaff {
+  id: string;
+  name: string;           // e.g. "Ustadzah Fatimah, S.Pd."
+  nip_niy: string;        // e.g. "NIY. 2018070101"
+  gender: "L" | "P";
+  phone: string;          // e.g. "081234567891"
+  email?: string;
+  role: TeacherRole;
+  assigned_class?: string | null; // e.g. "1A", "2B", etc.
+  subject_specialty?: string | null; // e.g. "Pendidikan Agama Islam", "PJOK"
+  is_evaluator: boolean;
+  evaluator_pos?: number | null; // 1..5
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Literasi & Numerasi Readiness Matrices (Fase A, B, C) ───────
+
+export type ReadinessTier = "L1" | "L2" | "L3" | "L4";
+
+export interface ReadinessDescriptor {
+  level: ReadinessTier;
+  title: string;
+  shortDesc: string;
+  fullDesc: string;
+  actionGuidance: string;
+  color: string;
+  badgeBg: string;
+  badgeText: string;
+}
+
+export interface FaseMatrix {
+  fase: "A" | "B" | "C";
+  grades: string;
+  literacy_focus: string;
+  numeracy_focus: string;
+  literacy: Record<ReadinessTier, ReadinessDescriptor>;
+  numeracy: Record<ReadinessTier, ReadinessDescriptor>;
+}
+
+export const FASE_READINESS_MATRICES: Record<"A" | "B" | "C", FaseMatrix> = {
+  A: {
+    fase: "A",
+    grades: "Kelas 1 & 2 SD",
+    literacy_focus: "Fonik, Suku Kata & Kalimat Pendek",
+    numeracy_focus: "Number Sense 1–100 & Pola Konkret",
+    literacy: {
+      L1: {
+        level: "L1",
+        title: "Pra-Sastra / Pengenalan Huruf",
+        shortDesc: "Belum konsisten membedakan bunyi & bentuk huruf.",
+        fullDesc: "Sering tertukar bentuk huruf b/d, p/q. Belum bisa merangkai dua huruf menjadi suku kata terbuka secara konsisten.",
+        actionGuidance: "Meja intervensi intensif: gunakan kartu huruf raba, kotak pasir, menyusun huruf plastisin & lagu fonik riang.",
+        color: "#B85627",
+        badgeBg: "bg-[#F9E6DC]",
+        badgeText: "text-[#B85627]",
+      },
+      L2: {
+        level: "L2",
+        title: "Membaca Suku Kata Terbuka (K-V)",
+        shortDesc: "Mampu membaca suku kata berpola bu-ku, ba-tu.",
+        fullDesc: "Mengeja perlahan per suku kata. Masih terbata pada suku kata tertutup (K-V-K seperti mak-an) atau konsonan ganda (ng, ny).",
+        actionGuidance: "Latihan flashcard suku kata & sight words (ini, itu, ada), permainan menyusun potongan suku kata bermakna.",
+        color: "#7D5327",
+        badgeBg: "bg-[#EFE7D6]",
+        badgeText: "text-[#7D5327]",
+      },
+      L3: {
+        level: "L3",
+        title: "Membaca Kalimat Sederhana (Target Fase A)",
+        shortDesc: "Membaca lancar kalimat 4-6 kata dengan intonasi wajar.",
+        fullDesc: "Mampu menjawab pertanyaan informasi literal langsung dari teks bacaan pendek bergambar.",
+        actionGuidance: "Buku cerita berjenjang (1-2 kalimat/halaman), lembar aktivitas mengurutkan kata acak menjadi kalimat utuh.",
+        color: "#486B5A",
+        badgeBg: "bg-[#E4EFE9]",
+        badgeText: "text-[#486B5A]",
+      },
+      L4: {
+        level: "L4",
+        title: "Membaca Fasih & Menceritakan Ulang (Pengayaan)",
+        shortDesc: "Membaca mandiri teks cerita pendek & kaya kosakata.",
+        fullDesc: "Mampu menceritakan kembali alur cerita dengan kalimatnya sendiri dan mengungkapkan opini sederhana tentang tokoh.",
+        actionGuidance: "Buku cerita berjenjang tingkat lanjut, jurnal cerita bergambar mandiri, dan peran tutor sebaya.",
+        color: "#22352B",
+        badgeBg: "bg-[#EFECE4]",
+        badgeText: "text-[#22352B]",
+      },
+    },
+    numeracy: {
+      L1: {
+        level: "L1",
+        title: "Membilang Konkret Terbatas",
+        shortDesc: "Hafal membilang 1-10 namun belum korespondensi 1-ke-1.",
+        fullDesc: "Menunjuk benda saat membilang sering meleset dari jumlah asli. Belum memahami konsep perbandingan lebih banyak/sedikit.",
+        actionGuidance: "Media manipulatif konkret: kancing warna, tutup botol, garis bilangan lantai loncat, dan papan sepuluh (ten frames).",
+        color: "#B85627",
+        badgeBg: "bg-[#F9E6DC]",
+        badgeText: "text-[#B85627]",
+      },
+      L2: {
+        level: "L2",
+        title: "Bilangan 1-20 & Hitung Maju",
+        shortDesc: "Kuantitas hingga 20 benar, penjumlahan dengan hitung jari.",
+        fullDesc: "Mampu menjumlahkan dengan counting on. Masih bingung pada operasi pengurangan dan pemisahan nilai tempat puluhan-satuan.",
+        actionGuidance: "Kenalkan ikatan 10 stik es krim = 1 puluhan, garis bilangan visual meja, cerita kontekstual konkret.",
+        color: "#7D5327",
+        badgeBg: "bg-[#EFE7D6]",
+        badgeText: "text-[#7D5327]",
+      },
+      L3: {
+        level: "L3",
+        title: "Operasi 1-100 & Nilai Tempat (Target Fase A)",
+        shortDesc: "Penjumlahan/pengurangan dua angka & nilai tempat puluhan.",
+        fullDesc: "Memahami 25 = 2 puluhan + 5 satuan. Mampu mengenali pola bilangan berulang dan memecahkan soal cerita 1-langkah.",
+        actionGuidance: "Pembelajaran reguler modul ajar, simulasi kantin kejujuran kelas menggunakan uang mainan rupiah sederhana.",
+        color: "#486B5A",
+        badgeBg: "bg-[#E4EFE9]",
+        badgeText: "text-[#486B5A]",
+      },
+      L4: {
+        level: "L4",
+        title: "Hitung Mental Cepat & Penalaran Logis (Pengayaan)",
+        shortDesc: "Hitung mental cepat & konsep awal perkalian berulang.",
+        fullDesc: "Paham 3 x 2 = 2 + 2 + 2. Mampu menjelaskan alasan/logika penyelesaian soal kepada guru dan teman.",
+        actionGuidance: "Teka-teki matematika, piramida angka, eksplorasi bangun datar tangram spasial, dan membuat soal cerita mandiri.",
+        color: "#22352B",
+        badgeBg: "bg-[#EFECE4]",
+        badgeText: "text-[#22352B]",
+      },
+    },
+  },
+  B: {
+    fase: "B",
+    grades: "Kelas 3 & 4 SD",
+    literacy_focus: "Pemahaman Paragraf & Inferensi Teks",
+    numeracy_focus: "Multiplikasi & Pecahan Konkret",
+    literacy: {
+      L1: {
+        level: "L1",
+        title: "Literal Murni / Butuh Bantuan Paragraf",
+        shortDesc: "Membaca lancar lisan, namun hanya paham teks tersurat persis.",
+        fullDesc: "Hanya bisa menjawab pertanyaan jika jawabannya tertulis persis kata-per-kata. Bingung menentukan ide pokok paragraf.",
+        actionGuidance: "Teks bacaan pendek (1 paragraf) disertai ilustrasi visual penjelas dan pertanyaan panduan bertahap.",
+        color: "#B85627",
+        badgeBg: "bg-[#F9E6DC]",
+        badgeText: "text-[#B85627]",
+      },
+      L2: {
+        level: "L2",
+        title: "Ide Pokok & Kronologi Peristiwa",
+        shortDesc: "Menemukan ide pokok & menyusun urutan peristiwa cerita.",
+        fullDesc: "Mampu merangkum alur cerita 2-3 paragraf. Masih kesulitan menebak pesan tersirat atau maksud tersembunyi penulis.",
+        actionGuidance: "Latihan mind-mapping alur cerita dan diagram sebab-akibat sederhana.",
+        color: "#7D5327",
+        badgeBg: "bg-[#EFE7D6]",
+        badgeText: "text-[#7D5327]",
+      },
+      L3: {
+        level: "L3",
+        title: "Inferensi & Fakta vs Opini (Target Fase B)",
+        shortDesc: "Menebak makna tersirat, watak tokoh, & fakta vs opini.",
+        fullDesc: "Mampu menjelaskan mengapa tokoh bertindak tertentu dan menyimpulkan sebab-akibat yang tidak tertulis langsung.",
+        actionGuidance: "Teks cerita & informasi standar buku ajar, diskusi kelompok kecil untuk membedakan fakta dan pendapat.",
+        color: "#486B5A",
+        badgeBg: "bg-[#E4EFE9]",
+        badgeText: "text-[#486B5A]",
+      },
+      L4: {
+        level: "L4",
+        title: "Analisis Kritis & Refleksi Teks (Pengayaan)",
+        shortDesc: "Mengaitkan bacaan dengan fakta nyata & refleksi argumentatif.",
+        fullDesc: "Mampu menilai kebenaran tindakan tokoh, membandingkan isi dua teks bertema sama, dan menulis ulasan bacaan.",
+        actionGuidance: "Teks sains populer anak, peran ketua diskusi literasi kelompok, dan proyek resensi buku perpustakaan.",
+        color: "#22352B",
+        badgeBg: "bg-[#EFECE4]",
+        badgeText: "text-[#22352B]",
+      },
+    },
+    numeracy: {
+      L1: {
+        level: "L1",
+        title: "Penjumlahan Besar Masih Konkret",
+        shortDesc: "Masih bergantung hitung jari/benda, perkalian belum kokoh.",
+        fullDesc: "Belum memahami perkalian sebagai penjumlahan berulang. Kesulitan jika dihadapkan operasi angka ratusan.",
+        actionGuidance: "Alat peraga balok Dienes, kartu tabel perkalian bergambar, dan penguatan konsep dasar perkalian konkret.",
+        color: "#B85627",
+        badgeBg: "bg-[#F9E6DC]",
+        badgeText: "text-[#B85627]",
+      },
+      L2: {
+        level: "L2",
+        title: "Operasi Prosedural Lancar, Soal Cerita Terbata",
+        shortDesc: "Bisa hitung angka murni, bingung saat dijadikan soal cerita.",
+        fullDesc: "Hafal tabel perkalian dan pembagian dasar, tapi kesulitan menerjemahkan masalah kontekstual ke kalimat matematika.",
+        actionGuidance: "Latihan membongkar soal cerita: 'Apa yang diketahui?', 'Apa yang ditanyakan?', dan 'Bagaimana kalimat matematikanya?'.",
+        color: "#7D5327",
+        badgeBg: "bg-[#EFE7D6]",
+        badgeText: "text-[#7D5327]",
+      },
+      L3: {
+        level: "L3",
+        title: "Pecahan Dasar & Masalah Multi-Langkah (Target Fase B)",
+        shortDesc: "Pecahan 1/2, 1/4, 3/4 & soal cerita kontekstual 2 langkah.",
+        fullDesc: "Memahami pecahan senilai konkret, konversi satuan baku (panjang, berat, waktu), dan luas/keliling bangun datar sederhana.",
+        actionGuidance: "Pembelajaran reguler modul ajar, proyek pengukuran perabot kelas dan perhitungan belanja kelompok.",
+        color: "#486B5A",
+        badgeBg: "bg-[#E4EFE9]",
+        badgeText: "text-[#486B5A]",
+      },
+      L4: {
+        level: "L4",
+        title: "Pola Bilangan Kompleks & Pemecahan Masalah (Pengayaan)",
+        shortDesc: "Menaksir hasil pengukuran & menyelesaikan soal non-rutin.",
+        fullDesc: "Mampu menemukan rumus pola deret bilangan dan merumuskan strategi hitung alternatif yang lebih efisien.",
+        actionGuidance: "Tantangan olimpiade mini matematika SD, mendesain denah ruang berskala, dan optimasi jadwal kegiatan.",
+        color: "#22352B",
+        badgeBg: "bg-[#EFECE4]",
+        badgeText: "text-[#22352B]",
+      },
+    },
+  },
+  C: {
+    fase: "C",
+    grades: "Kelas 5 & 6 SD",
+    literacy_focus: "Analisis Multiteks & AKM-Ready",
+    numeracy_focus: "Rasio, Desimal & Geometri Ruang",
+    literacy: {
+      L1: {
+        level: "L1",
+        title: "Kesulitan Teks Panjang / Kosakata Ilmiah",
+        shortDesc: "Cepat lelah membaca teks >3 paragraf atau sarat istilah ilmiah.",
+        fullDesc: "Sering kehilangan fokus pada teks panjang dan melewatkan poin penting karena kosakata akademik terbatas.",
+        actionGuidance: "Disediakan teks intisari berinfografis dengan glosarium istilah sukar di samping teks bacaan.",
+        color: "#B85627",
+        badgeBg: "bg-[#F9E6DC]",
+        badgeText: "text-[#B85627]",
+      },
+      L2: {
+        level: "L2",
+        title: "Pemahaman Teks Tunggal Baik, Sintesis Belum Mampu",
+        shortDesc: "Menyimpulkan teks tunggal lancar, sulit membandingkan 2 sudut pandang.",
+        fullDesc: "Paham pesan moral dan ide cerita satu buku, namun bingung jika diminta membandingkan dua artikel yang berbeda sudut pandang.",
+        actionGuidance: "Tabel perbandingan berdampingan (side-by-side) untuk menuliskan poin persamaan dan perbedaan isi teks.",
+        color: "#7D5327",
+        badgeBg: "bg-[#EFE7D6]",
+        badgeText: "text-[#7D5327]",
+      },
+      L3: {
+        level: "L3",
+        title: "Memadukan Teks & Data Infografis (Target Fase C - AKM Ready)",
+        shortDesc: "Menganalisis teks naratif & faktual yang disertai tabel/diagram.",
+        fullDesc: "Mampu menguji apakah argumen penulis didukung oleh data fakta pada diagram dan menilai relevansi informasi.",
+        actionGuidance: "Pembelajaran reguler berbasis riset pustaka & penulisan laporan mini penyelidikan IPAS.",
+        color: "#486B5A",
+        badgeBg: "bg-[#E4EFE9]",
+        badgeText: "text-[#486B5A]",
+      },
+      L4: {
+        level: "L4",
+        title: "Literasi Kritis & Sintesis Opini Orisinal (Pengayaan)",
+        shortDesc: "Mengevaluasi kredibilitas sumber informasi & mendeteksi bias.",
+        fullDesc: "Mampu membedakan berita valid vs hoaks, serta menyusun esai opini orisinal dengan argumentasi data yang logis.",
+        actionGuidance: "Proyek karya tulis ilmiah sederhana anak, buletin artikel mading sekolah, dan fasilitator riset kelompok.",
+        color: "#22352B",
+        badgeBg: "bg-[#EFECE4]",
+        badgeText: "text-[#22352B]",
+      },
+    },
+    numeracy: {
+      L1: {
+        level: "L1",
+        title: "Konsep Desimal & Pecahan Campuran Rancu",
+        shortDesc: "Nilai tempat desimal keliru (mengira 0.15 > 0.5) & pecahan beda penyebut macet.",
+        fullDesc: "Hanya hafal rumus perkalian pecahan tanpa makna konseptual. Gagal memahami konsep perbandingan.",
+        actionGuidance: "Bimbingan meja depan menggunakan alat peraga balok pecahan dan diagram area desimal berwarna.",
+        color: "#B85627",
+        badgeBg: "bg-[#F9E6DC]",
+        badgeText: "text-[#B85627]",
+      },
+      L2: {
+        level: "L2",
+        title: "Prosedur Pecahan/Persen Bisa, Esensi Rasio Belum Paham",
+        shortDesc: "Menghitung pecahan baku bisa, bingung saat diterapkan ke rasio nyata.",
+        fullDesc: "Dapat menyelesaikan soal matematika hitungan formal, tetapi bingung saat menghitung diskon belanja atau skala peta.",
+        actionGuidance: "Studi kasus riil: menghitung perbandingan bahan resep masakan, diskon toko buku, dan skala denah rumah.",
+        color: "#7D5327",
+        badgeBg: "bg-[#EFE7D6]",
+        badgeText: "text-[#7D5327]",
+      },
+      L3: {
+        level: "L3",
+        title: "Rasio, Diagram Data, & Geometri Ruang (Target Fase C)",
+        shortDesc: "Menafsirkan diagram batang/lingkaran, volume ruang, & skala.",
+        fullDesc: "Mampu menyelesaikan masalah keuangan sederhana, rasio perbandingan, dan volume bangun ruang gabungan.",
+        actionGuidance: "Pembelajaran mandiri modul ajar matematika, proyek analisis data statistik mini di kelas.",
+        color: "#486B5A",
+        badgeBg: "bg-[#E4EFE9]",
+        badgeText: "text-[#486B5A]",
+      },
+      L4: {
+        level: "L4",
+        title: "Analisis Data Lanjutan & Optimasi Strategi (Pengayaan)",
+        shortDesc: "Menganalisis tren grafik data riil & memprediksi peluang.",
+        fullDesc: "Mampu merumuskan pemodelan matematika dari masalah nyata sekolah dan memilih alternatif solusi paling efektif.",
+        actionGuidance: "Proyek survei dan pengolahan data riil (misal: estimasi limbah sampah kantin & rancangan efisiensi daur ulang).",
+        color: "#22352B",
+        badgeBg: "bg-[#EFECE4]",
+        badgeText: "text-[#22352B]",
+      },
+    },
+  },
+};
+
 

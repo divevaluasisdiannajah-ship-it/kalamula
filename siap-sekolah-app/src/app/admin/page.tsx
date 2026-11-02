@@ -236,15 +236,15 @@ export default function AdminDashboard() {
             <span className="text-sm font-bold">Buat Gelombang Baru</span>
           </Link>
 
-          {/* 3 Tombol Kotak Sejajar */}
-          <div className="grid grid-cols-3 gap-2.5">
+          {/* 4 Tombol Aksi Kotak Sejajar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {/* Import Data Siswa */}
             <Link
               href="/admin/students"
               className="bg-[#E4EFE9] text-[#486B5A] rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center text-center font-bold hover:opacity-90 transition active:scale-95 cursor-pointer shadow-2xs"
             >
               <i className="mdi mdi-tray-arrow-up text-2xl mb-1" />
-              <span className="text-xs leading-snug">Import Data Siswa</span>
+              <span className="text-xs leading-snug">Import Siswa</span>
             </Link>
 
             {/* Rubrik & Indikator */}
@@ -253,16 +253,25 @@ export default function AdminDashboard() {
               className="bg-[#E4EAF2] text-[#36506C] rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center text-center font-bold hover:opacity-90 transition active:scale-95 cursor-pointer shadow-2xs"
             >
               <i className="mdi mdi-tune-vertical text-2xl mb-1" />
-              <span className="text-xs leading-snug">Rubrik & Indikator</span>
+              <span className="text-xs leading-snug">Rubrik SPMB</span>
             </Link>
 
-            {/* Pembagian Kelas */}
+            {/* Pembagian Kelas & PIN */}
             <Link
               href="/admin/classes"
               className="bg-[#EFE7D6] text-[#7D5327] rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center text-center font-bold hover:opacity-90 transition active:scale-95 cursor-pointer shadow-2xs"
             >
               <i className="mdi mdi-scale-balance text-2xl mb-1" />
-              <span className="text-xs leading-snug">Pembagian Kelas</span>
+              <span className="text-xs leading-snug">Kelas &amp; PIN Guru</span>
+            </Link>
+
+            {/* Identitas Sekolah & Guru */}
+            <Link
+              href="/admin/school"
+              className="bg-[#F2F7F4] text-[#486B5A] border border-[#CBE0D4] rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center text-center font-bold hover:opacity-90 transition active:scale-95 cursor-pointer shadow-2xs"
+            >
+              <i className="mdi mdi-domain text-2xl mb-1" />
+              <span className="text-xs leading-snug">Identitas &amp; Guru</span>
             </Link>
           </div>
 

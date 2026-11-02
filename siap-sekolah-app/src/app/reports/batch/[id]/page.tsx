@@ -92,10 +92,26 @@ export default function BatchReportPDFPage() {
 
   const loadBatchReport = useCallback(async () => {
     try {
-      const res = await fetch(`/api/reports/batch/${batchId}`);
+      const [res, schRes] = await Promise.all([
+        fetch(`/api/reports/batch/${batchId}`),
+        fetch("/api/school"),
+      ]);
       if (res.ok) {
         const json = await res.json();
         setData(json.data);
+      }
+      if (schRes.ok) {
+        const schJson = await schRes.json();
+        const p = schJson.data;
+        if (p) {
+          if (p.foundation_name) setFoundationName(p.foundation_name);
+          if (p.school_name) {
+            setSchoolName(p.school_name);
+            setSchoolUnit(p.school_name);
+          }
+          if (p.principal_name) setPrincipalName(p.principal_name);
+          if (p.principal_nip) setPrincipalNip(p.principal_nip);
+        }
       }
     } catch {
       // offline/error handling

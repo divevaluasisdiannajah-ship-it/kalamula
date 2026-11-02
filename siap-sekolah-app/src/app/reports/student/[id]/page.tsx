@@ -18,15 +18,24 @@ export default function StudentReportPage() {
   const studentId = params.id as string;
 
   const [data, setData] = useState<ReportData | null>(null);
+  const [schoolProfile, setSchoolProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [expandedNotes, setExpandedNotes] = useState(false);
 
   const loadReport = useCallback(async () => {
     try {
-      const res = await fetch(`/api/reports/student/${studentId}`);
+      const [res, schRes] = await Promise.all([
+        fetch(`/api/reports/student/${studentId}`),
+        fetch("/api/school"),
+      ]);
+
       if (res.ok) {
         const json = await res.json();
         setData(json.data);
+      }
+      if (schRes.ok) {
+        const schJson = await schRes.json();
+        setSchoolProfile(schJson.data);
       }
     } catch {
       // offline/error handling
@@ -252,7 +261,7 @@ export default function StudentReportPage() {
             </div>
             <div className="min-w-0">
               <h1 className="font-extrabold text-lg text-[#22352B] tracking-tight leading-none">
-                kalamula
+                kalamula &bull; {schoolProfile?.school_name || "SDIT An-Najah"}
               </h1>
               <p className="text-[11px] font-bold text-[#565C58] mt-0.5 truncate">
                 Laporan Asesmen Diagnostik Kesiapan Belajar Siswa
@@ -580,9 +589,12 @@ export default function StudentReportPage() {
                   kalamula
                 </span>
                 <span className="text-xs font-bold text-[#565C58]">
-                  • Laporan Asesmen Diagnostik Kesiapan Belajar Siswa
+                  • {schoolProfile?.school_name || "SDIT An-Najah"} • Laporan Asesmen Diagnostik Kesiapan Belajar Siswa
                 </span>
               </div>
+              <p className="text-[10px] text-[#787F7A] mt-0.5">
+                {schoolProfile?.foundation_name || "Yayasan Pendidikan Islam An-Najah"} &bull; T.A. {schoolProfile?.academic_year || "2026/2027"}
+              </p>
             </div>
           </div>
           <div className="text-right text-xs text-[#565C58]">

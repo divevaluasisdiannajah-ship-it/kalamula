@@ -18,6 +18,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://observasi.sdiannajah.ai.id"),
   title: {
     default: "kalamula",
     template: "%s | kalamula",
@@ -37,6 +38,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
+    url: "https://observasi.sdiannajah.ai.id",
     siteName: "kalamula",
     title: "kalamula",
     description: "Memandu Pembelajaran, Memetakan Potensi. Platform Asesmen Diagnostik & Diferensiasi Pembelajaran Deep Learning SD.",

@@ -11,6 +11,9 @@ import {
   type ClassroomObjective,
   type ClassroomAssessment,
   type Classroom,
+  type SchoolProfile,
+  type ReadinessTier,
+  FASE_READINESS_MATRICES,
 } from "@/types";
 
 interface PageProps {
@@ -25,6 +28,7 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
 
   // Classroom & State
   const [classroom, setClassroom] = useState<Classroom | null>(null);
+  const [schoolProfile, setSchoolProfile] = useState<SchoolProfile | null>(null);
   const [students, setStudents] = useState<ClassroomStudent[]>([]);
   const [objectives, setObjectives] = useState<ClassroomObjective[]>([]);
   const [assessments, setAssessments] = useState<ClassroomAssessment[]>([]);
@@ -44,6 +48,8 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
     gender: "L" as "L" | "P",
     learning_group: "Kelompok Reguler",
     notes: "",
+    literacy_level: "L2" as ReadinessTier,
+    numeracy_level: "L2" as ReadinessTier,
   });
 
   // Excel Import Modal State
@@ -84,25 +90,32 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
   const loadClassroomData = async () => {
     setLoading(true);
     try {
-      // 1. Classroom details
+      // 1. School Profile
+      const sRes = await fetch("/api/school");
+      if (sRes.ok) {
+        const sJson = await sRes.json();
+        setSchoolProfile(sJson.data);
+      }
+
+      // 2. Classroom details
       const cRes = await fetch(`/api/classrooms/${classId}`);
       if (cRes.ok) {
         const cJson = await cRes.json();
         setClassroom(cJson.data);
       }
 
-      // 2. Students
-      const sRes = await fetch(`/api/classrooms/${classId}/students`);
-      if (sRes.ok) {
-        const sJson = await sRes.json();
-        setStudents(sJson.data || []);
-        if (sJson.data && sJson.data.length > 0 && !selectedStudentForReport) {
-          setSelectedStudentForReport(sJson.data[0].id);
-          setSelectedStudentForObs(sJson.data[0].id);
+      // 3. Students
+      const stRes = await fetch(`/api/classrooms/${classId}/students`);
+      if (stRes.ok) {
+        const stJson = await stRes.json();
+        setStudents(stJson.data || []);
+        if (stJson.data && stJson.data.length > 0 && !selectedStudentForReport) {
+          setSelectedStudentForReport(stJson.data[0].id);
+          setSelectedStudentForObs(stJson.data[0].id);
         }
       }
 
-      // 3. Objectives (TP)
+      // 4. Objectives (TP)
       const oRes = await fetch(`/api/classrooms/${classId}/rubrics`);
       if (oRes.ok) {
         const oJson = await oRes.json();
@@ -112,7 +125,7 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
         }
       }
 
-      // 4. Assessments
+      // 5. Assessments
       const aRes = await fetch(`/api/classrooms/${classId}/assessments`);
       if (aRes.ok) {
         const aJson = await aRes.json();
@@ -131,7 +144,44 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
 
   // Determine Fase based on Grade
   const gradeNum = parseInt(classId.charAt(0), 10) || 1;
+  const faseKey: "A" | "B" | "C" = gradeNum <= 2 ? "A" : gradeNum <= 4 ? "B" : "C";
   const faseLabel = gradeNum <= 2 ? "Fase A (Kelas 1–2)" : gradeNum <= 4 ? "Fase B (Kelas 3–4)" : "Fase C (Kelas 5–6)";
+  const currentReadinessMatrix = FASE_READINESS_MATRICES[faseKey];
+
+  // Update Student Literacy or Numeracy Level
+  const handleUpdateStudentReadiness = async (
+    studentId: string,
+    field: "literacy_level" | "numeracy_level",
+    newLevel: ReadinessTier
+  ) => {
+    const student = students.find((s) => s.id === studentId);
+    if (!student) return;
+
+    // Optimistic local state update
+    setStudents((prev) =>
+      prev.map((s) => (s.id === studentId ? { ...s, [field]: newLevel } : s))
+    );
+
+    try {
+      await fetch(`/api/classrooms/${classId}/students`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: student.id,
+          full_name: student.full_name,
+          nickname: student.nickname,
+          nisn: student.nisn,
+          gender: student.gender,
+          learning_group: student.learning_group,
+          notes: student.notes,
+          literacy_level: field === "literacy_level" ? newLevel : student.literacy_level || "L2",
+          numeracy_level: field === "numeracy_level" ? newLevel : student.numeracy_level || "L2",
+        }),
+      });
+    } catch (err) {
+      console.error("Gagal memperbarui tingkat kesiapan siswa:", err);
+    }
+  };
 
   // Filtered Students
   const filteredStudents = useMemo(() => {
@@ -163,6 +213,26 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
     () => students.filter((s) => s.learning_group?.toLowerCase().includes("pengayaan")),
     [students]
   );
+
+  // Literacy & Numeracy Readiness Stats
+  const [matrixViewTab, setMatrixViewTab] = useState<"literacy" | "numeracy">("literacy");
+  const litStats = useMemo(() => {
+    const counts: Record<ReadinessTier, number> = { L1: 0, L2: 0, L3: 0, L4: 0 };
+    students.forEach((s) => {
+      const lvl = (s.literacy_level || "L2") as ReadinessTier;
+      if (counts[lvl] !== undefined) counts[lvl]++;
+    });
+    return counts;
+  }, [students]);
+
+  const numStats = useMemo(() => {
+    const counts: Record<ReadinessTier, number> = { L1: 0, L2: 0, L3: 0, L4: 0 };
+    students.forEach((s) => {
+      const lvl = (s.numeracy_level || "L2") as ReadinessTier;
+      if (counts[lvl] !== undefined) counts[lvl]++;
+    });
+    return counts;
+  }, [students]);
 
   // Dimension Scores aggregate across class
   const dimensionStats = useMemo(() => {
@@ -217,6 +287,8 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
           gender: "L",
           learning_group: "Kelompok Reguler",
           notes: "",
+          literacy_level: "L2" as ReadinessTier,
+          numeracy_level: "L2" as ReadinessTier,
         });
         loadClassroomData();
       }
@@ -244,6 +316,12 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
         gender: (String(row["Jenis_Kelamin"] || row["JK"] || "L").toUpperCase().startsWith("P") ? "P" : "L") as "L" | "P",
         learning_group: String(row["Kelompok_Diferensiasi"] || row["Kelompok"] || "Kelompok Reguler"),
         notes: String(row["Catatan_Khusus"] || row["Catatan"] || ""),
+        literacy_level: (["L1", "L2", "L3", "L4"].includes(String(row["Literasi"] || row["literasi_level"]).toUpperCase().trim())
+          ? String(row["Literasi"] || row["literasi_level"]).toUpperCase().trim()
+          : "L2") as ReadinessTier,
+        numeracy_level: (["L1", "L2", "L3", "L4"].includes(String(row["Numerasi"] || row["numeracy_level"]).toUpperCase().trim())
+          ? String(row["Numerasi"] || row["numeracy_level"]).toUpperCase().trim()
+          : "L2") as ReadinessTier,
       }));
 
       setExcelPreview(parsed);
@@ -517,6 +595,311 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
               </div>
             </div>
 
+            {/* Matriks Distribusi Kesiapan Fondasi Literasi & Numerasi Fase {faseKey} */}
+            <div className="bg-white rounded-3xl p-6 border border-[#E8E2D8] shadow-sm space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F6F3EC]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center text-xl">
+                    <i className="mdi mdi-book-open-page-variant-outline" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base sm:text-lg font-black text-[#22352B]">
+                        Pemetaan Kesiapan Fondasi Literasi &amp; Numerasi
+                      </h2>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4]">
+                        {currentReadinessMatrix.fase}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#565C58]">
+                      Standar Capaian Pembelajaran BSKAP Kemendikbudristek No. 033/H/KR/2022 &amp; Asesmen Awal TaRL
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-bold text-[#787F7A]">
+                  <i className="mdi mdi-information-outline text-sm text-[#486B5A]" />
+                  <span>Total {students.length} Siswa Terpetakan</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* 1. Pemetaan Literasi */}
+                <div className="p-4 rounded-2xl border border-[#E8E2D8] bg-[#FAF8F5] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <i className="mdi mdi-format-letter-case text-lg text-[#486B5A]" />
+                      <h3 className="font-black text-sm text-[#22352B]">
+                        Distribusi Literasi {faseKey}
+                      </h3>
+                    </div>
+                    <span className="text-[11px] text-[#565C58] font-bold">
+                      Fokus: {currentReadinessMatrix.literacy_focus}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                    {[
+                      { key: "L1" as ReadinessTier, label: "L1: Intervensi", count: litStats.L1, color: "bg-[#FDF7F4] text-[#B85627] border-[#F1CFC0]" },
+                      { key: "L2" as ReadinessTier, label: "L2: Dasar", count: litStats.L2, color: "bg-[#FEFCE8] text-[#92400E] border-[#FEF08A]" },
+                      { key: "L3" as ReadinessTier, label: "L3: Cakap", count: litStats.L3, color: "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]" },
+                      { key: "L4" as ReadinessTier, label: "L4: Mahir", count: litStats.L4, color: "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]" },
+                    ].map((tier) => (
+                      <div key={tier.key} className={`p-2.5 rounded-xl border text-center ${tier.color}`}>
+                        <span className="block text-lg font-black">{tier.count}</span>
+                        <span className="block text-[10px] font-bold truncate">{tier.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-[#787F7A] italic leading-snug">
+                    Ubah level kesiapan tiap siswa secara langsung pada tab <strong>Data Siswa</strong>.
+                  </p>
+                </div>
+
+                {/* 2. Pemetaan Numerasi */}
+                <div className="p-4 rounded-2xl border border-[#E8E2D8] bg-[#FAF8F5] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <i className="mdi mdi-calculator-variant-outline text-lg text-[#B85627]" />
+                      <h3 className="font-black text-sm text-[#22352B]">
+                        Distribusi Numerasi {faseKey}
+                      </h3>
+                    </div>
+                    <span className="text-[11px] text-[#565C58] font-bold">
+                      Fokus: {currentReadinessMatrix.numeracy_focus}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                    {[
+                      { key: "L1" as ReadinessTier, label: "L1: Intervensi", count: numStats.L1, color: "bg-[#FDF7F4] text-[#B85627] border-[#F1CFC0]" },
+                      { key: "L2" as ReadinessTier, label: "L2: Dasar", count: numStats.L2, color: "bg-[#FEFCE8] text-[#92400E] border-[#FEF08A]" },
+                      { key: "L3" as ReadinessTier, label: "L3: Cakap", count: numStats.L3, color: "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]" },
+                      { key: "L4" as ReadinessTier, label: "L4: Mahir", count: numStats.L4, color: "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]" },
+                    ].map((tier) => (
+                      <div key={tier.key} className={`p-2.5 rounded-xl border text-center ${tier.color}`}>
+                        <span className="block text-lg font-black">{tier.count}</span>
+                        <span className="block text-[10px] font-bold truncate">{tier.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-[#787F7A] italic leading-snug">
+                    Capaian numerasi mendukung pengelompokan meja belajar dan tutor sebaya di kelas.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Resep Pedagogis Diferensiasi 1-Klik (Konten, Proses, Produk Berbasis Fase & Deep Learning) */}
+            <div className="bg-[#F2F7F4] rounded-3xl p-6 border border-[#CBE0D4] shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#CBE0D4]/70">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white text-[#486B5A] flex items-center justify-center text-xl shadow-2xs">
+                    <i className="mdi mdi-lightbulb-on-outline" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-[#22352B]">
+                      Resep Pedagogis Diferensiasi 1-Klik — {currentReadinessMatrix.fase}
+                    </h2>
+                    <p className="text-xs text-[#565C58]">
+                      Integrasi diferensiasi pembelajaran ramah guru berbasis bukti kesiapan awal
+                    </p>
+                  </div>
+                </div>
+
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-[#486B5A] text-white self-start sm:self-center">
+                  Pedoman Guru Aktif
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 1. Diferensiasi Konten */}
+                <div className="bg-white p-4 rounded-2xl border border-[#CBE0D4] space-y-2">
+                  <div className="flex items-center gap-2 text-[#486B5A]">
+                    <i className="mdi mdi-book-cog-outline text-lg" />
+                    <h4 className="font-black text-xs uppercase tracking-wider">
+                      1. Diferensiasi Konten
+                    </h4>
+                  </div>
+                  <p className="text-xs text-[#22352B] leading-relaxed">
+                    {faseKey === "A" && (
+                      <>
+                        <strong>L1-L2:</strong> Sediakan kartu huruf raba, balok hitung konkret, dan buku berjenjang pola K-V sederhana.<br />
+                        <strong>L3-L4:</strong> Buku cerita bergambar mandiri, teka-teki logika angka, dan lembar aktivitas berjenjang.
+                      </>
+                    )}
+                    {faseKey === "B" && (
+                      <>
+                        <strong>L1-L2:</strong> Teks bacaan narasi bertahap, manipulatif balok pecahan, dan kartu fakta perkalian konkret.<br />
+                        <strong>L3-L4:</strong> Artikel informatif multiteks, studi kasus lingkungan, dan soal cerita bernalar terstruktur.
+                      </>
+                    )}
+                    {faseKey === "C" && (
+                      <>
+                        <strong>L1-L2:</strong> Lembar panduan berpikir langkah-demi-langkah, kalkulasi desimal visual, teks berilustrasi.<br />
+                        <strong>L3-L4:</strong> Bacaan sains kontekstual kompleks, grafik data realita, tantangan riset berbasis proyek.
+                      </>
+                    )}
+                  </p>
+                </div>
+
+                {/* 2. Diferensiasi Proses */}
+                <div className="bg-white p-4 rounded-2xl border border-[#CBE0D4] space-y-2">
+                  <div className="flex items-center gap-2 text-[#486B5A]">
+                    <i className="mdi mdi-account-switch-outline text-lg" />
+                    <h4 className="font-black text-xs uppercase tracking-wider">
+                      2. Diferensiasi Proses
+                    </h4>
+                  </div>
+                  <p className="text-xs text-[#22352B] leading-relaxed">
+                    {faseKey === "A" && (
+                      <>
+                        <strong>Meja Guru:</strong> Bimbingan fonik 10 menit untuk kelompok L1.<br />
+                        <strong>Meja Tengah:</strong> Membaca berpasangan (tutor sebaya) untuk L2-L3.<br />
+                        <strong>Sudut Literasi:</strong> Eksplorasi mandiri kreatif untuk L4.
+                      </>
+                    )}
+                    {faseKey === "B" && (
+                      <>
+                        <strong>Workshop Guru:</strong> Scaffolded reading &amp; strategi hitung cepat.<br />
+                        <strong>Pojok Kolaborasi:</strong> Diskusi kelompok merumuskan solusi soal.<br />
+                        <strong>Investigasi:</strong> Eksplorasi proyek mandiri berbasis minat.
+                      </>
+                    )}
+                    {faseKey === "C" && (
+                      <>
+                        <strong>Sesi Konsultasi:</strong> Guru mereview draf portofolio siswa L1-L2.<br />
+                        <strong>Think-Pair-Share:</strong> Debat ide dan uji hipotesis berpasangan.<br />
+                        <strong>PBL Mandiri:</strong> Pengambilan data dan analisis mandiri L4.
+                      </>
+                    )}
+                  </p>
+                </div>
+
+                {/* 3. Diferensiasi Produk */}
+                <div className="bg-white p-4 rounded-2xl border border-[#CBE0D4] space-y-2">
+                  <div className="flex items-center gap-2 text-[#486B5A]">
+                    <i className="mdi mdi-palette-outline text-lg" />
+                    <h4 className="font-black text-xs uppercase tracking-wider">
+                      3. Diferensiasi Produk
+                    </h4>
+                  </div>
+                  <p className="text-xs text-[#22352B] leading-relaxed">
+                    {faseKey === "A" && (
+                      <>
+                        Pilihan unjuk capaian: <strong>Visual</strong> (menggambar cerita), <strong>Lisan</strong> (menceritakan kembali ke guru/teman), atau <strong>Tulisan</strong> (menyusun 2-3 kata/kalimat sederhana).
+                      </>
+                    )}
+                    {faseKey === "B" && (
+                      <>
+                        Pilihan unjuk capaian: <strong>Poster Rangkuman</strong>, <strong>Jurnal Refleksi Tertulis</strong>, atau <strong>Presentasi Lisan Model Konkret</strong>.
+                      </>
+                    )}
+                    {faseKey === "C" && (
+                      <>
+                        Pilihan unjuk capaian: <strong>Artikel Opini / Esai</strong>, <strong>Infografis Digital / Manual</strong>, atau <strong>Video Vlog Edukasi / Demonstrasi Eksperimen</strong>.
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Panduan Matriks Kesiapan Fase {faseKey} (Interactive View) */}
+            <div className="bg-white rounded-3xl p-6 border border-[#E8E2D8] shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F6F3EC]">
+                <div>
+                  <h2 className="text-base font-black text-[#22352B]">
+                    Panduan Deskriptor &amp; Bukti Perilaku — {currentReadinessMatrix.fase}
+                  </h2>
+                  <p className="text-xs text-[#565C58]">
+                    Gunakan panduan ini saat mengamati dan menentukan level kesiapan peserta didik di kelas.
+                  </p>
+                </div>
+
+                <div className="flex items-center p-1 rounded-2xl bg-[#FAF8F5] border border-[#E8E2D8]">
+                  <button
+                    type="button"
+                    onClick={() => setMatrixViewTab("literacy")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      matrixViewTab === "literacy"
+                        ? "bg-[#486B5A] text-white shadow-2xs"
+                        : "text-[#565C58] hover:text-[#22352B]"
+                    }`}
+                  >
+                    Matriks Literasi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMatrixViewTab("numeracy")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      matrixViewTab === "numeracy"
+                        ? "bg-[#486B5A] text-white shadow-2xs"
+                        : "text-[#565C58] hover:text-[#22352B]"
+                    }`}
+                  >
+                    Matriks Numerasi
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                {(["L1", "L2", "L3", "L4"] as ReadinessTier[]).map((tierKey) => {
+                  const item =
+                    matrixViewTab === "literacy"
+                      ? currentReadinessMatrix.literacy[tierKey]
+                      : currentReadinessMatrix.numeracy[tierKey];
+
+                  const tierHeaderColor =
+                    tierKey === "L1"
+                      ? "bg-[#FDF7F4] text-[#B85627] border-[#F1CFC0]"
+                      : tierKey === "L2"
+                      ? "bg-[#FEFCE8] text-[#92400E] border-[#FEF08A]"
+                      : tierKey === "L3"
+                      ? "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
+                      : "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]";
+
+                  return (
+                    <div
+                      key={tierKey}
+                      className="p-4 rounded-2xl border border-[#E8E2D8] bg-[#FAF8F5] flex flex-col justify-between space-y-3"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-0.5 rounded-lg text-xs font-black border ${tierHeaderColor}`}>
+                            {tierKey}
+                          </span>
+                          <span className="text-[11px] font-extrabold text-[#22352B]">
+                            {item.title}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-[11px] font-bold text-[#787F7A] uppercase tracking-wider">
+                            Bukti Perilaku di Kelas:
+                          </p>
+                          <p className="text-xs text-[#22352B] leading-relaxed">
+                            {item.fullDesc}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#E8E2D8]/60 space-y-1">
+                        <p className="text-[10px] font-bold text-[#486B5A] uppercase tracking-wider">
+                          Tindak Lanjut Meja Ajar:
+                        </p>
+                        <p className="text-[11px] text-[#565C58] leading-snug">
+                          {item.actionGuidance}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* 8 Dimensi Profil Lulusan Pembelajaran Mendalam (Deep Learning) Snapshot */}
             <div className="bg-white rounded-3xl p-6 border border-[#E8E2D8] shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#F6F3EC]">
@@ -640,13 +1023,15 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-[#FAF8F5] border-b border-[#E8E2D8] text-[#565C58] font-bold uppercase tracking-wider">
                     <tr>
-                      <th className="py-3 px-4">No</th>
-                      <th className="py-3 px-4">NISN</th>
-                      <th className="py-3 px-4">Nama Siswa</th>
-                      <th className="py-3 px-4">L/P</th>
-                      <th className="py-3 px-4">Kelompok Diferensiasi</th>
-                      <th className="py-3 px-4">Catatan Pengamatan Guru</th>
-                      <th className="py-3 px-4 text-center">Aksi</th>
+                      <th className="py-3 px-3">No</th>
+                      <th className="py-3 px-3">NISN</th>
+                      <th className="py-3 px-3">Nama Siswa</th>
+                      <th className="py-3 px-2 text-center">L/P</th>
+                      <th className="py-3 px-3">Kelompok Diferensiasi</th>
+                      <th className="py-3 px-3">Literasi ({faseKey})</th>
+                      <th className="py-3 px-3">Numerasi ({faseKey})</th>
+                      <th className="py-3 px-3">Catatan Pengamatan Guru</th>
+                      <th className="py-3 px-3 text-center">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F6F3EC]">
@@ -656,13 +1041,13 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
 
                       return (
                         <tr key={st.id} className="hover:bg-[#FAF8F5] transition-colors">
-                          <td className="py-3 px-4 font-bold text-[#787F7A]">{idx + 1}</td>
-                          <td className="py-3 px-4 font-mono font-semibold text-[#565C58]">{st.nisn}</td>
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-3 font-bold text-[#787F7A]">{idx + 1}</td>
+                          <td className="py-3 px-3 font-mono font-semibold text-[#565C58]">{st.nisn}</td>
+                          <td className="py-3 px-3">
                             <p className="font-black text-[#22352B]">{st.full_name}</p>
                             <p className="text-[11px] text-[#787F7A]">Panggilan: {st.nickname}</p>
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-2 text-center">
                             <span
                               className={`w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-[10px] ${
                                 st.gender === "L"
@@ -673,7 +1058,7 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                               {st.gender}
                             </span>
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-3">
                             <span
                               className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
                                 isIntervensi
@@ -686,19 +1071,73 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                               {st.learning_group || "Kelompok Reguler"}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-[#565C58] max-w-xs truncate">
+                          <td className="py-3 px-3">
+                            <select
+                              value={st.literacy_level || "L2"}
+                              onChange={(e) =>
+                                handleUpdateStudentReadiness(
+                                  st.id,
+                                  "literacy_level",
+                                  e.target.value as ReadinessTier
+                                )
+                              }
+                              className={`font-black text-[11px] px-2 py-1 rounded-xl border focus:outline-none transition-colors cursor-pointer ${
+                                (st.literacy_level || "L2") === "L1"
+                                  ? "bg-[#FDF7F4] text-[#B85627] border-[#F1CFC0]"
+                                  : (st.literacy_level || "L2") === "L2"
+                                  ? "bg-[#FEFCE8] text-[#92400E] border-[#FEF08A]"
+                                  : (st.literacy_level || "L2") === "L3"
+                                  ? "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
+                                  : "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]"
+                              }`}
+                              title="Klik untuk mengubah level literasi siswa"
+                            >
+                              <option value="L1">L1: {currentReadinessMatrix.literacy.L1.title}</option>
+                              <option value="L2">L2: {currentReadinessMatrix.literacy.L2.title}</option>
+                              <option value="L3">L3: {currentReadinessMatrix.literacy.L3.title}</option>
+                              <option value="L4">L4: {currentReadinessMatrix.literacy.L4.title}</option>
+                            </select>
+                          </td>
+                          <td className="py-3 px-3">
+                            <select
+                              value={st.numeracy_level || "L2"}
+                              onChange={(e) =>
+                                handleUpdateStudentReadiness(
+                                  st.id,
+                                  "numeracy_level",
+                                  e.target.value as ReadinessTier
+                                )
+                              }
+                              className={`font-black text-[11px] px-2 py-1 rounded-xl border focus:outline-none transition-colors cursor-pointer ${
+                                (st.numeracy_level || "L2") === "L1"
+                                  ? "bg-[#FDF7F4] text-[#B85627] border-[#F1CFC0]"
+                                  : (st.numeracy_level || "L2") === "L2"
+                                  ? "bg-[#FEFCE8] text-[#92400E] border-[#FEF08A]"
+                                  : (st.numeracy_level || "L2") === "L3"
+                                  ? "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
+                                  : "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]"
+                              }`}
+                              title="Klik untuk mengubah level numerasi siswa"
+                            >
+                              <option value="L1">L1: {currentReadinessMatrix.numeracy.L1.title}</option>
+                              <option value="L2">L2: {currentReadinessMatrix.numeracy.L2.title}</option>
+                              <option value="L3">L3: {currentReadinessMatrix.numeracy.L3.title}</option>
+                              <option value="L4">L4: {currentReadinessMatrix.numeracy.L4.title}</option>
+                            </select>
+                          </td>
+                          <td className="py-3 px-3 text-[#565C58] max-w-xs truncate">
                             {st.notes || "-"}
                           </td>
-                          <td className="py-3 px-4 text-center">
+                          <td className="py-3 px-3 text-center">
                             <button
                               type="button"
                               onClick={() => {
                                 setSelectedStudentForReport(st.id);
                                 setActiveTab("reports");
                               }}
-                              className="text-xs font-bold text-[#486B5A] hover:underline cursor-pointer"
+                              className="text-xs font-bold text-[#486B5A] hover:underline cursor-pointer whitespace-nowrap"
                             >
-                              Lihat Rapor TaRL
+                              Lihat Rapor
                             </button>
                           </td>
                         </tr>
@@ -706,7 +1145,7 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                     })}
                     {filteredStudents.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-[#787F7A]">
+                        <td colSpan={9} className="py-8 text-center text-[#787F7A]">
                           Tidak ada siswa yang sesuai pencarian atau filter.
                         </td>
                       </tr>
@@ -967,7 +1406,7 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
         {activeTab === "reports" && (
           <div className="space-y-6">
             {/* Student Picker Bar */}
-            <div className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
               <div className="flex items-center gap-3">
                 <label className="text-xs font-black uppercase text-[#787F7A]">
                   Pilih Peserta Didik:
@@ -979,7 +1418,7 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                 >
                   {students.map((st) => (
                     <option key={st.id} value={st.id}>
-                      {st.full_name} ({st.learning_group})
+                      {st.full_name} ({st.learning_group}) — Lit: {st.literacy_level || "L2"} | Num: {st.numeracy_level || "L2"}
                     </option>
                   ))}
                 </select>
@@ -996,19 +1435,45 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
             </div>
 
             {studentForReport ? (
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8E2D8] shadow-sm space-y-6">
-                {/* Student Identity Banner */}
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8E2D8] shadow-sm space-y-6 print:border-none print:shadow-none print:p-0">
+                {/* 1. Official School Letterhead (KOP) */}
+                <div className="border-b-2 border-[#22352B] pb-4 text-center space-y-1">
+                  <p className="text-xs uppercase font-extrabold tracking-widest text-[#565C58]">
+                    {schoolProfile?.foundation_name || "Yayasan Pendidikan Islam An-Najah"}
+                  </p>
+                  <h2 className="text-xl sm:text-2xl font-black text-[#22352B] tracking-tight uppercase">
+                    {schoolProfile?.school_name || "SDIT An-Najah"}
+                  </h2>
+                  <p className="text-xs text-[#565C58]">
+                    {schoolProfile?.address || "Jl. Puspanjolo Barat No. 8, Bojongsalaman, Semarang Barat"} &bull; NPSN: {schoolProfile?.npsn || "20218492"}
+                  </p>
+                  <p className="text-[11px] text-[#486B5A] font-semibold">
+                    Portal Asesmen &amp; Observasi: {schoolProfile?.website || "observasi.sdiannajah.ai.id"} &bull; Kontak: {schoolProfile?.phone || "0812-3456-7890"}
+                  </p>
+                </div>
+
+                {/* 2. Document Title */}
+                <div className="text-center space-y-0.5">
+                  <h3 className="text-sm sm:text-base font-black text-[#22352B] uppercase tracking-wide">
+                    Laporan Asesmen Diagnostik &amp; Profil Pembelajaran Diferensiasi
+                  </h3>
+                  <p className="text-xs text-[#565C58] font-bold">
+                    Kelas {classId} &bull; {currentReadinessMatrix.fase} &bull; Tahun Ajaran {classroom?.academic_year || "2026/2027"}
+                  </p>
+                </div>
+
+                {/* 3. Student Identity Card */}
                 <div className="bg-[#FAF8F5] rounded-3xl p-5 border border-[#E8E2D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#486B5A] text-white flex items-center justify-center text-2xl font-black">
-                      {studentForReport.nickname.charAt(0)}
+                    <div className="w-14 h-14 rounded-2xl bg-[#486B5A] text-white flex items-center justify-center text-2xl font-black flex-shrink-0">
+                      {studentForReport.nickname ? studentForReport.nickname.charAt(0) : studentForReport.full_name.charAt(0)}
                     </div>
                     <div>
-                      <h2 className="text-lg font-black text-[#22352B]">
+                      <h4 className="text-base sm:text-lg font-black text-[#22352B]">
                         {studentForReport.full_name}
-                      </h2>
+                      </h4>
                       <p className="text-xs text-[#565C58]">
-                        NISN: <span className="font-mono font-semibold">{studentForReport.nisn}</span> &bull; Gender: {studentForReport.gender === "L" ? "Laki-laki" : "Perempuan"}
+                        NISN: <span className="font-mono font-semibold">{studentForReport.nisn}</span> &bull; Panggilan: <strong>{studentForReport.nickname || "-"}</strong> &bull; Jenis Kelamin: {studentForReport.gender === "L" ? "Laki-laki (L)" : "Perempuan (P)"}
                       </p>
                     </div>
                   </div>
@@ -1023,15 +1488,120 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* 8 Deep Learning Dimensions Breakdown for this Student */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-black text-[#22352B] uppercase tracking-wider">
-                    Capaian 8 Dimensi Profil Lulusan (Deep Learning)
-                  </h3>
+                {/* 4. Matriks Kesiapan Literasi & Numerasi Siswa (Fase {faseKey}) */}
+                {(() => {
+                  const sLitTier: ReadinessTier = (studentForReport.literacy_level || "L2") as ReadinessTier;
+                  const sNumTier: ReadinessTier = (studentForReport.numeracy_level || "L2") as ReadinessTier;
+                  const litObj = currentReadinessMatrix.literacy[sLitTier];
+                  const numObj = currentReadinessMatrix.numeracy[sNumTier];
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-black text-[#22352B] uppercase tracking-wider flex items-center gap-2">
+                          <i className="mdi mdi-certificate-outline text-[#486B5A] text-base" />
+                          <span>Status Kesiapan Fondasi Literasi &amp; Numerasi ({faseKey})</span>
+                        </h4>
+                        <span className="text-[11px] text-[#787F7A] font-semibold">
+                          Standar BSKAP No. 033/H/KR/2022
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Literasi Status */}
+                        <div className="p-4 rounded-2xl border border-[#E8E2D8] bg-[#FAF8F5] space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-[#486B5A] uppercase tracking-wider flex items-center gap-1.5">
+                              <i className="mdi mdi-book-open-outline" />
+                              <span>Literasi ({currentReadinessMatrix.literacy_focus})</span>
+                            </span>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-black border ${
+                                sLitTier === "L1"
+                                  ? "bg-[#FDF7F4] text-[#B85627] border-[#F1CFC0]"
+                                  : sLitTier === "L2"
+                                  ? "bg-[#FEFCE8] text-[#92400E] border-[#FEF08A]"
+                                  : sLitTier === "L3"
+                                  ? "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
+                                  : "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]"
+                              }`}
+                            >
+                              {sLitTier} - {litObj.title}
+                            </span>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                              Bukti Perilaku Teramati di Kelas:
+                            </p>
+                            <p className="text-xs text-[#22352B] leading-relaxed bg-white p-2.5 rounded-xl border border-[#E8E2D8]/60">
+                              {litObj.fullDesc}
+                            </p>
+                          </div>
+
+                          <div className="space-y-1 pt-1">
+                            <p className="text-[10px] font-bold text-[#486B5A] uppercase tracking-wider">
+                              Tindak Lanjut Diferensiasi Meja Ajar:
+                            </p>
+                            <p className="text-xs text-[#565C58] leading-snug">
+                              {litObj.actionGuidance}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Numerasi Status */}
+                        <div className="p-4 rounded-2xl border border-[#E8E2D8] bg-[#FAF8F5] space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-[#B85627] uppercase tracking-wider flex items-center gap-1.5">
+                              <i className="mdi mdi-calculator-variant-outline" />
+                              <span>Numerasi ({currentReadinessMatrix.numeracy_focus})</span>
+                            </span>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-black border ${
+                                sNumTier === "L1"
+                                  ? "bg-[#FDF7F4] text-[#B85627] border-[#F1CFC0]"
+                                  : sNumTier === "L2"
+                                  ? "bg-[#FEFCE8] text-[#92400E] border-[#FEF08A]"
+                                  : sNumTier === "L3"
+                                  ? "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
+                                  : "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]"
+                              }`}
+                            >
+                              {sNumTier} - {numObj.title}
+                            </span>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                              Bukti Perilaku Teramati di Kelas:
+                            </p>
+                            <p className="text-xs text-[#22352B] leading-relaxed bg-white p-2.5 rounded-xl border border-[#E8E2D8]/60">
+                              {numObj.fullDesc}
+                            </p>
+                          </div>
+
+                          <div className="space-y-1 pt-1">
+                            <p className="text-[10px] font-bold text-[#486B5A] uppercase tracking-wider">
+                              Tindak Lanjut Diferensiasi Meja Ajar:
+                            </p>
+                            <p className="text-xs text-[#565C58] leading-snug">
+                              {numObj.actionGuidance}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 5. 8 Deep Learning Dimensions Breakdown for this Student */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-black text-[#22352B] uppercase tracking-wider">
+                    Capaian 8 Dimensi Profil Lulusan (Deep Learning)
+                  </h4>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     {Object.entries(DEEP_LEARNING_DIMENSIONS).map(([key, dim]) => {
-                      // Filter assessments for this student and dimension
                       const dimAssessments = studentAssessments.filter((ass) => {
                         const obj = objectives.find((o) => o.id === ass.objective_id);
                         return obj?.dimension_id === key;
@@ -1048,10 +1618,10 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                       return (
                         <div
                           key={key}
-                          className="p-3.5 rounded-2xl border border-[#E8E2D8] bg-[#FAF8F5] space-y-2"
+                          className="p-3 rounded-2xl border border-[#E8E2D8] bg-[#FAF8F5] space-y-1.5"
                         >
                           <div className="flex items-center justify-between">
-                            <span className={`w-7 h-7 rounded-lg ${dim.badgeBg} ${dim.badgeText} flex items-center justify-center text-sm`}>
+                            <span className={`w-6 h-6 rounded-lg ${dim.badgeBg} ${dim.badgeText} flex items-center justify-center text-xs`}>
                               <i className={`mdi ${dim.mdiIcon}`} />
                             </span>
                             <span className="text-xs font-black text-[#22352B]">
@@ -1059,7 +1629,7 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                             </span>
                           </div>
                           <div>
-                            <p className="text-xs font-black text-[#22352B] truncate">{dim.name}</p>
+                            <p className="text-[11px] font-black text-[#22352B] truncate">{dim.name}</p>
                             <p className="text-[10px] text-[#787F7A]">{dimAssessments.length} Observasi</p>
                           </div>
                         </div>
@@ -1068,32 +1638,65 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Teaching at the Right Level (TaRL) Pedagogical Recommendations */}
-                <div className="bg-[#F2F7F4] rounded-3xl p-6 border border-[#CBE0D4] space-y-3">
-                  <h3 className="text-sm font-black text-[#22352B] flex items-center gap-2">
-                    <i className="mdi mdi-compass-outline text-[#486B5A] text-lg" />
-                    <span>Panduan Diferensiasi Pembelajaran (TaRL) untuk Guru:</span>
-                  </h3>
+                {/* 6. Teaching at the Right Level (TaRL) Pedagogical Recommendations */}
+                <div className="bg-[#F2F7F4] rounded-3xl p-5 border border-[#CBE0D4] space-y-3">
+                  <h4 className="text-xs sm:text-sm font-black text-[#22352B] flex items-center gap-2">
+                    <i className="mdi mdi-compass-outline text-[#486B5A] text-base" />
+                    <span>Panduan Diferensiasi Pembelajaran Guru di Ruang Kelas ({faseKey}):</span>
+                  </h4>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-[#22352B]">
-                    <div className="bg-white p-3.5 rounded-2xl border border-[#CBE0D4] space-y-1">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-[#22352B]">
+                    <div className="bg-white p-3 rounded-2xl border border-[#CBE0D4] space-y-1">
                       <p className="font-black text-[#486B5A]">1. Diferensiasi Konten</p>
-                      <p className="text-[#565C58] leading-relaxed">
-                        Sediakan bahan bacaan dan lembar aktivitas berjenjang sesuai kesiapan konsep (konkret ke abstrak).
+                      <p className="text-[#565C58] leading-relaxed text-[11px]">
+                        Sediakan bahan bacaan dan manipulatif berjenjang sesuai kesiapan fondasi siswa (konkret ke abstrak).
                       </p>
                     </div>
 
-                    <div className="bg-white p-3.5 rounded-2xl border border-[#CBE0D4] space-y-1">
+                    <div className="bg-white p-3 rounded-2xl border border-[#CBE0D4] space-y-1">
                       <p className="font-black text-[#486B5A]">2. Diferensiasi Proses</p>
-                      <p className="text-[#565C58] leading-relaxed">
-                        Fasilitasi scaffolding kelompok kecil saat penugasan mandiri dan dorong kolaborasi tutor sebaya.
+                      <p className="text-[#565C58] leading-relaxed text-[11px]">
+                        Fasilitasi bimbingan meja kecil terarah bagi siswa L1-L2 dan dorong tutor sebaya dengan siswa L3-L4.
                       </p>
                     </div>
 
-                    <div className="bg-white p-3.5 rounded-2xl border border-[#CBE0D4] space-y-1">
+                    <div className="bg-white p-3 rounded-2xl border border-[#CBE0D4] space-y-1">
                       <p className="font-black text-[#486B5A]">3. Diferensiasi Produk</p>
-                      <p className="text-[#565C58] leading-relaxed">
-                        Berikan keleluasaan peserta didik menunjukkan pemahaman melalui karya visual, lisan, atau tulisan.
+                      <p className="text-[#565C58] leading-relaxed text-[11px]">
+                        Beri kebebasan mengekspresikan pemahaman melalui unjuk karya visual, presentasi lisan, atau karya tulis.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 7. Official Signature Block (A4 Print Ready) */}
+                <div className="pt-6 border-t border-[#E8E2D8] grid grid-cols-2 gap-8 text-center text-xs">
+                  <div className="space-y-16">
+                    <p className="text-[#565C58]">
+                      Mengetahui,<br />
+                      <strong>Kepala {schoolProfile?.school_name || "SDIT An-Najah"}</strong>
+                    </p>
+                    <div>
+                      <p className="font-black text-[#22352B] underline">
+                        {schoolProfile?.principal_name || "Ustadz H. Ahmad Syaikhu, M.Pd.I."}
+                      </p>
+                      <p className="text-[11px] text-[#787F7A]">
+                        NIP: {schoolProfile?.principal_nip || "19800412 200501 1 004"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-16">
+                    <p className="text-[#565C58]">
+                      Semarang, {new Date().toLocaleDateString("id-ID", { dateStyle: "long" })}<br />
+                      <strong>Guru Pengampu / Wali Kelas {classId}</strong>
+                    </p>
+                    <div>
+                      <p className="font-black text-[#22352B] underline">
+                        {classroom?.teacher_name || "Guru Kelas"}
+                      </p>
+                      <p className="text-[11px] text-[#787F7A]">
+                        NIP/NIY: Guru Kelas {classId}
                       </p>
                     </div>
                   </div>
@@ -1201,6 +1804,50 @@ export default function ClassroomWorkspacePage({ params }: PageProps) {
                   <option value="Kelompok Reguler">Kelompok Reguler (Berkembang Sesuai Harapan)</option>
                   <option value="Kelompok Pengayaan">Kelompok Pengayaan (Mahir)</option>
                 </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-[#565C58] block mb-1">
+                    Kesiapan Literasi ({faseKey})
+                  </label>
+                  <select
+                    value={newStudentForm.literacy_level}
+                    onChange={(e) =>
+                      setNewStudentForm({
+                        ...newStudentForm,
+                        literacy_level: e.target.value as ReadinessTier,
+                      })
+                    }
+                    className="w-full p-2.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E2D8] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#486B5A]"
+                  >
+                    <option value="L1">L1: {currentReadinessMatrix.literacy.L1.title}</option>
+                    <option value="L2">L2: {currentReadinessMatrix.literacy.L2.title}</option>
+                    <option value="L3">L3: {currentReadinessMatrix.literacy.L3.title}</option>
+                    <option value="L4">L4: {currentReadinessMatrix.literacy.L4.title}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#565C58] block mb-1">
+                    Kesiapan Numerasi ({faseKey})
+                  </label>
+                  <select
+                    value={newStudentForm.numeracy_level}
+                    onChange={(e) =>
+                      setNewStudentForm({
+                        ...newStudentForm,
+                        numeracy_level: e.target.value as ReadinessTier,
+                      })
+                    }
+                    className="w-full p-2.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E2D8] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#486B5A]"
+                  >
+                    <option value="L1">L1: {currentReadinessMatrix.numeracy.L1.title}</option>
+                    <option value="L2">L2: {currentReadinessMatrix.numeracy.L2.title}</option>
+                    <option value="L3">L3: {currentReadinessMatrix.numeracy.L3.title}</option>
+                    <option value="L4">L4: {currentReadinessMatrix.numeracy.L4.title}</option>
+                  </select>
+                </div>
               </div>
 
               <div>

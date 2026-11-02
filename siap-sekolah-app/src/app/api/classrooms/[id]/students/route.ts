@@ -34,20 +34,26 @@ export async function POST(
     // Check if bulk import or single student
     if (Array.isArray(body.students)) {
       const added = body.students.map((st: {
+        id?: string;
         nisn?: string;
         full_name: string;
         nickname?: string;
         gender: "L" | "P";
         learning_group?: string;
+        literacy_level?: "L1" | "L2" | "L3" | "L4";
+        numeracy_level?: "L1" | "L2" | "L3" | "L4";
         notes?: string;
       }) =>
         addClassroomStudent({
+          id: st.id,
           classroom_id: id,
           nisn: st.nisn || `013${Math.floor(1000000 + Math.random() * 9000000)}`,
           full_name: st.full_name,
           nickname: st.nickname || st.full_name.split(" ")[0],
           gender: st.gender === "P" ? "P" : "L",
           learning_group: st.learning_group || "Kelompok Reguler",
+          literacy_level: st.literacy_level || "L2",
+          numeracy_level: st.numeracy_level || "L2",
           notes: st.notes || null,
         })
       );
@@ -66,12 +72,15 @@ export async function POST(
     }
 
     const student = addClassroomStudent({
+      id: body.id,
       classroom_id: id,
       nisn: body.nisn || `013${Math.floor(1000000 + Math.random() * 9000000)}`,
       full_name: body.full_name,
       nickname: body.nickname || body.full_name.split(" ")[0],
       gender: body.gender === "P" ? "P" : "L",
       learning_group: body.learning_group || "Kelompok Reguler",
+      literacy_level: body.literacy_level || "L2",
+      numeracy_level: body.numeracy_level || "L2",
       notes: body.notes || null,
     });
 

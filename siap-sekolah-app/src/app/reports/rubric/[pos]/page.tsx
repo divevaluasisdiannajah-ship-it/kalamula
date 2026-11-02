@@ -272,14 +272,24 @@ export default function PosRubricPrintPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string>(initialStudentId);
   const [evaluations, setEvaluations] = useState<Record<string, Evaluation>>({});
+  const [schoolProfile, setSchoolProfile] = useState<any>(null);
+  const [evaluatorName, setEvaluatorName] = useState<string>("");
+  const [teacherList, setTeacherList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch configs, students, and evaluations
+  // Fetch configs, students, evaluations, school profile & teachers
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
+      const [cRes, sRes, eRes, pRes, tRes] = await Promise.all([
+        fetch("/api/configs"),
+        fetch("/api/students"),
+        fetch("/api/evaluations"),
+        fetch("/api/school"),
+        fetch("/api/teachers"),
+      ]);
+
       // 1. Fetch configs
-      const cRes = await fetch("/api/configs");
       if (cRes.ok) {
         const cData = await cRes.json();
         const list = cData.data || [];
@@ -297,7 +307,6 @@ export default function PosRubricPrintPage() {
       }
 
       // 2. Fetch students
-      const sRes = await fetch("/api/students");
       if (sRes.ok) {
         const sData = await sRes.json();
         const stList: Student[] = sData.data || [];
@@ -308,7 +317,6 @@ export default function PosRubricPrintPage() {
       }
 
       // 3. Fetch evaluations
-      const eRes = await fetch("/api/evaluations");
       if (eRes.ok) {
         const eData = await eRes.json();
         const evList: Evaluation[] = eData.data || [];
@@ -318,12 +326,29 @@ export default function PosRubricPrintPage() {
         });
         setEvaluations(evMap);
       }
+
+      // 4. Fetch school profile
+      if (pRes.ok) {
+        const pData = await pRes.json();
+        setSchoolProfile(pData.data);
+      }
+
+      // 5. Fetch teachers
+      if (tRes.ok) {
+        const tData = await tRes.json();
+        const tList = tData.data || [];
+        setTeacherList(tList);
+        const evalTch = tList.find((t: any) => t.is_evaluator && t.evaluator_pos === posNumber);
+        if (evalTch) {
+          setEvaluatorName(evalTch.name);
+        }
+      }
     } catch (err) {
       console.error("Failed to load rubric data:", err);
     } finally {
       setLoading(false);
     }
-  }, [selectedStudentId]);
+  }, [selectedStudentId, posNumber]);
 
   useEffect(() => {
     loadData();
@@ -595,6 +620,25 @@ export default function PosRubricPrintPage() {
               </select>
             </div>
 
+            {/* Dropdown Pemilih Evaluator */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-[#787F7A] text-[11px] uppercase tracking-wider">
+                Evaluator:
+              </span>
+              <select
+                value={evaluatorName}
+                onChange={(e) => setEvaluatorName(e.target.value)}
+                className="bg-white border border-[#CBE0D4] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#22352B] focus:outline-none focus:ring-2 focus:ring-[#486B5A] cursor-pointer shadow-2xs max-w-[190px]"
+              >
+                <option value="">(Titik-titik / Manual)</option>
+                {teacherList.map((t) => (
+                  <option key={t.id} value={t.name}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Format Mode: Matriks Kelompok vs Detail Siswa */}
             <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#E8E2D8]">
               <button
@@ -686,7 +730,7 @@ export default function PosRubricPrintPage() {
                 Instrumen Observasi Asesmen Diagnostik Kesiapan Belajar
               </h1>
               <p className="text-[10px] text-[#565C58] mt-0.5">
-                kalamula &bull; SDIT An-Najah &bull; Pemetaan Fondasi Belajar &amp; Diferensiasi Pembelajaran Deep Learning SD
+                kalamula &bull; {schoolProfile?.school_name || "SDIT An-Najah"} &bull; {schoolProfile?.foundation_name || "Yayasan Pendidikan Islam An-Najah"} &bull; T.A. {schoolProfile?.academic_year || "2026/2027"}
               </p>
             </div>
           </div>
@@ -721,7 +765,7 @@ export default function PosRubricPrintPage() {
           </div>
 
           {/* Kolom 2: KELOMPOK */}
-          <div className="col-span-2 px-3 py-2">
+          <div className="col-span-2 px-3.5 py-2">
             <span className="text-[9px] uppercase font-bold text-[#787F7A] tracking-wider flex items-center gap-1 leading-none">
               <i className="mdi mdi-account-group-outline text-xs text-[#787F7A]" />
               <span>KELOMPOK</span>
@@ -748,7 +792,9 @@ export default function PosRubricPrintPage() {
               <i className="mdi mdi-account-edit-outline text-xs text-[#787F7A]" />
               <span>NAMA EVALUATOR</span>
             </span>
-            <div className="border-b border-stone-400 w-full h-4 mt-1" />
+            <div className="border-b border-stone-400 w-full min-h-4 mt-1 font-bold text-[#22352B] text-xs truncate">
+              {evaluatorName || "...................................."}
+            </div>
           </div>
         </div>
 

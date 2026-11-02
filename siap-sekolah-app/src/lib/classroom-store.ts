@@ -157,18 +157,18 @@ export const DEFAULT_OBJECTIVES: ClassroomObjective[] = [
 // ─── Default Sample Students for Kelas 1A (and other classes) ────
 
 export const SEED_STUDENTS_1A: ClassroomStudent[] = [
-  { id: "std-1a-01", classroom_id: "1A", nisn: "0134567801", full_name: "Ahmad Zaki Al-Fatih", nickname: "Zaki", gender: "L", learning_group: "Kelompok Reguler", notes: "Sangat antusias pada sains dan matematika.", created_at: new Date().toISOString() },
-  { id: "std-1a-02", classroom_id: "1A", nisn: "0134567802", full_name: "Aisyah Humaira Putri", nickname: "Aisyah", gender: "P", learning_group: "Kelompok Pengayaan", notes: "Kemampuan literasi dan bercerita di atas rata-rata.", created_at: new Date().toISOString() },
-  { id: "std-1a-03", classroom_id: "1A", nisn: "0134567803", full_name: "Bilal Habibi Pratama", nickname: "Bilal", gender: "L", learning_group: "Kelompok Intervensi", notes: "Perlu pendampingan pada regulasi emosi saat berganti aktivitas.", created_at: new Date().toISOString() },
-  { id: "std-1a-04", classroom_id: "1A", nisn: "0134567804", full_name: "Clarissa Kayla Azzahra", nickname: "Clarissa", gender: "P", learning_group: "Kelompok Reguler", notes: "Cermat dan mandiri dalam mengerjakan lembar aktivitas.", created_at: new Date().toISOString() },
-  { id: "std-1a-05", classroom_id: "1A", nisn: "0134567805", full_name: "Danendra Bintang Ramadhan", nickname: "Bintang", gender: "L", learning_group: "Kelompok Reguler", notes: "Motorik kasar sangat lincah, aktif di PJOK.", created_at: new Date().toISOString() },
-  { id: "std-1a-06", classroom_id: "1A", nisn: "0134567806", full_name: "Fathimah Zahra Ramadhani", nickname: "Zahra", gender: "P", learning_group: "Kelompok Pengayaan", notes: "Sangat santun dan memiliki jiwa kepemimpinan alami.", created_at: new Date().toISOString() },
-  { id: "std-1a-07", classroom_id: "1A", nisn: "0134567807", full_name: "Ghaza Al-Ghifari", nickname: "Ghaza", gender: "L", learning_group: "Kelompok Intervensi", notes: "Butuh penguatan pada koordinasi motorik halus (memegang pensil).", created_at: new Date().toISOString() },
-  { id: "std-1a-08", classroom_id: "1A", nisn: "0134567808", full_name: "Hafizhah Nuha Salsabila", nickname: "Nuha", gender: "P", learning_group: "Kelompok Reguler", notes: "Pendengar yang tekun dan suka membantu teman sebangku.", created_at: new Date().toISOString() },
-  { id: "std-1a-09", classroom_id: "1A", nisn: "0134567809", full_name: "Ibrahim Maulana Rasyid", nickname: "Baim", gender: "L", learning_group: "Kelompok Reguler", notes: "Gemar berhitung cepat dan menyusun balok logika.", created_at: new Date().toISOString() },
-  { id: "std-1a-10", classroom_id: "1A", nisn: "0134567810", full_name: "Khansa Nabila Syakira", nickname: "Khansa", gender: "P", learning_group: "Kelompok Pengayaan", notes: "Kreatif dalam mewarnai dan artikulasi komunikasi sangat lugas.", created_at: new Date().toISOString() },
-  { id: "std-1a-11", classroom_id: "1A", nisn: "0134567811", full_name: "Luqman Hakim Al-Farabi", nickname: "Luqman", gender: "L", learning_group: "Kelompok Reguler", notes: "Tenang, patuh, dan mudah beradaptasi dalam tim.", created_at: new Date().toISOString() },
-  { id: "std-1a-12", classroom_id: "1A", nisn: "0134567812", full_name: "Maryam Shalihah", nickname: "Maryam", gender: "P", learning_group: "Kelompok Reguler", notes: "Rapi dalam merapikan buku dan gemar membaca dongeng.", created_at: new Date().toISOString() },
+  { id: "std-1a-01", classroom_id: "1A", nisn: "0134567801", full_name: "Ahmad Zaki Al-Fatih", nickname: "Zaki", gender: "L", learning_group: "Kelompok Reguler", literacy_level: "L3", numeracy_level: "L3", notes: "Sangat antusias pada sains dan matematika.", created_at: new Date().toISOString() },
+  { id: "std-1a-02", classroom_id: "1A", nisn: "0134567802", full_name: "Aisyah Humaira Putri", nickname: "Aisyah", gender: "P", learning_group: "Kelompok Pengayaan", literacy_level: "L4", numeracy_level: "L4", notes: "Kemampuan literasi dan bercerita di atas rata-rata.", created_at: new Date().toISOString() },
+  { id: "std-1a-03", classroom_id: "1A", nisn: "0134567803", full_name: "Bilal Habibi Pratama", nickname: "Bilal", gender: "L", learning_group: "Kelompok Intervensi", literacy_level: "L1", numeracy_level: "L2", notes: "Perlu pendampingan pada regulasi emosi saat berganti aktivitas.", created_at: new Date().toISOString() },
+  { id: "std-1a-04", classroom_id: "1A", nisn: "0134567804", full_name: "Clarissa Kayla Azzahra", nickname: "Clarissa", gender: "P", learning_group: "Kelompok Reguler", literacy_level: "L3", numeracy_level: "L2", notes: "Cermat dan mandiri dalam mengerjakan lembar aktivitas.", created_at: new Date().toISOString() },
+  { id: "std-1a-05", classroom_id: "1A", nisn: "0134567805", full_name: "Danendra Bintang Ramadhan", nickname: "Bintang", gender: "L", learning_group: "Kelompok Reguler", literacy_level: "L2", numeracy_level: "L3", notes: "Motorik kasar sangat lincah, aktif di PJOK.", created_at: new Date().toISOString() },
+  { id: "std-1a-06", classroom_id: "1A", nisn: "0134567806", full_name: "Fathimah Zahra Ramadhani", nickname: "Zahra", gender: "P", learning_group: "Kelompok Pengayaan", literacy_level: "L4", numeracy_level: "L3", notes: "Sangat santun dan memiliki jiwa kepemimpinan alami.", created_at: new Date().toISOString() },
+  { id: "std-1a-07", classroom_id: "1A", nisn: "0134567807", full_name: "Ghaza Al-Ghifari", nickname: "Ghaza", gender: "L", learning_group: "Kelompok Intervensi", literacy_level: "L1", numeracy_level: "L1", notes: "Butuh penguatan pada koordinasi motorik halus (memegang pensil).", created_at: new Date().toISOString() },
+  { id: "std-1a-08", classroom_id: "1A", nisn: "0134567808", full_name: "Hafizhah Nuha Salsabila", nickname: "Nuha", gender: "P", learning_group: "Kelompok Reguler", literacy_level: "L3", numeracy_level: "L3", notes: "Pendengar yang tekun dan suka membantu teman sebangku.", created_at: new Date().toISOString() },
+  { id: "std-1a-09", classroom_id: "1A", nisn: "0134567809", full_name: "Ibrahim Maulana Rasyid", nickname: "Baim", gender: "L", learning_group: "Kelompok Reguler", literacy_level: "L2", numeracy_level: "L3", notes: "Gemar berhitung cepat dan menyusun balok logika.", created_at: new Date().toISOString() },
+  { id: "std-1a-10", classroom_id: "1A", nisn: "0134567810", full_name: "Khansa Nabila Syakira", nickname: "Khansa", gender: "P", learning_group: "Kelompok Pengayaan", literacy_level: "L4", numeracy_level: "L4", notes: "Kreatif dalam mewarnai dan artikulasi komunikasi sangat lugas.", created_at: new Date().toISOString() },
+  { id: "std-1a-11", classroom_id: "1A", nisn: "0134567811", full_name: "Luqman Hakim Al-Farabi", nickname: "Luqman", gender: "L", learning_group: "Kelompok Reguler", literacy_level: "L3", numeracy_level: "L2", notes: "Tenang, patuh, dan mudah beradaptasi dalam tim.", created_at: new Date().toISOString() },
+  { id: "std-1a-12", classroom_id: "1A", nisn: "0134567812", full_name: "Maryam Shalihah", nickname: "Maryam", gender: "P", learning_group: "Kelompok Reguler", literacy_level: "L3", numeracy_level: "L3", notes: "Rapi dalam merapikan buku dan gemar membaca dongeng.", created_at: new Date().toISOString() },
 ];
 
 // Sample default assessments for Kelas 1A demo
@@ -274,12 +274,29 @@ export function getClassroomStudents(classroomId: string): ClassroomStudent[] {
   return Array.from(db.students.values()).filter((s) => s.classroom_id === classroomId.toUpperCase());
 }
 
-export function addClassroomStudent(student: Omit<ClassroomStudent, "id" | "created_at">): ClassroomStudent {
+export function addClassroomStudent(
+  student: Omit<ClassroomStudent, "id" | "created_at"> & { id?: string }
+): ClassroomStudent {
   const db = getClassroomDB();
+  const upperClass = student.classroom_id.toUpperCase();
+
+  if (student.id && db.students.has(student.id)) {
+    const existing = db.students.get(student.id)!;
+    const updated: ClassroomStudent = {
+      ...existing,
+      ...student,
+      classroom_id: upperClass,
+    };
+    db.students.set(student.id, updated);
+    return updated;
+  }
+
   const newStudent: ClassroomStudent = {
     ...student,
-    id: uuidv4(),
-    classroom_id: student.classroom_id.toUpperCase(),
+    id: student.id || uuidv4(),
+    classroom_id: upperClass,
+    literacy_level: student.literacy_level || "L2",
+    numeracy_level: student.numeracy_level || "L2",
     created_at: new Date().toISOString(),
   };
   db.students.set(newStudent.id, newStudent);
