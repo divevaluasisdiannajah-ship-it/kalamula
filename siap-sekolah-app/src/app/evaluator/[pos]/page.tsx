@@ -23,7 +23,6 @@ export default function EvaluatorStudentListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState<"all" | "mandiri" | "bimbingan">("all");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
-  const [showRotationGuide, setShowRotationGuide] = useState(false);
   const [currentSubrole, setCurrentSubrole] = useState<"so1" | "so2">("so1");
 
   useEffect(() => {
@@ -242,21 +241,6 @@ export default function EvaluatorStudentListPage() {
           </Link>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowRotationGuide(!showRotationGuide)}
-              className={`border px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96] cursor-pointer ${
-                showRotationGuide
-                  ? "bg-[#22352B] text-white border-[#22352B]"
-                  : "bg-white border-[#E8E2D8] text-[#7D5327] hover:bg-[#FAF8F5]"
-              }`}
-              title="Tampilkan / Sembunyikan Panduan Rotasi 12 Menit"
-            >
-              <i className="mdi mdi-clock-time-four-outline text-base" />
-              <span>Rotasi 12 Mnt</span>
-              <i className={`mdi mdi-chevron-down text-sm transition-transform duration-200 ${showRotationGuide ? "rotate-180" : ""}`} />
-            </button>
-
             <Link
               href={`/reports/rubric/${posNumber}`}
               target="_blank"
@@ -383,69 +367,8 @@ export default function EvaluatorStudentListPage() {
           </div>
         </div>
 
-        {/* Panduan Rotasi 12 Menit & Super Observer (Drawer Tray) */}
-        {showRotationGuide && (
-          <div className="bg-white rounded-2xl p-4 border border-[#E8E2D8] shadow-xs space-y-3 animate-fadeIn">
-            <div className="flex items-center justify-between pb-2 border-b border-[#FAF8F5]">
-              <div className="flex items-center gap-2">
-                <i className="mdi mdi-clock-time-four-outline text-lg text-[#7D5327]" />
-                <h3 className="text-xs font-extrabold text-[#22352B]">
-                  Matriks Rotasi 12 Menit &bull; Waktu Total 60 Menit
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowRotationGuide(false)}
-                className="text-xs text-[#787F7A] hover:text-[#22352B] p-1 cursor-pointer"
-                aria-label="Tutup panduan"
-              >
-                <i className="mdi mdi-close" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
-              <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8E2D8] space-y-1">
-                <span className="font-extrabold text-[#7D5327] block text-[11px]">
-                  KELOMPOK 1 (Dijemput Eval Motorik Kasar)
-                </span>
-                <p className="text-[11px] text-[#565C58] leading-relaxed">
-                  Titik Awal (08.00) &rarr; <strong className="text-[#486B5A]">Pos Motorik Kasar</strong> (08.12, dijemput Eval Motorik) &rarr; dijemput SO 1 menuju <strong className="text-[#36506C]">Pos Kognitif</strong> (08.24) &rarr; <strong className="text-[#36506C]">Pos Bahasa &amp; Halus</strong> (08.36) &rarr; <strong className="text-[#B85627]">Titik Akhir (Bermain &amp; Snack)</strong> (08.48 bersama SO 1)
-                </p>
-              </div>
-              <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8E2D8] space-y-1">
-                <span className="font-extrabold text-[#36506C] block text-[11px]">
-                  KELOMPOK 2 (Dipandu SO 1 &rarr; Switch SO 2)
-                </span>
-                <p className="text-[11px] text-[#565C58] leading-relaxed">
-                  Titik Awal (08.00, bersama SO 1) &rarr; <strong className="text-[#36506C]">Pos Bahasa &amp; Halus</strong> (08.12) &rarr; diantar SO 1 ke <strong className="text-[#486B5A]">Pos Motorik Kasar</strong> (08.24) &rarr; dijemput SO 2 menuju <strong className="text-[#36506C]">Pos Kognitif</strong> (08.36) &rarr; <strong className="text-[#B85627]">Titik Akhir (Bermain &amp; Snack)</strong> (08.48 bersama SO 2)
-                </p>
-              </div>
-              <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8E2D8] space-y-1">
-                <span className="font-extrabold text-[#8C3713] block text-[11px]">
-                  KELOMPOK 3 (Dipandu SO 2 &rarr; Switch Eval Motorik)
-                </span>
-                <p className="text-[11px] text-[#565C58] leading-relaxed">
-                  Titik Awal (08.00, bersama SO 2) &rarr; <strong className="text-[#36506C]">Pos Kognitif</strong> (08.12) &rarr; <strong className="text-[#36506C]">Pos Bahasa &amp; Halus</strong> (08.24) &rarr; dijemput Eval Motorik menuju <strong className="text-[#486B5A]">Pos Motorik Kasar</strong> (08.36) &rarr; <strong className="text-[#B85627]">Titik Akhir (Bermain &amp; Snack)</strong> (08.48 bersama Eval Motorik)
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#E4EFE9] text-[#22352B] p-3 rounded-xl border border-[#CBE0D4] space-y-1">
-              <p className="text-xs font-bold flex items-center gap-1.5 text-[#486B5A]">
-                <i className="mdi mdi-information-outline text-base" />
-                <span>Aturan Operasional Super Observer &amp; Penjemputan:</span>
-              </p>
-              <ul className="list-disc pl-5 text-[11px] text-[#565C58] space-y-0.5 leading-relaxed">
-                <li><strong>2 Super Observer (SO 1 &amp; SO 2)</strong> mengamati secara kontinu: dari titik awal kedatangan, transisi antar-pos, dinamika di tiap ruang, hingga bermain bebas &amp; makan snack di titik akhir.</li>
-                <li><strong>Evaluator Pos Motorik Kasar</strong> menjemput Kelompok 1 di titik awal (08.12), menjemput Kelompok 3 di Pos Bahasa (08.36), dan mengantar Kelompok 3 ke titik akhir (08.48).</li>
-                <li><strong>Peralihan Pendamping (Handover):</strong> Terjadi di depan pintu Pos Motorik Kasar pada pukul 08.24 (SO 1 serah terima dengan Eval Motorik) dan pukul 08.36 (Eval Motorik serah terima dengan SO 2).</li>
-              </ul>
-            </div>
-          </div>
-        )}
-
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* ─── KARTU PANDUAN PRIBADI (PERSONALIZED FIELD MISSION CARD) ──────── */}
+        {/* ─── KARTU PANDUAN PRIBADI (PERSONALIZED FIELD TASK CARD) ─────────── */}
         {/* ═══════════════════════════════════════════════════════════════════ */}
         {posNumber === 2 && (
           <div className="bg-[#E4EFE9] rounded-2xl p-4 sm:p-5 border border-[#CBE0D4] shadow-xs space-y-3">
@@ -456,7 +379,7 @@ export default function EvaluatorStudentListPage() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                    Misi Lapangan Anda: Penguji Motorik Kasar &amp; Penjemput Rotasi
+                    Tugas Lapangan Anda: Penguji Motorik Kasar &amp; Penjemput Rotasi
                   </h3>
                   <p className="text-[11px] text-[#486B5A] font-bold">
                     Ikuti alur waktu jemput &amp; serah-terima berikut agar anak tidak menunggu di koridor:
@@ -537,8 +460,8 @@ export default function EvaluatorStudentListPage() {
                 <div>
                   <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
                     {currentSubrole === "so1"
-                      ? "Misi Anda: Super Observer 1 (Fokus Kelompok 2 ➔ Kelompok 1)"
-                      : "Misi Anda: Super Observer 2 (Fokus Kelompok 3 ➔ Kelompok 2)"}
+                      ? "Tugas Anda: Super Observer 1 (Fokus Kelompok 2 ➔ Kelompok 1)"
+                      : "Tugas Anda: Super Observer 2 (Fokus Kelompok 3 ➔ Kelompok 2)"}
                   </h3>
                   <p className="text-[11px] text-[#7D5327] font-bold">
                     Dampingi perpindahan antar-ruang &amp; catat kemandirian, emosi, dan kepatuhan instruksi secara bertahap.
