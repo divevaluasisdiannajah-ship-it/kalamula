@@ -66,14 +66,14 @@ export function EvaluationConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        className="relative w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E2D8] shadow-2xl z-10 space-y-4 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-md bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-2xl z-10 space-y-3.5 max-h-[90vh] overflow-y-auto"
       >
-        <div className="flex items-start justify-between pb-3 border-b border-[#E8E2D8] gap-2">
+        <div className="flex items-start justify-between pb-2.5 border-b border-[#FAF8F5] gap-2">
           <div>
-            <h3 id="confirm-dialog-title" className="text-base font-extrabold text-[#22352B]">
+            <h3 id="confirm-dialog-title" className="text-base font-bold text-[#22352B]">
               Simpan Catatan Observasi Pos {posNumber}?
             </h3>
-            <p className="text-xs text-[#565C58] mt-0.5">
+            <p className="text-xs text-[#565C58] mt-0.5 font-normal">
               Periksa ringkasan pengamatan sebelum menyimpan ke sistem.
             </p>
           </div>
@@ -81,7 +81,7 @@ export function EvaluationConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#22352B] hover:bg-[#EBE6DF] flex items-center justify-center text-sm font-bold border border-[#E8E2D8] transition-colors flex-shrink-0 cursor-pointer disabled:opacity-50"
+            className="w-7 h-7 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#22352B] hover:bg-[#EBE6DF] flex items-center justify-center text-sm font-bold border border-[#E8E2D8] transition-colors flex-shrink-0 cursor-pointer disabled:opacity-50 active:scale-[0.96]"
             aria-label="Tutup"
           >
             <i className="mdi mdi-close text-base" />
@@ -89,26 +89,26 @@ export function EvaluationConfirmDialog({
         </div>
 
         {/* Student & Pos Recap */}
-        <div className="bg-[#FAF8F5] rounded-2xl p-4 border border-[#E8E2D8] space-y-2.5 text-xs">
+        <div className="bg-[#FAF8F5] rounded-xl p-3.5 border border-[#E8E2D8] space-y-2 text-xs">
           <div className="flex justify-between items-center">
-            <span className="text-[#565C58]">Ananda:</span>
-            <span className="font-extrabold text-[#22352B]">
-              {studentNickname} ({studentName})
+            <span className="text-[#565C58] font-normal">Ananda:</span>
+            <span className="font-bold text-[#22352B]">
+              {studentNickname} <span className="font-normal text-[#787F7A]">({studentName})</span>
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-[#565C58]">Pos Asesmen:</span>
-            <span className="font-bold text-[#22352B]">Pos {posNumber} — {posName}</span>
+            <span className="text-[#565C58] font-normal">Pos Asesmen:</span>
+            <span className="font-semibold text-[#22352B]">Pos {posNumber} — {posName}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-[#565C58]">Indikator Dinilai:</span>
-            <span className="font-extrabold text-[#486B5A]">
+            <span className="text-[#565C58] font-normal">Indikator Dinilai:</span>
+            <span className="font-bold text-[#486B5A] tabular-nums font-mono">
               {filledIndicators} dari {totalIndicators} indikator
             </span>
           </div>
           <div className="flex justify-between items-center pt-2 border-t border-[#E8E2D8]/60">
-            <span className="text-[#565C58]">Capaian Rata-Rata:</span>
-            <span className={`px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${scoreSummary.color}`}>
+            <span className="text-[#565C58] font-normal">Capaian Rata-Rata:</span>
+            <span className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] tabular-nums font-mono ${scoreSummary.color}`}>
               {scoreSummary.label}
             </span>
           </div>
@@ -118,15 +118,15 @@ export function EvaluationConfirmDialog({
                 <i className="mdi mdi-alert text-xs text-[#B85627]" />
                 <span>Perhatian Khusus:</span>
               </span>
-              <span className="font-extrabold text-[#8C3713]">{redFlagsCount} sinyal terpilih</span>
+              <span className="font-bold text-[#8C3713] tabular-nums font-mono">{redFlagsCount} sinyal terpilih</span>
             </div>
           )}
         </div>
 
         {/* Anecdotal Note Preview */}
         {anecdotalNote ? (
-          <div className="p-3.5 bg-white rounded-2xl border border-[#E8E2D8] text-xs space-y-1">
-            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#486B5A]">
+          <div className="p-3 bg-white rounded-xl border border-[#E8E2D8] text-xs space-y-1">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#486B5A]">
               <i className="mdi mdi-notebook-edit-outline text-sm" />
               <span>Catatan Guru:</span>
             </div>
@@ -135,18 +135,18 @@ export function EvaluationConfirmDialog({
             </p>
           </div>
         ) : (
-          <p className="text-[11px] text-[#787F7A] italic text-center py-1">
+          <p className="text-[11px] text-[#787F7A] italic text-center py-0.5">
             (Tidak ada catatan teks tambahan)
           </p>
         )}
 
         {/* Action Buttons */}
-        <div className="flex flex-col-reverse sm:flex-row gap-2.5 pt-2 justify-end">
+        <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1.5 justify-end">
           <button
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="w-full sm:w-auto h-11 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#22352B] text-xs font-bold px-4 py-2.5 rounded-2xl border border-[#E8E2D8] transition-colors text-center cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto h-10 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#22352B] text-xs font-bold px-4 py-2 rounded-xl border border-[#E8E2D8] transition-colors text-center cursor-pointer disabled:opacity-50 active:scale-[0.96]"
           >
             Periksa Ulang
           </button>
@@ -154,7 +154,7 @@ export function EvaluationConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={isSaving}
-            className="w-full sm:w-auto h-11 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs font-bold px-5 py-2.5 rounded-2xl shadow-sm transition-all hover:-translate-y-0.5 active:scale-[0.98] text-center inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto h-10 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs font-bold px-5 py-2 rounded-xl shadow-xs transition-all active:scale-[0.96] text-center inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {isSaving ? (
               <span>Menyimpan...</span>

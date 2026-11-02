@@ -23,7 +23,7 @@ export function PosStepIndicator({ currentPos, className = "" }: PosStepIndicato
     >
       {/* Continuous horizontal dashed connecting line behind nodes */}
       <div
-        className="absolute top-[15px] left-4 right-4 border-t-2 border-dashed border-[#DDD7CE] -z-0"
+        className="absolute top-3.5 sm:top-4 left-4 right-4 border-t-2 border-dashed border-[#DDD7CE] -z-0"
         aria-hidden="true"
       />
 
@@ -33,18 +33,18 @@ export function PosStepIndicator({ currentPos, className = "" }: PosStepIndicato
         return (
           <div key={pos} className="relative z-10 flex flex-col items-center gap-1">
             <div
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-extrabold transition-all ${
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-150 ease-out ${
                 isActive
-                  ? "bg-[#B85627] text-white shadow-sm ring-2 ring-[#B85627] ring-offset-2 ring-offset-[#F6F2E9]"
+                  ? "bg-[#B85627] text-white shadow-xs ring-2 ring-[#B85627] ring-offset-2 ring-offset-[#F6F2E9]"
                   : "bg-white text-[#787F7A] border border-[#DDD7CE] shadow-2xs"
               }`}
               aria-current={isActive ? "step" : undefined}
               title={`Pos ${pos}: ${POS_LABELS[pos]}`}
             >
-              {pos}
+              <span className="font-mono tabular-nums leading-none">{pos}</span>
             </div>
             <span
-              className={`text-[9.5px] font-extrabold tracking-wider leading-none ${
+              className={`text-[9.5px] font-bold tracking-wider leading-none ${
                 isActive ? "text-[#B85627]" : "text-[#787F7A]"
               }`}
             >

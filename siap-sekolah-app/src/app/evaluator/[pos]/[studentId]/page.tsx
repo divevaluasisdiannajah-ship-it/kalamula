@@ -241,27 +241,31 @@ export default function EvaluationFormPage() {
   // Continuum Score Configuration with Warm Organic Palette
   const SCORE_COLOR_CONFIG: Record<
     ScoreValue,
-    { selected: string; label: string; full: string }
+    { selected: string; label: string; full: string; callout: string }
   > = {
     1: {
-      selected: "bg-[#FCEEEF] text-[#B83A35] ring-2 ring-[#B83A35] font-extrabold shadow-xs",
+      selected: "bg-[#FCEEEF] text-[#B83A35] border-2 border-[#B83A35] shadow-xs font-bold",
       label: "BM",
       full: "Belum Muncul",
+      callout: "border-l-2 border-[#B83A35] bg-[#FCEEEF]/50 text-[#8C3713]",
     },
     2: {
-      selected: "bg-[#F9E6DC] text-[#8C3713] ring-2 ring-[#B85627] font-extrabold shadow-xs",
+      selected: "bg-[#F9E6DC] text-[#8C3713] border-2 border-[#B85627] shadow-xs font-bold",
       label: "MB",
       full: "Dengan Bimbingan",
+      callout: "border-l-2 border-[#B85627] bg-[#FAF8F5] text-[#8C3713]",
     },
     3: {
-      selected: "bg-[#E4EFE9] text-[#486B5A] ring-2 ring-[#486B5A] font-extrabold shadow-xs",
+      selected: "bg-[#E4EFE9] text-[#3D7A5A] border-2 border-[#486B5A] shadow-xs font-bold",
       label: "MM",
       full: "Muncul Mandiri",
+      callout: "border-l-2 border-[#486B5A] bg-[#E4EFE9]/40 text-[#22352B]",
     },
     4: {
-      selected: "bg-[#486B5A] text-white ring-2 ring-[#22352B] font-extrabold shadow-sm",
+      selected: "bg-[#486B5A] text-white border-2 border-[#22352B] shadow-xs font-bold",
       label: "MK",
       full: "Mandiri & Konsisten",
+      callout: "border-l-2 border-[#22352B] bg-[#E4EFE9]/60 text-[#22352B]",
     },
   };
 
@@ -447,7 +451,7 @@ export default function EvaluationFormPage() {
                 >
                   {([1, 2, 3, 4] as ScoreValue[]).map((val) => {
                     const isSelected = scores[indicator.id] === val;
-                    const labels: Record<ScoreValue, string> = { 1: "BM", 2: "MB", 3: "MM", 4: "MK" };
+                    const config = SCORE_COLOR_CONFIG[val];
 
                     return (
                       <button
@@ -458,13 +462,13 @@ export default function EvaluationFormPage() {
                         onClick={() => setScores((prev) => ({ ...prev, [indicator.id]: val }))}
                         className={`h-13 sm:h-14 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer active:scale-[0.96] focus-visible:outline-none ${
                           isSelected
-                            ? "bg-[#B85627] text-white font-bold shadow-xs ring-2 ring-[#B85627]/30"
+                            ? config.selected
                             : "bg-[#FAF8F5] text-[#22352B] hover:bg-white border border-[#E8E2D8] font-semibold"
                         }`}
                       >
-                        <span className="text-base font-extrabold leading-none">{val}</span>
+                        <span className="text-base font-extrabold leading-none tabular-nums font-mono">{val}</span>
                         <span className="text-[10px] uppercase font-bold tracking-tight leading-none mt-1">
-                          {labels[val]}
+                          {config.label}
                         </span>
                       </button>
                     );
@@ -473,7 +477,7 @@ export default function EvaluationFormPage() {
 
                 {/* Qualitative Rubric Score Callout (Clean Accent) */}
                 {scores[indicator.id] && (
-                  <div className="p-2.5 px-3.5 bg-[#FAF8F5] border-l-2 border-[#B85627] rounded-r-xl text-xs text-[#565C58] leading-relaxed italic font-medium">
+                  <div className={`p-2.5 px-3.5 rounded-r-xl text-xs leading-relaxed italic font-medium transition-colors ${SCORE_COLOR_CONFIG[scores[indicator.id]].callout}`}>
                     &ldquo;{indicator.score_descriptors[scores[indicator.id]]}&rdquo;
                   </div>
                 )}

@@ -160,9 +160,9 @@ export function StudentHeroCard({
   return (
     <article
       onClick={onClick}
-      className={`relative overflow-hidden rounded-2xl bg-white p-4 sm:p-5 shadow-[0_4px_20px_-3px_rgba(30,35,32,0.06),0_1px_4px_rgba(30,35,32,0.03)] border border-[#E8E2D8] transition-all duration-200 ${
+      className={`relative overflow-hidden rounded-2xl bg-white p-4 sm:p-5 shadow-xs border border-[#E8E2D8] transition-all duration-150 ${
         onClick
-          ? "cursor-pointer hover:shadow-[0_8px_28px_-4px_rgba(30,35,32,0.10)] hover:-translate-y-0.5 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-[#5C7C68] focus-visible:ring-offset-2 focus-visible:outline-none"
+          ? "cursor-pointer hover:border-[#DDD7CE] hover:shadow-sm active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
           : ""
       } ${className}`}
       tabIndex={onClick ? 0 : undefined}
@@ -176,79 +176,57 @@ export function StudentHeroCard({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         {/* Left Identity Segment */}
         <div className="flex items-center gap-3.5 min-w-0">
-          {/* Avatar with subtle warm glow */}
+          {/* Avatar konsentris */}
           <div
-            className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xs ${
+            className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-2xs ${
               isMale
-                ? "bg-[#F0F4F1] text-[#3D7A5A] border border-[#C9DBD0]"
-                : "bg-[#FAF0E8] text-[#C9733B] border border-[#F2D8C7]"
+                ? "bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4]"
+                : "bg-[#F9E6DC] text-[#8C3713] border border-[#F1CFC0]"
             }`}
             aria-hidden="true"
           >
             <i className="mdi mdi-account text-2xl" />
           </div>
 
-          <div className="min-w-0">
-            {isEvaluator ? (
-              /* Evaluator Mode: Nickname is primary, prominent */
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-lg sm:text-xl font-black text-[#1E2320] tracking-tight">
-                    {student.nickname}
-                  </h3>
-                  {hasRedFlag && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#FAF0E8] text-[#C9733B] border border-[#F2D8C7] shadow-xs" aria-label="Terdeteksi perhatian khusus">
-                      <i className="mdi mdi-alert text-xs text-[#C9733B]" />
-                      <span>Perhatian Khusus</span>
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs sm:text-[13px] font-medium text-[#565C58] truncate mt-0.5">
-                  {student.full_name}
-                </p>
-                <p className="text-xs text-[#787F7A] mt-0.5">
-                  <span className="font-semibold text-[#1E2320]">{ageDisplay}</span> · ID:{" "}
-                  <span className="font-mono font-semibold text-[#1E2320]">{student.registration_no}</span> · JK:{" "}
-                  <span>{isMale ? "L" : "P"}</span>
-                </p>
-              </div>
-            ) : (
-              /* Admin/Report Mode: Full name primary */
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base font-bold text-[#1E2320] truncate tracking-tight">
-                    {student.full_name}
-                  </h3>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F4F3EE] text-[#565C58] border border-[#DDD7CE]">
-                    &ldquo;{student.nickname}&rdquo;
-                  </span>
-                  {student.observation_group && (
-                    <span className="bg-[#EFE7D6] text-[#7D5327] border border-[#DDD0B8] text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                      <i className="mdi mdi-account-group text-xs" />
-                      <span>{student.observation_group}</span>
-                    </span>
-                  )}
-                  {hasRedFlag && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#FAF0E8] text-[#C9733B] border border-[#F2D8C7] shadow-xs" aria-label="Terdeteksi perhatian khusus">
-                      <i className="mdi mdi-alert text-xs text-[#C9733B]" />
-                      <span>Perhatian Khusus</span>
-                    </span>
-                  )}
-                </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base font-bold text-[#22352B] truncate tracking-tight">
+                {student.full_name}
+              </h3>
+              {student.nickname && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8]">
+                  &ldquo;{student.nickname}&rdquo;
+                </span>
+              )}
+              {student.observation_group && (
+                <span className="bg-[#EFE7D6] text-[#7D5327] border border-[#DDD0B8] text-[10.5px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                  <i className="mdi mdi-account-group text-xs" />
+                  <span>{student.observation_group}</span>
+                </span>
+              )}
+              {hasRedFlag && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F9E6DC] text-[#8C3713] border border-[#F1CFC0]" aria-label="Terdeteksi perhatian khusus">
+                  <i className="mdi mdi-alert text-xs text-[#B85627]" />
+                  <span>Perhatian Khusus</span>
+                </span>
+              )}
+            </div>
 
-                <p className="text-xs text-[#565C58] mt-1">
-                  ID: <span className="font-mono font-semibold text-[#1E2320]">{student.registration_no}</span> · Usia:{" "}
-                  <span className="font-semibold text-[#1E2320]">{ageDisplay}</span> · JK:{" "}
-                  <span>{isMale ? "Laki-laki" : "Perempuan"}</span>
-                </p>
+            <p className="text-xs text-[#565C58] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
+              <span>{ageDisplay}</span>
+              <span>&bull;</span>
+              <span>JK: {isMale ? "Laki-laki" : "Perempuan"}</span>
+              <span>&bull;</span>
+              <span className="font-mono tabular-nums text-[#22352B]">
+                ID: {student.registration_no}
+              </span>
+            </p>
 
-                {student.parent_name && (
-                  <p className="text-[11px] text-[#787F7A] mt-0.5 truncate">
-                    Orang Tua: <strong className="text-[#565C58] font-medium">{student.parent_name}</strong>{" "}
-                    {student.phone ? `(${student.phone})` : ""}
-                  </p>
-                )}
-              </div>
+            {student.parent_name && (
+              <p className="text-[11px] text-[#787F7A] mt-0.5 truncate">
+                Orang Tua: <strong className="text-[#565C58] font-medium">{student.parent_name}</strong>{" "}
+                {student.phone ? `(${student.phone})` : ""}
+              </p>
             )}
           </div>
         </div>
