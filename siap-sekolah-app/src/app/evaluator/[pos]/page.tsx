@@ -317,7 +317,7 @@ export default function EvaluatorStudentListPage() {
                 )}
               </div>
 
-              <h1 className="text-xl sm:text-2xl font-black text-[#22352B] tracking-tight leading-tight">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-[#22352B] tracking-tight leading-tight">
                 {config?.pos_name || POS_METADATA[posNumber]?.name || "Pos Observasi"}
               </h1>
 
@@ -336,8 +336,8 @@ export default function EvaluatorStudentListPage() {
             {/* Right: Progress Strip & Stats */}
             <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl p-3.5 sm:p-4 md:w-72 flex-shrink-0 space-y-2.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#565C58]">Progres Observasi</span>
-                <span className="font-black text-[#22352B] tabular-nums font-mono text-sm">
+                <span className="font-semibold text-[#565C58]">Progres Observasi</span>
+                <span className="font-bold text-[#22352B] tabular-nums font-mono text-sm">
                   {completionStats.percent}%
                 </span>
               </div>
@@ -353,19 +353,19 @@ export default function EvaluatorStudentListPage() {
               <div className="grid grid-cols-3 gap-2 pt-1 border-t border-[#E8E2D8]/60 text-center">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#787F7A] block">TOTAL</span>
-                  <span className="text-base font-black text-[#22352B] tabular-nums font-mono block">
+                  <span className="text-base font-bold text-[#22352B] tabular-nums font-mono block">
                     {completionStats.total}
                   </span>
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#486B5A] block">SELESAI</span>
-                  <span className="text-base font-black text-[#486B5A] tabular-nums font-mono block">
+                  <span className="text-base font-bold text-[#486B5A] tabular-nums font-mono block">
                     {completionStats.completed}
                   </span>
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#B85627] block">MENUNGGU</span>
-                  <span className="text-base font-black text-[#B85627] tabular-nums font-mono block">
+                  <span className="text-base font-bold text-[#B85627] tabular-nums font-mono block">
                     {completionStats.pending}
                   </span>
                 </div>
@@ -445,7 +445,7 @@ export default function EvaluatorStudentListPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama atau No. Reg..."
-              className="w-full text-xs bg-transparent text-[#22352B] placeholder:text-[#A8A09A] focus:outline-none"
+              className="w-full text-base sm:text-xs bg-transparent text-[#22352B] placeholder:text-[#A8A09A] focus:outline-none"
             />
             {searchQuery && (
               <button

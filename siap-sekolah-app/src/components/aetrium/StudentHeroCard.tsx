@@ -96,7 +96,7 @@ export function StudentHeroCard({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-baseline gap-2 min-w-0">
-                <h3 className="text-lg font-black text-[#22352B] tracking-tight truncate">
+                <h3 className="text-lg font-extrabold text-[#22352B] tracking-tight truncate">
                   {student.nickname}
                 </h3>
                 <span className="text-xs text-[#787F7A] truncate font-normal">

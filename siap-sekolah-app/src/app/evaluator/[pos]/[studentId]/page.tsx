@@ -671,7 +671,7 @@ export default function EvaluationFormPage() {
                 <span>Simpan Catatan Observasi Pos</span>
               </>
             ) : (
-              <span>Amati {totalIndicators - filledIndicators} Indikator Lagi</span>
+              <span>Amati <span className="font-mono tabular-nums">{totalIndicators - filledIndicators}</span> Indikator Lagi</span>
             )}
           </button>
         </div>
@@ -688,7 +688,7 @@ export default function EvaluationFormPage() {
           <div
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-lg bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E2D8] shadow-2xl z-10 space-y-4 max-h-[90vh] overflow-y-auto font-sans"
+            className="relative w-full max-w-lg bg-white rounded-2xl p-5 sm:p-6 border border-[#E8E2D8] shadow-2xl z-10 space-y-4 max-h-[90vh] overflow-y-auto font-sans"
           >
             <div className="flex items-start justify-between pb-3 border-b border-[#E8E2D8] gap-2">
               <div className="flex items-center gap-2.5">
@@ -723,7 +723,7 @@ export default function EvaluationFormPage() {
               onChange={(e) => setAnecdotalNote(e.target.value)}
               placeholder="Contoh: Arka sempat terdiam sejenak saat balok jatuh, lalu tersenyum dan menyusunnya kembali dengan tenang bersama teman di sampingnya..."
               rows={5}
-              className="w-full rounded-2xl p-4 text-xs sm:text-sm bg-[#FAF8F5] text-[#22352B] placeholder:text-[#A8A09A] border border-[#E8E2D8] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none resize-none leading-relaxed italic transition-all"
+              className="w-full rounded-xl p-3.5 text-base sm:text-sm bg-[#FAF8F5] text-[#22352B] placeholder:text-[#A8A09A] border border-[#E8E2D8] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none resize-none leading-relaxed italic transition-all"
               autoFocus
             />
 
@@ -731,14 +731,14 @@ export default function EvaluationFormPage() {
               <button
                 type="button"
                 onClick={() => setShowNoteSheet(false)}
-                className="w-full sm:w-auto h-11 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#22352B] text-xs font-bold px-4 py-2.5 rounded-2xl border border-[#E8E2D8] transition-colors text-center focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2"
+                className="w-full sm:w-auto h-10 bg-[#FAF8F5] hover:bg-[#EBE6DF] text-[#22352B] text-xs font-bold px-4 rounded-xl border border-[#E8E2D8] transition-all active:scale-[0.96] text-center focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 cursor-pointer"
               >
                 Tutup
               </button>
               <button
                 type="button"
                 onClick={() => setShowNoteSheet(false)}
-                className="w-full sm:w-auto h-11 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs font-bold px-5 py-2.5 rounded-2xl shadow-sm transition-all hover:-translate-y-0.5 active:scale-[0.98] text-center focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2"
+                className="w-full sm:w-auto h-10 bg-[#B85627] hover:bg-[#A34B21] text-white text-xs font-bold px-5 rounded-xl shadow-2xs transition-all active:scale-[0.96] text-center focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 cursor-pointer"
               >
                 Simpan Catatan
               </button>

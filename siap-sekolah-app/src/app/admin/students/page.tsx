@@ -256,7 +256,7 @@ export default function StudentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#22352B] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#22352B] tracking-tight">
             Data Calon Siswa
           </h1>
           <p className="text-xs text-[#565C58] mt-0.5">
@@ -312,7 +312,7 @@ export default function StudentsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari nama atau No. Pendaftaran..."
-            className="w-full text-xs bg-transparent text-[#22352B] placeholder:text-[#A8A09A] focus:outline-none"
+            className="w-full text-base sm:text-xs bg-transparent text-[#22352B] placeholder:text-[#A8A09A] focus:outline-none"
           />
           {searchQuery && (
             <button
@@ -455,10 +455,10 @@ export default function StudentsPage() {
         </div>
       ) : (
         /* Table View */
-        <div className="bg-white rounded-3xl border border-[#E8E2D8]/60 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[#E8E2D8] shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF8F5] text-[#787F7A] uppercase tracking-wider text-[10px] font-extrabold border-b border-[#E8E2D8]">
+              <thead className="bg-[#FAF8F5] text-[#565C58] uppercase tracking-wider text-[10px] font-semibold border-b border-[#E8E2D8]">
                 <tr>
                   <th className="p-3.5">No. Reg</th>
                   <th className="p-3.5">Nama Calon Siswa</th>
@@ -472,13 +472,13 @@ export default function StudentsPage() {
               <tbody className="divide-y divide-[#FAF8F5]">
                 {filtered.map((s) => (
                   <tr key={s.id} className="hover:bg-[#FAF8F5]/80 transition">
-                    <td className="p-3.5 font-mono text-[#787F7A] font-bold">{s.registration_no}</td>
+                    <td className="p-3.5 font-mono tabular-nums text-[#565C58] font-semibold">{s.registration_no}</td>
                     <td className="p-3.5 font-bold text-[#22352B]">
                       {s.full_name} <span className="text-[#787F7A] font-normal">({s.nickname})</span>
                     </td>
                     <td className="p-3.5">
                       {s.observation_group ? (
-                        <span className="font-extrabold px-2.5 py-0.5 rounded-full text-[10.5px] bg-[#EFE7D6] text-[#7D5327] border border-[#DDD0B8] inline-flex items-center gap-1">
+                        <span className="font-semibold px-2.5 py-0.5 rounded-full text-[10.5px] bg-[#EFE7D6] text-[#7D5327] border border-[#DDD0B8] inline-flex items-center gap-1">
                           <i className="mdi mdi-account-group text-xs" />
                           <span>{s.observation_group}</span>
                         </span>
@@ -488,27 +488,29 @@ export default function StudentsPage() {
                     </td>
                     <td className="p-3.5">
                       <span
-                        className={`font-bold px-2 py-0.5 rounded-full text-[10.5px] ${
+                        className={`font-semibold px-2 py-0.5 rounded-full text-[10.5px] ${
                           s.gender === "L" ? "bg-[#E4EAF2] text-[#36506C]" : "bg-[#F9E6DC] text-[#8C3713]"
                         }`}
                       >
                         {s.gender}
                       </span>
                     </td>
-                    <td className="p-3.5 text-[#565C58]">{s.birth_date}</td>
+                    <td className="p-3.5 font-mono tabular-nums text-[#565C58]">{s.birth_date}</td>
                     <td className="p-3.5 text-[#565C58]">{s.parent_name || "-"}</td>
                     <td className="p-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Link
                           href={`/reports/student/${s.id}`}
                           target="_blank"
-                          className="p-1.5 rounded-lg bg-[#E4EFE9] text-[#486B5A] hover:bg-[#D4E2D8] transition"
+                          className="p-1.5 rounded-lg bg-[#E4EFE9] text-[#486B5A] hover:bg-[#D4E2D8] transition active:scale-[0.96]"
+                          title="Lihat Laporan Siswa"
                         >
                           <i className="mdi mdi-printer text-sm" />
                         </Link>
                         <button
                           onClick={() => handleDelete(s)}
-                          className="p-1.5 rounded-lg bg-[#F9E6DC] text-[#8C3713] hover:bg-[#F2D7CA] transition cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#F9E6DC] text-[#8C3713] hover:bg-[#F2D7CA] transition cursor-pointer active:scale-[0.96]"
+                          title="Hapus Data Siswa"
                         >
                           <i className="mdi mdi-trash-can-outline text-sm" />
                         </button>
@@ -536,7 +538,7 @@ export default function StudentsPage() {
           <div
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E2D8] shadow-xl z-10 space-y-4 max-h-[90vh] overflow-y-auto font-sans"
+            className="relative w-full max-w-md bg-white rounded-2xl p-5 sm:p-6 border border-[#E8E2D8] shadow-xl z-10 space-y-4 max-h-[90vh] overflow-y-auto font-sans"
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D8]">
               <h2 className="text-base font-extrabold text-[#22352B] flex items-center gap-2">

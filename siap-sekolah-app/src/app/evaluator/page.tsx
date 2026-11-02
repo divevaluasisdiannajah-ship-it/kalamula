@@ -186,11 +186,11 @@ export default function EvaluatorLoginPage() {
             <i className="mdi mdi-clipboard-check-outline text-3xl" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#22352B] tracking-tight leading-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#22352B] tracking-tight leading-tight">
               Ruang Observasi SPMB
             </h1>
             <p className="text-xs text-[#565C58] mt-0.5">
-              Pilih pos observasi Anda dan masukkan PIN 4-digit
+              Pilih pos observasi dan masukkan 4 digit PIN tugas Anda.
             </p>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function EvaluatorLoginPage() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
           {/* Kolom Kiri: PILIH POS OBSERVASI (1 S.D. 5) */}
           <div className="md:col-span-7 space-y-2.5">
-            <p className="text-xs font-bold text-[#787F7A] uppercase tracking-wider px-0.5">
+            <p className="text-[11px] font-semibold text-[#565C58] uppercase tracking-wider px-0.5">
               PILIH POS OBSERVASI (1 S.D. 5)
             </p>
 
@@ -287,22 +287,22 @@ export default function EvaluatorLoginPage() {
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
                           <span
-                            className={`text-[10px] font-bold uppercase tracking-wider block leading-none ${
+                            className={`text-[10px] font-bold uppercase tracking-wider block leading-none font-mono tabular-nums ${
                               isSelected ? "text-[#B85627]" : "text-[#787F7A]"
                             }`}
                           >
                             POS {pos}
                           </span>
                           <span
-                            className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full border ${details.roleBadgeColor}`}
+                            className={`text-[9.5px] font-medium px-2 py-0.5 rounded-full border ${details.roleBadgeColor}`}
                           >
                             {details.roleBadge}
                           </span>
                         </div>
-                        <span className="text-sm font-bold text-[#22352B] block truncate">
+                        <span className="text-sm font-semibold text-[#22352B] block truncate">
                           {details.name}
                         </span>
-                        <span className="text-xs text-[#565C58] block truncate mt-0.5 font-normal">
+                        <span className="text-xs text-[#565C58] block truncate mt-0.5 font-normal leading-relaxed">
                           {details.desc}
                         </span>
                       </div>
@@ -324,11 +324,11 @@ export default function EvaluatorLoginPage() {
             {posNumber && (
               <div className="bg-white rounded-2xl p-5 shadow-xs border border-[#E8E2D8] space-y-4">
                 <div className="text-center">
-                  <span className="text-xs font-bold text-[#787F7A] uppercase tracking-wider">
+                  <span className="text-[11px] font-semibold text-[#565C58] uppercase tracking-wider">
                     Verifikasi Keamanan
                   </span>
-                  <p className="text-sm font-bold text-[#22352B] mt-0.5">
-                    PIN Pos {posNumber}: <span className="text-[#B85627]">{POS_DETAILS[posNumber]?.name.split(",")[0]}</span>
+                  <p className="text-sm font-semibold text-[#22352B] mt-0.5">
+                    PIN Pos <span className="font-mono tabular-nums">{posNumber}</span>: <span className="text-[#B85627] font-bold">{POS_DETAILS[posNumber]?.name.split(",")[0]}</span>
                   </p>
                 </div>
 
@@ -355,8 +355,8 @@ export default function EvaluatorLoginPage() {
 
                 {/* Loading Status */}
                 {loading && (
-                  <p className="text-xs text-[#B85627] text-center font-bold animate-pulse">
-                    Memverifikasi PIN Pos {posNumber}...
+                  <p className="text-xs text-[#B85627] text-center font-medium animate-pulse">
+                    Memverifikasi PIN Pos <span className="font-mono tabular-nums">{posNumber}</span>...
                   </p>
                 )}
 
@@ -368,7 +368,7 @@ export default function EvaluatorLoginPage() {
                       type="button"
                       onClick={() => handlePinInput(String(num))}
                       disabled={loading}
-                      className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50"
+                      className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50"
                       aria-label={`Digit ${num}`}
                     >
                       {num}
@@ -381,7 +381,7 @@ export default function EvaluatorLoginPage() {
                     type="button"
                     onClick={() => handlePinInput("0")}
                     disabled={loading}
-                    className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50"
+                    className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50"
                     aria-label="Digit 0"
                   >
                     0
