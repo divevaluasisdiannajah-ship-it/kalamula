@@ -49,6 +49,7 @@ export default function EvaluatorLoginPage() {
   const router = useRouter();
   const [pin, setPin] = useState("");
   const [posNumber, setPosNumber] = useState<number | null>(1); // Default to Pos 1 as in reference
+  const [soRole, setSoRole] = useState<"so1" | "so2">("so1");
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string>("");
   const [error, setError] = useState("");
@@ -100,11 +101,15 @@ export default function EvaluatorLoginPage() {
           const data = await res.json();
           localStorage.setItem("session", JSON.stringify(data.data.session));
           localStorage.setItem("token", data.data.token);
+          if (pos === 1) {
+            localStorage.setItem("kalamula_evaluator_subrole", soRole);
+          }
+          const subroleParam = pos === 1 ? `&subrole=${soRole}` : "";
           if (selectedBatchId) {
             localStorage.setItem("kalamula_evaluator_batch_id", selectedBatchId);
-            router.push(`/evaluator/${pos}?batch_id=${selectedBatchId}`);
+            router.push(`/evaluator/${pos}?batch_id=${selectedBatchId}${subroleParam}`);
           } else {
-            router.push(`/evaluator/${pos}`);
+            router.push(`/evaluator/${pos}${subroleParam ? `?${subroleParam.slice(1)}` : ""}`);
           }
         } else {
           setError("PIN salah. Silakan coba lagi.");
@@ -117,7 +122,7 @@ export default function EvaluatorLoginPage() {
         setLoading(false);
       }
     },
-    [router, selectedBatchId]
+    [router, selectedBatchId, soRole]
   );
 
   const handlePinInput = useCallback((digit: string) => {
@@ -314,9 +319,69 @@ export default function EvaluatorLoginPage() {
                     Verifikasi Keamanan
                   </span>
                   <p className="text-sm font-semibold text-[#22352B] mt-0.5">
-                    PIN Pos <span className="font-mono tabular-nums">{posNumber}</span>: <span className="text-[#B85627] font-bold">{POS_DETAILS[posNumber]?.name.split(",")[0]}</span>
+                    {posNumber === 1 ? (
+                      <span className="text-[#7D5327] font-bold">
+                        {soRole === "so1" ? "Super Observer 1" : "Super Observer 2"}
+                      </span>
+                    ) : (
+                      <span className="text-[#B85627] font-bold">
+                        {POS_DETAILS[posNumber]?.name}
+                      </span>
+                    )}
                   </p>
                 </div>
+
+                {/* Sub-Role Selector Khusus Pos 1 (Super Observer) */}
+                {posNumber === 1 && (
+                  <div className="bg-[#FAF8F5] p-2.5 rounded-xl border border-[#DDD0B8] space-y-2">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7D5327] block text-center">
+                      PILIH PENUGASAN ANDA HARI INI
+                    </span>
+                    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Penugasan Super Observer">
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={soRole === "so1"}
+                        onClick={() => {
+                          setSoRole("so1");
+                          setPin("");
+                          setError("");
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+                          soRole === "so1"
+                            ? "bg-[#7D5327] text-white shadow-2xs"
+                            : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
+                        }`}
+                      >
+                        <i className="mdi mdi-account-check text-sm" />
+                        <span>SO 1 (Kel. 2 &rarr; 1)</span>
+                      </button>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={soRole === "so2"}
+                        onClick={() => {
+                          setSoRole("so2");
+                          setPin("");
+                          setError("");
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+                          soRole === "so2"
+                            ? "bg-[#7D5327] text-white shadow-2xs"
+                            : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
+                        }`}
+                      >
+                        <i className="mdi mdi-account-check text-sm" />
+                        <span>SO 2 (Kel. 3 &rarr; 2)</span>
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-[#565C58] text-center leading-tight">
+                      {soRole === "so1"
+                        ? "SO 1: Dampingi Kelompok 2 di awal, lalu Kelompok 1 dari Pos B, Pos C, hingga Titik Akhir"
+                        : "SO 2: Dampingi Kelompok 3 di awal, lalu Kelompok 2 dari Pos B hingga Titik Akhir"}
+                    </p>
+                  </div>
+                )}
 
                 {/* 4 Indikator Titik Bulat */}
                 <div className="flex justify-center gap-3.5 my-2" aria-label={`PIN terisi ${pin.length} dari 4 digit`}>

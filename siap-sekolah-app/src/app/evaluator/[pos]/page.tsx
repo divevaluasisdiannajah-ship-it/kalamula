@@ -24,6 +24,20 @@ export default function EvaluatorStudentListPage() {
   const [filterTab, setFilterTab] = useState<"all" | "mandiri" | "bimbingan">("all");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [showRotationGuide, setShowRotationGuide] = useState(false);
+  const [currentSubrole, setCurrentSubrole] = useState<"so1" | "so2">("so1");
+
+  useEffect(() => {
+    const urlSubrole = searchParams.get("subrole") as "so1" | "so2" | null;
+    const savedSubrole =
+      typeof window !== "undefined"
+        ? (localStorage.getItem("kalamula_evaluator_subrole") as "so1" | "so2" | null)
+        : null;
+    if (urlSubrole === "so1" || urlSubrole === "so2") {
+      setCurrentSubrole(urlSubrole);
+    } else if (savedSubrole === "so1" || savedSubrole === "so2") {
+      setCurrentSubrole(savedSubrole);
+    }
+  }, [searchParams]);
 
   const loadBatchStudents = useCallback(
     async (targetBatchId: string) => {
@@ -427,6 +441,288 @@ export default function EvaluatorStudentListPage() {
                 <li><strong>Peralihan Pendamping (Handover):</strong> Terjadi di depan pintu Pos Motorik Kasar pada pukul 08.24 (SO 1 serah terima dengan Eval Motorik) dan pukul 08.36 (Eval Motorik serah terima dengan SO 2).</li>
               </ul>
             </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ─── KARTU PANDUAN PRIBADI (PERSONALIZED FIELD MISSION CARD) ──────── */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {posNumber === 2 && (
+          <div className="bg-[#E4EFE9] rounded-2xl p-4 sm:p-5 border border-[#CBE0D4] shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#CBE0D4]/80">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#486B5A] text-white flex items-center justify-center flex-shrink-0 text-xl shadow-xs">
+                  <i className="mdi mdi-run-fast" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
+                    Misi Lapangan Anda: Penguji Motorik Kasar &amp; Penjemput Rotasi
+                  </h3>
+                  <p className="text-[11px] text-[#486B5A] font-bold">
+                    Ikuti alur waktu jemput &amp; serah-terima berikut agar anak tidak menunggu di koridor:
+                  </p>
+                </div>
+              </div>
+              <span className="self-start sm:self-auto text-[10px] font-extrabold px-3 py-1 rounded-full bg-[#486B5A] text-white shadow-2xs">
+                Peran: Evaluator Motorik + Escort
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1 text-xs">
+              <div className="bg-white/95 p-3 rounded-xl border border-[#CBE0D4] space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-[#486B5A] text-[11px]">08.00 (Titik Awal)</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#486B5A]" />
+                </div>
+                <p className="text-[11px] text-[#22352B] font-bold">Jemput Kelompok 1</p>
+                <p className="text-[10.5px] text-[#565C58] leading-snug">
+                  Hadir di titik awal kedatangan saat pembagian name tag. <strong className="text-[#486B5A]">Jemput Kelompok 1</strong> bawa ke Pos Motorik Kasar.
+                </p>
+              </div>
+
+              <div className="bg-white/95 p-3 rounded-xl border border-[#CBE0D4] space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-[#486B5A] text-[11px]">08.12 - 08.24</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#486B5A]" />
+                </div>
+                <p className="text-[11px] text-[#22352B] font-bold">Uji Kelompok 1</p>
+                <p className="text-[10.5px] text-[#565C58] leading-snug">
+                  Uji keseimbangan titian, lompat 2 kaki, dan koordinasi tangkap bola Kelompok 1 di ruang Pos Motorik Kasar.
+                </p>
+              </div>
+
+              <div className="bg-white/95 p-3 rounded-xl border border-[#B85627]/40 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-[#B85627] text-[11px]">08.24 (Pintu Pos A)</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
+                </div>
+                <p className="text-[11px] text-[#B85627] font-bold">Handover 1</p>
+                <p className="text-[10.5px] text-[#565C58] leading-snug">
+                  Serahkan Kel. 1 ke SO 1, lalu sambut &amp; <strong className="text-[#486B5A]">Terima Kelompok 2</strong> dari SO 1 untuk diuji di Pos Motorik Kasar.
+                </p>
+              </div>
+
+              <div className="bg-white/95 p-3 rounded-xl border border-[#B85627]/40 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-[#B85627] text-[11px]">08.36 (Jemput Kel. 3)</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
+                </div>
+                <p className="text-[11px] text-[#B85627] font-bold">Handover 2</p>
+                <p className="text-[10.5px] text-[#565C58] leading-snug">
+                  Serahkan Kel. 2 ke SO 2. Segera jalan ke Pos Bahasa untuk <strong className="text-[#486B5A]">Jemput Kelompok 3</strong> bawa ke Pos Motorik Kasar.
+                </p>
+              </div>
+
+              <div className="bg-white/95 p-3 rounded-xl border border-[#CBE0D4] space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-[#486B5A] text-[11px]">08.48 (Titik Akhir)</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#486B5A]" />
+                </div>
+                <p className="text-[11px] text-[#22352B] font-bold">Antar ke Snack/Bermain</p>
+                <p className="text-[10.5px] text-[#565C58] leading-snug">
+                  Selesai uji Kelompok 3, <strong className="text-[#486B5A]">Antar Kelompok 3</strong> ke Area Bermain &amp; Snack di Titik Akhir.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {posNumber === 1 && (
+          <div className="bg-[#EFE7D6] rounded-2xl p-4 sm:p-5 border border-[#DDD0B8] shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#DDD0B8]/80">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#7D5327] text-white flex items-center justify-center flex-shrink-0 text-xl shadow-xs">
+                  <i className="mdi mdi-account-check-outline" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
+                    {currentSubrole === "so1"
+                      ? "Misi Anda: Super Observer 1 (Fokus Kelompok 2 ➔ Kelompok 1)"
+                      : "Misi Anda: Super Observer 2 (Fokus Kelompok 3 ➔ Kelompok 2)"}
+                  </h3>
+                  <p className="text-[11px] text-[#7D5327] font-bold">
+                    Dampingi perpindahan antar-ruang &amp; catat kemandirian, emosi, dan kepatuhan instruksi secara bertahap.
+                  </p>
+                </div>
+              </div>
+
+              {/* Sub-role Quick Switch Pill */}
+              <div className="flex items-center gap-1.5 self-start sm:self-auto bg-white/90 p-1 rounded-xl border border-[#DDD0B8] shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentSubrole("so1");
+                    if (typeof window !== "undefined") {
+                      localStorage.setItem("kalamula_evaluator_subrole", "so1");
+                    }
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    currentSubrole === "so1"
+                      ? "bg-[#7D5327] text-white shadow-2xs"
+                      : "text-[#7D5327] hover:bg-[#FAF8F5]"
+                  }`}
+                >
+                  SO 1 (Aktif)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentSubrole("so2");
+                    if (typeof window !== "undefined") {
+                      localStorage.setItem("kalamula_evaluator_subrole", "so2");
+                    }
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    currentSubrole === "so2"
+                      ? "bg-[#7D5327] text-white shadow-2xs"
+                      : "text-[#7D5327] hover:bg-[#FAF8F5]"
+                  }`}
+                >
+                  Ganti ke SO 2
+                </button>
+              </div>
+            </div>
+
+            {/* Checklist SO 1 */}
+            {currentSubrole === "so1" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1 text-xs">
+                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.00 (Titik Awal)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
+                  </div>
+                  <p className="text-[11px] text-[#22352B] font-bold">Pandu Kelompok 2</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    Amati berpisah dari ortu &amp; menaruh sepatu. <strong className="text-[#7D5327]">Dampingi Kelompok 2</strong> menuju Pos Bahasa &amp; Halus.
+                  </p>
+                </div>
+
+                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.12 - 08.24</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
+                  </div>
+                  <p className="text-[11px] text-[#22352B] font-bold">Amati di Pos Bahasa</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    Amati ketertiban &amp; regulasi diri Kelompok 2 saat mendengarkan cerita dan menulis.
+                  </p>
+                </div>
+
+                <div className="bg-white/95 p-3 rounded-xl border border-[#B85627]/40 space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#B85627] text-[11px]">08.24 (Pintu Pos A)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
+                  </div>
+                  <p className="text-[11px] text-[#B85627] font-bold">Switch ke Kelompok 1</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    Antar Kel. 2 ke pintu Pos Motorik Kasar. Langsung <strong className="text-[#7D5327]">Jemput Kelompok 1</strong> bawa ke Pos Kognitif.
+                  </p>
+                </div>
+
+                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.36 - 08.48</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
+                  </div>
+                  <p className="text-[11px] text-[#22352B] font-bold">Dampingi Kelompok 1</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    <strong className="text-[#7D5327]">Dampingi Kelompok 1</strong> berpindah dari Pos Kognitif menuju Pos Bahasa &amp; Halus.
+                  </p>
+                </div>
+
+                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.48 (Titik Akhir)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
+                  </div>
+                  <p className="text-[11px] text-[#22352B] font-bold">Bermain &amp; Snack</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    Dampingi Kel. 1 ke Area Bermain &amp; Snack. Amati interaksi sosial, berbagi alat main, dan refleksi belajar.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Checklist SO 2 */}
+            {currentSubrole === "so2" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1 text-xs">
+                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.00 (Titik Awal)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
+                  </div>
+                  <p className="text-[11px] text-[#22352B] font-bold">Pandu Kelompok 3</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    Amati berpisah dari ortu &amp; menaruh sepatu. <strong className="text-[#7D5327]">Dampingi Kelompok 3</strong> menuju Pos Kematangan Kognitif.
+                  </p>
+                </div>
+
+                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.12 - 08.24</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
+                  </div>
+                  <p className="text-[11px] text-[#22352B] font-bold">Amati di Pos Kognitif</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    Amati fokus &amp; kepatuhan instruksi Kelompok 3 saat aktivitas pola berulang dan kuantitas.
+                  </p>
+                </div>
+
+                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.24 - 08.36</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
+                  </div>
+                  <p className="text-[11px] text-[#22352B] font-bold">Dampingi Kelompok 3</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    <strong className="text-[#7D5327]">Dampingi Kelompok 3</strong> berpindah dari Pos Kognitif menuju Pos Bahasa &amp; Halus.
+                  </p>
+                </div>
+
+                <div className="bg-white/95 p-3 rounded-xl border border-[#B85627]/40 space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#B85627] text-[11px]">08.36 (Pintu Pos A)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
+                  </div>
+                  <p className="text-[11px] text-[#B85627] font-bold">Switch ke Kelompok 2</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    Menuju depan pintu Pos Motorik Kasar. <strong className="text-[#7D5327]">Jemput Kelompok 2</strong> yang baru keluar dan bawa ke Pos Kognitif.
+                  </p>
+                </div>
+
+                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.48 (Titik Akhir)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
+                  </div>
+                  <p className="text-[11px] text-[#22352B] font-bold">Bermain &amp; Snack</p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug">
+                    Dampingi Kel. 2 ke Area Bermain &amp; Snack. Amati interaksi sosial, berbagi alat main, dan refleksi belajar.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {(posNumber === 3 || posNumber === 4) && (
+          <div className="bg-[#E4EAF2] rounded-2xl p-4 border border-[#CBD8E5] shadow-xs flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#36506C] text-white flex items-center justify-center flex-shrink-0 text-xl shadow-xs">
+                <i className="mdi mdi-door-closed" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm text-[#22352B]">
+                  Peran Anda: Penguji Stasioner Ruangan
+                </h3>
+                <p className="text-[#36506C] font-semibold leading-relaxed">
+                  Fokus menguji di dalam ruangan. Seluruh anak akan diantar dan dijemput langsung oleh SO 1, SO 2, atau Evaluator Motorik Kasar. Anda tidak perlu keluar ruangan.
+                </p>
+              </div>
+            </div>
+            <span className="hidden sm:inline-block text-[10px] font-extrabold px-3 py-1 rounded-full bg-[#36506C] text-white shadow-2xs flex-shrink-0">
+              Stasioner Di Ruangan
+            </span>
           </div>
         )}
 
