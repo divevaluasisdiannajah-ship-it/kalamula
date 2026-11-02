@@ -174,7 +174,7 @@ export default function AssessmentConfigPage() {
           Rubrik &amp; Indikator Asesmen
         </h1>
         <p className="text-xs text-[#565C58] mt-1">
-          Kelola deskripsi capaian belajar dan parameter sinyal pendampingan untuk Pos 1 s.d. Pos 5
+          Kelola deskripsi capaian belajar dan parameter sinyal pendampingan untuk seluruh ruang dan domain asesmen SPMB
         </p>
       </div>
 
@@ -189,7 +189,7 @@ export default function AssessmentConfigPage() {
           </div>
           <p className="text-[#22352B] font-extrabold text-base">Belum Ada Rubrik Asesmen</p>
           <p className="text-xs text-[#565C58]">
-            Konfigurasi rubrik untuk Pos 1 s.d. Pos 5 belum dimuat.
+            Konfigurasi rubrik untuk domain observasi belum dimuat.
           </p>
           <button
             onClick={loadConfigs}

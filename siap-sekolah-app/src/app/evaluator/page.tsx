@@ -16,39 +16,32 @@ interface PosInfo {
 
 const POS_DETAILS: Record<number, PosInfo> = {
   1: {
-    name: "Kedatangan, Emosi & Super Observer 1",
-    roleBadge: "Super Observer 1 (Pos 1, 3, 4, 5)",
+    name: "Pos Kemandirian, Regulasi Emosi & Kepatuhan Instruksi",
+    roleBadge: "Super Observer (SO 1 & SO 2)",
     roleBadgeColor: "bg-[#EFE7D6] text-[#7D5327] border-[#DDD0B8]",
-    desc: "Pandu Kelompok 2 (Pos 1 → 3 → 4 → 5). Switch saat masuk Pos 2.",
-    mdiIcon: "mdi-eye-circle-outline",
+    desc: "Amati kedatangan di titik awal, dampingi transisi rotasi 3 pos, hingga bermain bebas & snack break.",
+    mdiIcon: "mdi-account-check-outline",
   },
   2: {
-    name: "Motorik Kasar & Koordinasi Fisik",
+    name: "Pos Motorik Kasar & Koordinasi Fisik",
     roleBadge: "Station Evaluator + Escort",
     roleBadgeColor: "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]",
-    desc: "Jemput Kelompok 1 dari Pos 1 & antar ke Pos 5 seusai pos 2.",
+    desc: "Jemput Kelompok 1 di titik awal, uji keseimbangan & tangkap bola, jemput Kelompok 3 di Pos Bahasa.",
     mdiIcon: "mdi-run-fast",
   },
   3: {
-    name: "Kematangan Kognitif & Berhitung",
-    roleBadge: "Station Evaluator (Pos 3)",
+    name: "Pos Kematangan Kognitif & Berhitung",
+    roleBadge: "Station Evaluator",
     roleBadgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CBD8E5]",
-    desc: "Klasifikasi objek, logika pola & problem solving kuantitas.",
+    desc: "Klasifikasi objek, logika pola berulang, perbandingan kuantitas & problem solving balok.",
     mdiIcon: "mdi-head-lightbulb-outline",
   },
   4: {
-    name: "Bahasa Lisan, Pra-Literasi & Motorik Halus",
-    roleBadge: "Station Evaluator (Pos 4)",
+    name: "Pos Bahasa Lisan, Pra-Literasi & Motorik Halus",
+    roleBadge: "Station Evaluator",
     roleBadgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CBD8E5]",
-    desc: "Menyimak cerita, komunikasi lisan & tripod grasp.",
+    desc: "Menyimak cerita lisan (read-aloud), komunikasi verbal ide, & kontrol genggaman pensil (tripod grasp).",
     mdiIcon: "mdi-book-open-page-variant-outline",
-  },
-  5: {
-    name: "Bermain Bebas, Snack & Super Observer 2",
-    roleBadge: "Super Observer 2 (Pos 1, 3, 4, 5)",
-    roleBadgeColor: "bg-[#EFE7D6] text-[#7D5327] border-[#DDD0B8]",
-    desc: "Pandu Kelompok 3 (Pos 1 → 4 → 3 → 5) & observasi santai saat snack.",
-    mdiIcon: "mdi-handshake-outline",
   },
 };
 
@@ -246,14 +239,14 @@ export default function EvaluatorLoginPage() {
 
         {/* Responsive Grid: Pos List (Left) + PIN Numpad (Right) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-          {/* Kolom Kiri: PILIH POS OBSERVASI (1 S.D. 5) */}
+          {/* Kolom Kiri: PILIH RUANG & DOMAIN OBSERVASI */}
           <div className="md:col-span-7 space-y-2.5">
             <p className="text-[11px] font-semibold text-[#565C58] uppercase tracking-wider px-0.5">
-              PILIH POS OBSERVASI (1 S.D. 5)
+              PILIH RUANG &amp; DOMAIN OBSERVASI
             </p>
 
-            <div className="space-y-2.5" role="group" aria-label="Daftar Pos Observasi">
-              {[1, 2, 3, 4, 5].map((pos) => {
+            <div className="space-y-2.5" role="group" aria-label="Daftar Ruang & Domain Observasi">
+              {[1, 2, 3, 4].map((pos) => {
                 const isSelected = posNumber === pos;
                 const details = POS_DETAILS[pos];
 
@@ -287,14 +280,7 @@ export default function EvaluatorLoginPage() {
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
                           <span
-                            className={`text-[10px] font-bold uppercase tracking-wider block leading-none font-mono tabular-nums ${
-                              isSelected ? "text-[#B85627]" : "text-[#787F7A]"
-                            }`}
-                          >
-                            POS {pos}
-                          </span>
-                          <span
-                            className={`text-[9.5px] font-medium px-2 py-0.5 rounded-full border ${details.roleBadgeColor}`}
+                            className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${details.roleBadgeColor}`}
                           >
                             {details.roleBadge}
                           </span>

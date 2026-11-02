@@ -365,8 +365,8 @@ export default function EvaluationFormPage() {
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="bg-[#F9E6DC] text-[#B85627] font-mono text-[10px] font-extrabold px-2 py-0.5 rounded-full">
-                POS {posNumber}
+              <span className="bg-[#F9E6DC] text-[#B85627] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                {posNumber === 1 ? "SUPER OBSERVER" : "STATION EVALUATOR"}
               </span>
               <h2 className="text-sm sm:text-base font-bold text-[#22352B] tracking-tight truncate">
                 {config?.pos_name || "Observasi Perkembangan"}
@@ -407,7 +407,7 @@ export default function EvaluationFormPage() {
               </div>
             </div>
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#F9E6DC] text-[#8C3713]">
-              Pos {posNumber}
+              {config?.pos_name || "Rubrik Evaluasi"}
             </span>
           </div>
 
@@ -504,7 +504,7 @@ export default function EvaluationFormPage() {
                 </div>
               </div>
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#EFE7D6] text-[#7D5327] self-start sm:self-auto">
-                Khusus Pos 4
+                Khusus Bahasa &amp; Literasi
               </span>
             </div>
 

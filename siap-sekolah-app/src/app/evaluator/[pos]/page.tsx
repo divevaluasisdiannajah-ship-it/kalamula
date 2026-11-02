@@ -150,29 +150,24 @@ export default function EvaluatorStudentListPage() {
 
   const POS_METADATA: Record<number, { name: string; focus: string; role: string }> = {
     1: {
-      name: "Kedatangan, Emosi & Super Observer 1",
-      focus: "Kemandirian berpisah, adab antrean & pandu Kel. 2",
-      role: "Super Observer 1 (Pos 1, 3, 4, 5)",
+      name: "Pos Kemandirian, Regulasi Emosi & Kepatuhan Instruksi",
+      focus: "Kemandirian berpisah, adab antrean, ketertiban transisi, & bermain bebas (Longitudinal)",
+      role: "Super Observer (SO 1 & SO 2)",
     },
     2: {
-      name: "Motorik Kasar & Koordinasi Fisik",
-      focus: "Keseimbangan meniti, lempar tangkap & jemput Kel. 1",
-      role: "Station Evaluator (Pos 2) + Escort",
+      name: "Pos Motorik Kasar & Koordinasi Fisik",
+      focus: "Keseimbangan meniti titian, tangkap bola & rotasi pendamping",
+      role: "Station Evaluator + Escort",
     },
     3: {
-      name: "Kematangan Kognitif & Berhitung",
+      name: "Pos Kematangan Kognitif & Berhitung",
       focus: "Pola bentuk, warna, klasifikasi & logika kuantitas (12 mnt)",
-      role: "Station Evaluator (Pos 3)",
+      role: "Station Evaluator",
     },
     4: {
-      name: "Bahasa Lisan, Pra-Literasi & Motorik Halus",
-      focus: "Pemahaman cerita, kemampuan bicara & tripod grasp",
-      role: "Station Evaluator (Pos 4)",
-    },
-    5: {
-      name: "Bermain Bebas, Snack & Super Observer 2",
-      focus: "Interaksi sosial, regulasi emosi & snack break santai (12 mnt)",
-      role: "Super Observer 2 (Pos 1, 3, 4, 5)",
+      name: "Pos Bahasa Lisan, Pra-Literasi & Motorik Halus",
+      focus: "Pemahaman cerita, ekspresi verbal & kontrol pensil tripod grasp",
+      role: "Station Evaluator",
     },
   };
 
@@ -260,13 +255,13 @@ export default function EvaluatorStudentListPage() {
               <span className="sm:hidden">Cetak</span>
             </Link>
 
-            {(posNumber === 1 || posNumber === 5) && (
+            {posNumber === 1 && (
               <Link
                 href="/reports/rubric/so"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-[#E4EFE9] border border-[#CBE0D4] text-[#486B5A] hover:bg-[#D6E6DC] px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"
-                title="Cetak Lembar Super Observer Terpadu (Pos 1, 3, 4, 5)"
+                title="Cetak Lembar Super Observer Terpadu"
               >
                 <i className="mdi mdi-eye-check-outline text-base" />
                 <span className="hidden sm:inline">Lembar SO</span>
@@ -276,7 +271,7 @@ export default function EvaluatorStudentListPage() {
 
             <div className="bg-[#E4EFE9] text-[#22352B] px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-[#486B5A] animate-pulse" />
-              <span>Pos {posNumber} Aktif</span>
+              <span>{posNumber === 1 ? "Super Observer Aktif" : "Evaluator Stasioner Aktif"}</span>
             </div>
           </div>
         </div>
@@ -287,8 +282,8 @@ export default function EvaluatorStudentListPage() {
             {/* Left: Pos Info + Batch Selector */}
             <div className="space-y-1.5 min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="bg-[#F9E6DC] text-[#B85627] font-mono text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
-                  POS {posNumber}
+                <span className="bg-[#F9E6DC] text-[#B85627] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                  RUANG ASESMEN
                 </span>
                 {POS_METADATA[posNumber]?.role && (
                   <span className="bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full">
@@ -397,26 +392,26 @@ export default function EvaluatorStudentListPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
               <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8E2D8] space-y-1">
                 <span className="font-extrabold text-[#7D5327] block text-[11px]">
-                  KELOMPOK 1 (Dijemput Pos 2)
+                  KELOMPOK 1 (Dijemput Eval Motorik Kasar)
                 </span>
                 <p className="text-[11px] text-[#565C58] leading-relaxed">
-                  Pos 1 (08.00) &rarr; <strong className="text-[#486B5A]">Pos 2</strong> (08.12, dijemput Eval 2) &rarr; Pos 3 (08.24) &rarr; Pos 4 (08.36) &rarr; <strong className="text-[#B85627]">Pos 5</strong> (08.48, snack &amp; free play)
+                  Titik Awal (08.00) &rarr; <strong className="text-[#486B5A]">Pos Motorik Kasar</strong> (08.12, dijemput Eval Motorik) &rarr; dijemput SO 1 menuju <strong className="text-[#36506C]">Pos Kognitif</strong> (08.24) &rarr; <strong className="text-[#36506C]">Pos Bahasa &amp; Halus</strong> (08.36) &rarr; <strong className="text-[#B85627]">Titik Akhir (Bermain &amp; Snack)</strong> (08.48 bersama SO 1)
                 </p>
               </div>
               <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8E2D8] space-y-1">
                 <span className="font-extrabold text-[#36506C] block text-[11px]">
-                  KELOMPOK 2 (Dipandu SO 1)
+                  KELOMPOK 2 (Dipandu SO 1 &rarr; Switch SO 2)
                 </span>
                 <p className="text-[11px] text-[#565C58] leading-relaxed">
-                  Pos 1 (08.00) &rarr; Pos 3 (08.12) &rarr; Pos 4 (08.24) &rarr; <strong className="text-[#486B5A]">Pos 2</strong> (08.36, switch observer) &rarr; Pos 5 (08.48)
+                  Titik Awal (08.00, bersama SO 1) &rarr; <strong className="text-[#36506C]">Pos Bahasa &amp; Halus</strong> (08.12) &rarr; diantar SO 1 ke <strong className="text-[#486B5A]">Pos Motorik Kasar</strong> (08.24) &rarr; dijemput SO 2 menuju <strong className="text-[#36506C]">Pos Kognitif</strong> (08.36) &rarr; <strong className="text-[#B85627]">Titik Akhir (Bermain &amp; Snack)</strong> (08.48 bersama SO 2)
                 </p>
               </div>
               <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8E2D8] space-y-1">
                 <span className="font-extrabold text-[#8C3713] block text-[11px]">
-                  KELOMPOK 3 (Dipandu SO 2)
+                  KELOMPOK 3 (Dipandu SO 2 &rarr; Switch Eval Motorik)
                 </span>
                 <p className="text-[11px] text-[#565C58] leading-relaxed">
-                  Pos 1 (08.00) &rarr; Pos 4 (08.12) &rarr; <strong className="text-[#486B5A]">Pos 2</strong> (08.24, switch observer) &rarr; Pos 3 (08.36) &rarr; Pos 5 (08.48)
+                  Titik Awal (08.00, bersama SO 2) &rarr; <strong className="text-[#36506C]">Pos Kognitif</strong> (08.12) &rarr; <strong className="text-[#36506C]">Pos Bahasa &amp; Halus</strong> (08.24) &rarr; dijemput Eval Motorik menuju <strong className="text-[#486B5A]">Pos Motorik Kasar</strong> (08.36) &rarr; <strong className="text-[#B85627]">Titik Akhir (Bermain &amp; Snack)</strong> (08.48 bersama Eval Motorik)
                 </p>
               </div>
             </div>
@@ -427,9 +422,9 @@ export default function EvaluatorStudentListPage() {
                 <span>Aturan Operasional Super Observer &amp; Penjemputan:</span>
               </p>
               <ul className="list-disc pl-5 text-[11px] text-[#565C58] space-y-0.5 leading-relaxed">
-                <li><strong>Super Observer (SO 1 &amp; SO 2)</strong> mengamati secara kontinu di <strong>Pos 1, 3, 4, 5</strong> (TIDAK mengamati Pos 2).</li>
-                <li><strong>Evaluator Pos 2</strong> menjemput Kelompok 1 di Pos 1 setelah pembagian name tag (08.12) dan mengantar anak selesai Pos 2 ke Pos 5.</li>
-                <li><strong>Pos 5 (Selesai 09.00)</strong> dihandle oleh Super Observer sambil anak santai menikmati snack sebelum observasi klasikal psikolog.</li>
+                <li><strong>2 Super Observer (SO 1 &amp; SO 2)</strong> mengamati secara kontinu: dari titik awal kedatangan, transisi antar-pos, dinamika di tiap ruang, hingga bermain bebas &amp; makan snack di titik akhir.</li>
+                <li><strong>Evaluator Pos Motorik Kasar</strong> menjemput Kelompok 1 di titik awal (08.12), menjemput Kelompok 3 di Pos Bahasa (08.36), dan mengantar Kelompok 3 ke titik akhir (08.48).</li>
+                <li><strong>Peralihan Pendamping (Handover):</strong> Terjadi di depan pintu Pos Motorik Kasar pada pukul 08.24 (SO 1 serah terima dengan Eval Motorik) dan pukul 08.36 (Eval Motorik serah terima dengan SO 2).</li>
               </ul>
             </div>
           </div>

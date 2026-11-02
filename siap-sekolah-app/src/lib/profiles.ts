@@ -27,6 +27,30 @@ import type {
 } from "@/types";
 
 export const INDICATOR_FOUNDATION_MAP: Record<string, FoundationNumber> = {
+  // ─── 4 Domain Fungsional Baru ───
+  // Pos Kemandirian, Regulasi Emosi & Kepatuhan Instruksi (Super Observer)
+  "SO-01": 3, // Berpisah dari orang tua (Kematangan Emosi)
+  "SO-02": 5, // Kemandirian menaruh barang (Self-Care & Motorik)
+  "SO-03": 2, // Kepatuhan instruksi saat transisi (Sosial & Bahasa)
+  "SO-04": 1, // Kesantunan & budaya antre (Nilai Agama & Budi Pekerti)
+  "SO-05": 3, // Regulasi diri & adaptasi kesulitan (Kematangan Emosi)
+  "SO-06": 2, // Bermain kooperatif & berbagi (Keterampilan Sosial)
+  "SO-07": 6, // Antusiasme & refleksi belajar (Pemaknaan Belajar Positif)
+
+  // Pos Motorik Kasar & Koordinasi Fisik
+  "MK-01": 5, // Keseimbangan & kontrol tubuh
+  "MK-02": 5, // Koordinasi mata-tangan & respons gerak
+
+  // Pos Kematangan Kognitif & Berhitung
+  "KG-01": 4, // Klasifikasi objek & pola berulang
+  "KG-02": 4, // Konsep kuantitas & problem solving
+
+  // Pos Bahasa Lisan, Pra-Literasi & Motorik Halus
+  "BL-01": 2, // Menyimak cerita lisan read-aloud
+  "BL-02": 2, // Komunikasi gagasan lisan
+  "BL-03": 5, // Kontrol motorik halus & tripod grasp
+
+  // ─── Legacy Backward Compatibility (1.1 - 5.3) ───
   "1.1": 3,
   "1.2": 5,
   "1.3": 1,
@@ -153,7 +177,9 @@ export async function buildStudentProfile(
     scoredPosCount > 0 ? Number((totalScoreSum / scoredPosCount).toFixed(2)) : null;
 
   const completedPosCount = evaluations.filter((e) => e.is_complete).length;
-  const completion_rate = Math.round((completedPosCount / 5) * 100);
+  // Denominator is 4 active functional domain positions
+  const totalExpectedPos = 4;
+  const completion_rate = Math.min(100, Math.round((completedPosCount / totalExpectedPos) * 100));
 
   // Compute scores for the 6 Fondasi Transisi PAUD-SD Kemendikbudristek
   const foundationSums: Record<FoundationNumber, { sum: number; count: number }> = {

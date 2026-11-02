@@ -67,15 +67,23 @@ function initStore(): Store {
     updated_at: new Date().toISOString(),
   });
 
-  // Seed 5 evaluator users
-  for (let pos = 1; pos <= 5; pos++) {
+  // Seed evaluator users (Super Observers & Station Evaluators)
+  const evaluatorProfiles = [
+    { name: "Super Observer 1", pos: 1, pinSuffix: "1000" },
+    { name: "Super Observer 2", pos: 1, pinSuffix: "1001" },
+    { name: "Evaluator Motorik Kasar & Koordinasi Fisik", pos: 2, pinSuffix: "2000" },
+    { name: "Evaluator Kematangan Kognitif & Berhitung", pos: 3, pinSuffix: "3000" },
+    { name: "Evaluator Bahasa Lisan, Pra-Literasi & Motorik Halus", pos: 4, pinSuffix: "4000" },
+  ];
+
+  for (const ep of evaluatorProfiles) {
     const evalId = uuidv4();
     s.users.set(evalId, {
       id: evalId,
-      name: `Evaluator Pos ${pos}`,
+      name: ep.name,
       role: "evaluator",
-      pin_hash: `$2b$10$defaulthashforevalpin${pos}000`, // PIN: {pos}000
-      pos_number: pos,
+      pin_hash: `$2b$10$defaulthashforevalpin${ep.pinSuffix}`,
+      pos_number: ep.pos,
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -95,7 +103,7 @@ function initStore(): Store {
     updated_at: new Date().toISOString(),
   });
 
-  // Seed assessment configs (5 Pos)
+  // Seed assessment configs (4 Pos Fungsional SPMB)
   seedAssessmentConfigs(s);
 
   // Seed demo batch, students, and evaluations for immediate usability
@@ -107,99 +115,81 @@ function initStore(): Store {
 function seedAssessmentConfigs(s: Store) {
   const configs: Omit<AssessmentConfig, "created_by">[] = [
     {
-      id: "config-pos-1-v1",
-      version: "1.0.0",
+      id: "config-so-v1",
+      version: "2.0.0",
       pos_number: 1,
-      pos_name: "Kedatangan, Kemandirian & Kematangan Emosi",
-      pos_description: "Observasi saat anak tiba, berpisah dari orang tua, dan berinteraksi awal",
+      pos_name: "Pos Kemandirian, Regulasi Emosi & Kepatuhan Instruksi",
+      pos_description: "Observasi longitudinal 2 Superobserver dari kedatangan, transisi rotasi 3 pos, hingga bermain bebas dan snack",
       indicators_json: JSON.stringify([
-        { id: "1.1", label: "Berpisah dari orang tua", description: "Berpisah dari orang tua dengan tenang tanpa kecemasan ekstrem", foundation: 3, score_descriptors: { "1": "Menangis histeris tidak mau ditinggal", "2": "Menangis tapi mau ditinggal setelah dibujuk lama", "3": "Sedikit cemas tapi mandiri masuk kelas", "4": "Berpisah dengan tenang dan antusias" } },
-        { id: "1.2", label: "Kemandirian Menaruh Barang", description: "Mandiri melepaskan dan merapikan sepatu di rak serta menggantungkan tas", foundation: 5, score_descriptors: { "1": "Tidak bisa, sepenuhnya butuh bantuan", "2": "Bisa dengan banyak bantuan verbal", "3": "Bisa dengan sedikit pengingat", "4": "Mandiri sempurna dan rapi" } },
-        { id: "1.3", label: "Kesantunan dan Antrean", description: "Menggunakan kata santun (tolong, terima kasih, maaf) dan budaya mengantre", foundation: 1, score_descriptors: { "1": "Tidak menggunakan kata santun dan tidak mau mengantre", "2": "Kadang menggunakan kata santun dengan pengingat", "3": "Sering menggunakan kata santun secara spontan", "4": "Konsisten santun dan sabar mengantre tanpa pengingat" } },
+        { id: "SO-01", label: "Berpisah dari Orang Tua", description: "Berpisah dari orang tua dengan tenang tanpa kecemasan berlebihan", foundation: 3, score_descriptors: { "1": "Menangis histeris tidak mau ditinggal", "2": "Menangis tapi mau ditinggal setelah dibujuk lama", "3": "Sedikit cemas tapi mandiri masuk kelas", "4": "Berpisah dengan tenang, ceria, dan antusias" } },
+        { id: "SO-02", label: "Kemandirian Menaruh Barang", description: "Mandiri melepaskan dan merapikan sepatu di rak serta menggantung tas", foundation: 5, score_descriptors: { "1": "Tidak bisa, sepenuhnya butuh bantuan", "2": "Bisa dengan banyak bantuan verbal", "3": "Bisa dengan sedikit pengingat", "4": "Mandiri sempurna dan rapi tanpa bantuan" } },
+        { id: "SO-03", label: "Kepatuhan Mengikuti Instruksi saat Transisi", description: "Mengikuti instruksi pendamping dengan tertib saat berpindah antar ruang pos", foundation: 2, score_descriptors: { "1": "Mengabaikan instruksi dan berlarian keluar barisan", "2": "Perlu pengingat berulang untuk tetap tertib", "3": "Mengikuti instruksi transisi dengan baik", "4": "Sangat tertib, fokus, dan tanggap instruksi pemandu" } },
+        { id: "SO-04", label: "Kesantunan dan Budaya Antre", description: "Menggunakan kata santun (tolong, terima kasih, maaf) dan budaya sabar mengantre", foundation: 1, score_descriptors: { "1": "Menyerobot dan tidak mau mengantre", "2": "Kadang santun jika diingatkan pemandu", "3": "Sering berucap santun dan mau mengantre", "4": "Konsisten santun dan sabar mengantre tanpa diingatkan" } },
+        { id: "SO-05", label: "Regulasi Diri & Adaptasi Kesulitan", description: "Kemampuan menenangkan diri dan beradaptasi saat menghadapi tantangan atau situasi baru", foundation: 3, score_descriptors: { "1": "Breakdown/meltdown saat ada kesulitan", "2": "Perlu banyak bantuan pendamping untuk tenang", "3": "Mampu regulasi diri dengan sedikit arahan", "4": "Kematangan emosi mandiri dan tenang menghadapi tantangan" } },
+        { id: "SO-06", label: "Bermain Kooperatif & Berbagi", description: "Interaksi saat bermain bersama, berbagi alat main/snack, dan dinamika kelompok", foundation: 2, score_descriptors: { "1": "Menolak berinteraksi atau merebut alat main", "2": "Bermain paralel tanpa komunikasi aktif", "3": "Bermain kooperatif dan mau bergantian mainan", "4": "Inisiatif kolaboratif dan senang berbagi dalam kelompok" } },
+        { id: "SO-07", label: "Antusiasme & Refleksi Belajar", description: "Menunjukkan rasa ingin tahu positif, keceriaan, dan antusiasme selama rangkaian observasi", foundation: 6, score_descriptors: { "1": "Tampak sangat tertekan atau pasif menolak kegiatan", "2": "Kurang bersemangat, perlu dorongan konstan", "3": "Menikmati rangkaian kegiatan dengan wajar", "4": "Sangat antusias, ceria, dan bangga menceritakan pengalamannya" } },
       ]),
       red_flags_json: JSON.stringify([
-        { id: "rf-1-1", label: "Tantrum histeris melantai (>10 menit)", severity: "critical" },
-        { id: "rf-1-2", label: "Panik berlebihan atau serangan panik", severity: "critical" },
-        { id: "rf-1-3", label: "Perilaku agresif membahayakan (memukul/menggigit)", severity: "critical" },
+        { id: "rf-so-1", label: "Tantrum histeris melantai (>10 menit)", severity: "critical" },
+        { id: "rf-so-2", label: "Agresi fisik membahayakan (memukul/menggigit teman)", severity: "critical" },
+        { id: "rf-so-3", label: "Perilaku impulsif membahayakan diri (lari keluar area)", severity: "critical" },
+        { id: "rf-so-4", label: "Penolakan sosial ekstrem (menolak disapa/kontak mata absen total)", severity: "critical" },
       ]),
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },
     {
-      id: "config-pos-2-v1",
-      version: "1.0.0",
+      id: "config-mk-v1",
+      version: "2.0.0",
       pos_number: 2,
-      pos_name: "Motorik Kasar & Koordinasi Fisik",
-      pos_description: "Observasi kemampuan gerak tubuh, keseimbangan, dan koordinasi mata-tangan",
+      pos_name: "Pos Motorik Kasar & Koordinasi Fisik",
+      pos_description: "Observasi kemampuan gerak lokomotor, keseimbangan tubuh, dan koordinasi fisik",
       indicators_json: JSON.stringify([
-        { id: "2.1", label: "Keseimbangan & Koordinasi Tubuh", description: "Berjalan lurus, meniti papan titian, melompat 2 kaki", foundation: 5, score_descriptors: { "1": "Tidak bisa melakukan salah satu aktivitas", "2": "Bisa dengan pegangan/bantuan fisik", "3": "Bisa mandiri meski sedikit tidak stabil", "4": "Lincah dan koordinasi sangat baik" } },
-        { id: "2.2", label: "Respons Instruksi & Koordinasi Mata-Tangan", description: "Merespons instruksi gerak verbal dan koordinasi mata-tangan (tangkap bola)", foundation: 5, score_descriptors: { "1": "Tidak merespons instruksi, gagal tangkap bola", "2": "Merespons lambat, sering gagal tangkap", "3": "Merespons baik, kadang berhasil tangkap", "4": "Merespons cepat dan tepat, tangkap bola konsisten" } },
+        { id: "MK-01", label: "Keseimbangan & Kontrol Tubuh", description: "Berjalan lurus pada garis, meniti papan titian, dan melompat 2 kaki bersamaan", foundation: 5, score_descriptors: { "1": "Tidak bisa menjaga keseimbangan, menolak titian", "2": "Bisa dengan bantuan pegangan fisik erat", "3": "Bisa mandiri meski sesekali goyah", "4": "Lincah, seimbang sempurna, dan percaya diri" } },
+        { id: "MK-02", label: "Koordinasi Mata-Tangan & Respons Gerak", description: "Merespons instruksi gerak verbal dan koordinasi tangkap-lempar bola", foundation: 5, score_descriptors: { "1": "Tidak merespons instruksi, gagal tangkap bola", "2": "Respons lambat, sering luput tangkap bola", "3": "Respons baik, konsisten tangkap bola wajar", "4": "Respons cepat, tangkap bola akurat dan gesit" } },
       ]),
       red_flags_json: JSON.stringify([
-        { id: "rf-2-1", label: "Tonus otot kaku (hipertonia) atau sangat lemas (hipotonia)", severity: "critical" },
-        { id: "rf-2-2", label: "Sering jatuh tanpa sebab yang jelas", severity: "moderate" },
-        { id: "rf-2-3", label: "Tidak bisa melompat dengan 2 kaki", severity: "moderate" },
+        { id: "rf-mk-1", label: "Tonus otot kaku (hipertonia) atau sangat lemas (hipotonia)", severity: "critical" },
+        { id: "rf-mk-2", label: "Sering jatuh tanpa hambatan fisik jelas / hilang keseimbangan berat", severity: "moderate" },
       ]),
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },
     {
-      id: "config-pos-3-v1",
-      version: "1.0.0",
+      id: "config-kg-v1",
+      version: "2.0.0",
       pos_number: 3,
-      pos_name: "Kematangan Kognitif & Numerasi Dasar",
-      pos_description: "Observasi kemampuan berpikir logis, pola, perbandingan, dan pemecahan masalah",
+      pos_name: "Pos Kematangan Kognitif & Berhitung",
+      pos_description: "Observasi kemampuan berpikir logis, pola, konsep kuantitas, dan pemecahan masalah",
       indicators_json: JSON.stringify([
-        { id: "3.1", label: "Klasifikasi & Pola", description: "Memilah benda berdasarkan atribut dan melengkapi pola berulang", foundation: 4, score_descriptors: { "1": "Tidak bisa memilah atau mengenali pola", "2": "Bisa memilah 1 atribut dengan bantuan", "3": "Bisa memilah dan lanjutkan pola sederhana", "4": "Mandiri klasifikasi multi-atribut dan pola kompleks" } },
-        { id: "3.2", label: "Konsep Kuantitas & Problem Solving", description: "Memahami banyak/sedikit dan pemecahan masalah (puzzle/balok)", foundation: 4, score_descriptors: { "1": "Belum paham konsep kuantitas", "2": "Paham dengan bimbingan konkret", "3": "Paham mandiri dan bisa puzzle sederhana", "4": "Pemahaman kuat dan selesaikan tantangan kompleks" } },
+        { id: "KG-01", label: "Klasifikasi Objek & Pola Berulang", description: "Mengelompokkan benda berdasarkan atribut dan melengkapi pola deret teratur", foundation: 4, score_descriptors: { "1": "Belum bisa memilah atau melanjutkan pola", "2": "Bisa memilah 1 atribut dengan bimbingan", "3": "Bisa klasifikasi mandiri dan lanjutkan pola sederhana", "4": "Mandiri klasifikasi multi-atribut dan pola kompleks" } },
+        { id: "KG-02", label: "Konsep Kuantitas & Problem Solving", description: "Memahami perbandingan banyak/sedikit, membilang konkret, dan menyusun balok/puzzle", foundation: 4, score_descriptors: { "1": "Belum memahami konsep kuantitas dasar", "2": "Paham kuantitas dengan bimbingan benda konkret", "3": "Paham mandiri dan menyelesaikan puzzle dasar", "4": "Pemahaman kuat dan solutif pada tantangan logika kompleks" } },
       ]),
       red_flags_json: JSON.stringify([
-        { id: "rf-3-1", label: "Disorientasi spasial berat", severity: "moderate" },
-        { id: "rf-3-2", label: "Tidak memahami hubungan sebab-akibat sederhana", severity: "moderate" },
-        { id: "rf-3-3", label: "Frustrasi ekstrem saat tantangan gagal (meltdown)", severity: "critical" },
+        { id: "rf-kg-1", label: "Disorientasi spasial berat / tidak mengenal bentuk dan arah dasar", severity: "moderate" },
+        { id: "rf-kg-2", label: "Tidak memahami hubungan kausalitas (sebab-akibat) sederhana", severity: "moderate" },
       ]),
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },
     {
-      id: "config-pos-4-v1",
-      version: "1.0.0",
+      id: "config-bl-v1",
+      version: "2.0.0",
       pos_number: 4,
-      pos_name: "Bahasa Lisan, Pra-Literasi & Motorik Halus",
-      pos_description: "Observasi kemampuan berbahasa, pra-membaca, dan kontrol motorik halus tangan",
+      pos_name: "Pos Bahasa Lisan, Pra-Literasi & Motorik Halus",
+      pos_description: "Observasi kemampuan menyimak cerita lisan, komunikasi verbal, dan kontrol motorik halus alat tulis",
       indicators_json: JSON.stringify([
-        { id: "4.1", label: "Menyimak Cerita Lisan", description: "Menyimak dan memahami pesan cerita lisan yang dibacakan (read-aloud)", foundation: 2, score_descriptors: { "1": "Tidak memperhatikan dan tidak bisa jawab pertanyaan", "2": "Memperhatikan tapi jawaban tidak relevan", "3": "Menyimak baik dan menjawab sebagian besar", "4": "Menyimak aktif dan jawab dengan detail" } },
-        { id: "4.2", label: "Komunikasi Gagasan Lisan", description: "Mengomunikasikan gagasan lisan tentang hasil gambarnya", foundation: 2, score_descriptors: { "1": "Tidak bisa menjelaskan gambarnya", "2": "Menjelaskan dengan 1-2 kata", "3": "Menjelaskan dengan kalimat sederhana", "4": "Menjelaskan dengan kalimat lengkap dan rinci" } },
-        { id: "4.3", label: "Kontrol Motorik Halus", description: "Kontrol motorik halus dan genggaman alat tulis fungsional (pincer/tripod grasp)", foundation: 5, score_descriptors: { "1": "Genggaman palmar, tidak bisa kontrol", "2": "Peralihan ke pincer, kontrol lemah", "3": "Pincer/tripod grasp, bisa menulis/mewarnai", "4": "Tripod sempurna, presisi dan kontrol tinggi" } },
+        { id: "BL-01", label: "Menyimak Cerita Lisan (Read-Aloud)", description: "Menyimak cerita lisan dan memahami pesan serta alur sederhana yang diceritakan", foundation: 2, score_descriptors: { "1": "Tidak memperhatikan dan tidak bisa menjawab", "2": "Memperhatikan tapi jawaban belum relevan", "3": "Menyimak baik dan menjawab dengan tepat", "4": "Menyimak aktif dan menceritakan kembali secara rinci" } },
+        { id: "BL-02", label: "Komunikasi Gagasan Lisan", description: "Mengomunikasikan gagasan lisan tentang ide/karya dengan kalimat terstruktur", foundation: 2, score_descriptors: { "1": "Tidak mau berbicara atau kata tidak jelas", "2": "Menjelaskan dengan 1-2 kata terputus", "3": "Menjelaskan dengan kalimat sederhana", "4": "Menjelaskan dengan kalimat lengkap, percaya diri dan runtut" } },
+        { id: "BL-03", label: "Kontrol Motorik Halus & Tripod Grasp", description: "Kontrol jemari tangan dan genggaman pensil fungsional (tripod grasp) saat menulis/menggambar", foundation: 5, score_descriptors: { "1": "Genggaman palmar/tinju, tanpa kontrol gerak", "2": "Peralihan ke pincer, kontrol masih goyah", "3": "Tripod grasp fungsional, goresan mantap", "4": "Dynamic tripod grasp sempurna, presisi dan luwes" } },
       ]),
       red_flags_json: JSON.stringify([
-        { id: "rf-4-1", label: "Bicara tidak dapat dipahami (speech delay berat)", severity: "critical" },
-        { id: "rf-4-2", label: "Ekolalia — menirukan kata tanpa makna kontekstual", severity: "critical" },
-        { id: "rf-4-3", label: "No joint attention — kontak mata absen total", severity: "critical" },
-        { id: "rf-4-4", label: "Otot tangan sangat lemas, tidak bisa pegang alat tulis", severity: "moderate" },
-      ]),
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "config-pos-5-v1",
-      version: "1.0.0",
-      pos_number: 5,
-      pos_name: "Bermain Bebas, Istirahat & Interaksi Kelompok",
-      pos_description: "Observasi interaksi saat bermain bebas, makan snack bersama, dan regulasi emosi kelompok",
-      indicators_json: JSON.stringify([
-        { id: "5.1", label: "Bermain Kooperatif & Berbagi", description: "Bermain kooperatif, berbagi alat bermain/makanan, dan berinteraksi sehat dalam kelompok", foundation: 2, score_descriptors: { "1": "Menolak bermain bersama, menyendiri total", "2": "Bermain paralel (di dekat teman tapi tidak interaksi)", "3": "Bermain kooperatif dengan sedikit konflik", "4": "Pemimpin alami, mendorong kerjasama tim" } },
-        { id: "5.2", label: "Regulasi Diri & Adaptasi", description: "Regulasi emosi saat terjadi perbedaan pendapat/konflik kecil atau situasi baru", foundation: 3, score_descriptors: { "1": "Breakdown total saat ada konflik kecil", "2": "Perlu banyak bantuan dewasa untuk regulasi", "3": "Bisa regulasi dengan sedikit bantuan", "4": "Resolusi konflik mandiri dan tenang" } },
-        { id: "5.3", label: "Antusiasme & Refleksi Belajar", description: "Menunjukkan keceriaan, rasa ingin tahu positif, dan antusiasme menjalani rangkaian kegiatan", foundation: 6, score_descriptors: { "1": "Tampak sangat tertekan atau pasif menolak kegiatan", "2": "Kurang bersemangat, perlu motivasi konstan", "3": "Menikmati kegiatan bermain dan interaksi dengan wajar", "4": "Sangat antusias, ceria, dan bangga dengan pengalamannya" } },
-      ]),
-      red_flags_json: JSON.stringify([
-        { id: "rf-5-1", label: "Extreme social withdrawal — menolak disapa sama sekali", severity: "critical" },
-        { id: "rf-5-2", label: "Impulsif ekstrem — tidak bisa menunggu giliran", severity: "moderate" },
-        { id: "rf-5-3", label: "Hiperaktif — tidak bisa diam lebih dari 30 detik", severity: "moderate" },
+        { id: "rf-bl-1", label: "Bicara tidak dapat dipahami (speech delay berat)", severity: "critical" },
+        { id: "rf-bl-2", label: "Ekolalia — menirukan kata tanpa makna kontekstual", severity: "critical" },
+        { id: "rf-bl-3", label: "Otot jemari tangan sangat lemah / tremor, tidak bisa pegang alat tulis", severity: "moderate" },
       ]),
       is_active: true,
       created_at: new Date().toISOString(),
@@ -274,13 +264,40 @@ function seedDemoBatchAndStudents(s: Store) {
       updated_at: now,
     });
 
-    // Evaluations for 5 Pos
-    const posScores = [item.p1, item.p2, item.p3, item.p4, item.p5];
-    for (let pos = 1; pos <= 5; pos++) {
+    // Evaluations for 4 Domain Pos (Pos 1 Superobserver, Pos 2 Motorik, Pos 3 Kognitif, Pos 4 Bahasa)
+    const posScores = [
+      Number(((item.p1 + item.p5) / 2).toFixed(2)), // Combined Superobserver score (eks Pos 1 & 5)
+      item.p2, // Motorik Kasar
+      item.p3, // Kognitif
+      item.p4, // Bahasa Lisan & Motorik Halus
+    ];
+
+    const configIds = ["config-so-v1", "config-mk-v1", "config-kg-v1", "config-bl-v1"];
+
+    for (let pos = 1; pos <= 4; pos++) {
       const evalId = `eval-${item.id}-pos-${pos}`;
       const scoreVal = posScores[pos - 1];
       const isPos4 = pos === 4;
       const isRedFlagPos = item.redFlag && pos === 1;
+
+      let scoresRecord: Record<string, number> = {};
+      if (pos === 1) {
+        scoresRecord = {
+          "SO-01": Math.round(item.p1),
+          "SO-02": Math.round(item.p1),
+          "SO-03": Math.round((item.p1 + item.p5) / 2),
+          "SO-04": Math.round(item.p1),
+          "SO-05": Math.round(item.p5),
+          "SO-06": Math.round(item.p5),
+          "SO-07": Math.round(item.p5),
+        };
+      } else if (pos === 2) {
+        scoresRecord = { "MK-01": Math.round(scoreVal), "MK-02": Math.round(scoreVal) };
+      } else if (pos === 3) {
+        scoresRecord = { "KG-01": Math.round(scoreVal), "KG-02": Math.round(scoreVal) };
+      } else if (pos === 4) {
+        scoresRecord = { "BL-01": Math.round(scoreVal), "BL-02": Math.round(scoreVal), "BL-03": Math.round(scoreVal) };
+      }
 
       s.evaluations.set(evalId, {
         id: evalId,
@@ -288,12 +305,12 @@ function seedDemoBatchAndStudents(s: Store) {
         batch_id: batchId,
         pos_number: pos,
         evaluator_id: `evaluator-${pos}`,
-        config_id: `config-pos-${pos}-v1`,
-        scores_json: JSON.stringify({ [`${pos}.1`]: Math.round(scoreVal), [`${pos}.2`]: Math.round(scoreVal) }),
+        config_id: configIds[pos - 1],
+        scores_json: JSON.stringify(scoresRecord),
         reading_level: isPos4 ? item.level : null,
-        red_flags_json: isRedFlagPos ? JSON.stringify({ "rf-1-1": true }) : "{}",
+        red_flags_json: isRedFlagPos ? JSON.stringify({ "rf-so-1": true }) : "{}",
         has_red_flag: isRedFlagPos,
-        anecdotal_note: pos === 1 ? item.note : `Aktivitas di Pos ${pos} berjalan tertib dan mandiri.`,
+        anecdotal_note: pos === 1 ? item.note : `Aktivitas di stasiun observasi berjalan tertib dan mandiri.`,
         total_score: scoreVal,
         is_complete: true,
         client_id: `client-${item.id}-${pos}`,
