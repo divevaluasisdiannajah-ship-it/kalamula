@@ -47,10 +47,9 @@ export function EvaluationConfirmDialog({
 
   const getScoreSummary = (score: number | null) => {
     if (score === null) return { label: "Belum Lengkap", color: "text-[#787F7A] bg-[#EFECE4]" };
-    if (score >= 3.3) return { label: `${score.toFixed(1)} — Mandiri & Konsisten`, color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
-    if (score >= 2.5) return { label: `${score.toFixed(1)} — Muncul Mandiri`, color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
-    if (score >= 1.8) return { label: `${score.toFixed(1)} — Dengan Bimbingan`, color: "text-[#8C3713] bg-[#F9E6DC] border border-[#F1CFC0]" };
-    return { label: `${score.toFixed(1)} — Tahap Eksplorasi`, color: "text-[#B83A35] bg-[#FCEEEF] border border-[#F1CFC0]" };
+    if (score >= 2.5) return { label: `${score.toFixed(1)} / 3.0 — Mandiri`, color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
+    if (score >= 1.8) return { label: `${score.toFixed(1)} / 3.0 — Berkembang`, color: "text-[#7D5327] bg-[#FAF8F5] border border-[#DDD0B8]" };
+    return { label: `${score.toFixed(1)} / 3.0 — Perlu Bimbingan`, color: "text-[#B83A35] bg-[#FCEEEF] border border-[#F1CFC0]" };
   };
 
   const scoreSummary = getScoreSummary(averageScore);

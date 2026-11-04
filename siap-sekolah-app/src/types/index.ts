@@ -17,7 +17,7 @@ export type AssignedClass = "1A" | "1B";
 
 export type ScoreValue = 1 | 2 | 3 | 4;
 
-export type ScoreLabel = "BT" | "MB" | "BSH" | "BSB";
+export type ScoreLabel = "PB" | "B" | "M" | "BT" | "MB" | "BSH" | "BSB";
 
 export type RedFlagSeverity = "critical" | "moderate";
 
@@ -26,17 +26,17 @@ export type SyncStatus = "synced" | "local" | "pending" | "error";
 // ─── Score Helpers ─────────────────────────────────────────────
 
 export const SCORE_LABELS: Record<ScoreValue, ScoreLabel> = {
-  1: "BT",
-  2: "MB",
-  3: "BSH",
-  4: "BSB",
+  1: "PB",
+  2: "B",
+  3: "M",
+  4: "M",
 };
 
 export const SCORE_FULL_LABELS: Record<ScoreValue, string> = {
-  1: "Belum Tercapai",
-  2: "Mulai Berkembang",
-  3: "Berkembang Sesuai Harapan",
-  4: "Berkembang Sangat Baik",
+  1: "Perlu Bimbingan",
+  2: "Berkembang",
+  3: "Mandiri",
+  4: "Mandiri",
 };
 
 export const READING_LEVEL_LABELS: Record<ReadingLevel, string> = {

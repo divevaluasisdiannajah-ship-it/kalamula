@@ -238,34 +238,34 @@ export default function EvaluationFormPage() {
     return Number((sum / vals.length).toFixed(2));
   }, [scores]);
 
-  // Continuum Score Configuration with Warm Organic Palette
+  // Continuum Score Configuration with Warm Organic Palette (Skala 1 - 3)
   const SCORE_COLOR_CONFIG: Record<
-    ScoreValue,
+    number,
     { selected: string; label: string; full: string; callout: string }
   > = {
     1: {
       selected: "bg-[#FCEEEF] text-[#B83A35] border-2 border-[#B83A35] shadow-xs font-bold",
-      label: "BM",
-      full: "Belum Muncul",
+      label: "Bimbingan",
+      full: "Perlu Bimbingan",
       callout: "border-l-2 border-[#B83A35] bg-[#FCEEEF]/50 text-[#8C3713]",
     },
     2: {
-      selected: "bg-[#F9E6DC] text-[#8C3713] border-2 border-[#B85627] shadow-xs font-bold",
-      label: "MB",
-      full: "Dengan Bimbingan",
+      selected: "bg-[#FAF8F5] text-[#7D5327] border-2 border-[#B85627] shadow-xs font-bold",
+      label: "Berkembang",
+      full: "Berkembang",
       callout: "border-l-2 border-[#B85627] bg-[#FAF8F5] text-[#8C3713]",
     },
     3: {
-      selected: "bg-[#E4EFE9] text-[#3D7A5A] border-2 border-[#486B5A] shadow-xs font-bold",
-      label: "MM",
-      full: "Muncul Mandiri",
-      callout: "border-l-2 border-[#486B5A] bg-[#E4EFE9]/40 text-[#22352B]",
+      selected: "bg-[#E4EFE9] text-[#22352B] border-2 border-[#486B5A] shadow-xs font-bold",
+      label: "Mandiri",
+      full: "Mandiri",
+      callout: "border-l-2 border-[#486B5A] bg-[#E4EFE9]/60 text-[#22352B]",
     },
     4: {
-      selected: "bg-[#486B5A] text-white border-2 border-[#22352B] shadow-xs font-bold",
-      label: "MK",
-      full: "Mandiri & Konsisten",
-      callout: "border-l-2 border-[#22352B] bg-[#E4EFE9]/60 text-[#22352B]",
+      selected: "bg-[#E4EFE9] text-[#22352B] border-2 border-[#486B5A] shadow-xs font-bold",
+      label: "Mandiri",
+      full: "Mandiri (Legacy)",
+      callout: "border-l-2 border-[#486B5A] bg-[#E4EFE9]/60 text-[#22352B]",
     },
   };
 
@@ -443,13 +443,13 @@ export default function EvaluationFormPage() {
                   </div>
                 </div>
 
-                {/* Grid 4 Tombol Skor */}
+                {/* Grid 3 Tombol Skor */}
                 <div
-                  className="grid grid-cols-4 gap-2 pt-1"
+                  className="grid grid-cols-3 gap-2 sm:gap-3 pt-1"
                   role="group"
                   aria-label={`Pilihan skor untuk indikator ${indicator.label}`}
                 >
-                  {([1, 2, 3, 4] as ScoreValue[]).map((val) => {
+                  {([1, 2, 3] as ScoreValue[]).map((val) => {
                     const isSelected = scores[indicator.id] === val;
                     const config = SCORE_COLOR_CONFIG[val];
 
@@ -467,7 +467,7 @@ export default function EvaluationFormPage() {
                         }`}
                       >
                         <span className="text-base font-extrabold leading-none tabular-nums font-mono">{val}</span>
-                        <span className="text-[10px] uppercase font-bold tracking-tight leading-none mt-1">
+                        <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-tight leading-none mt-1">
                           {config.label}
                         </span>
                       </button>

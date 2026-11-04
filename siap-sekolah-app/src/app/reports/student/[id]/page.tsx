@@ -359,9 +359,9 @@ export default function StudentReportPage() {
           <div className="flex items-center gap-3">
             <div className="text-center px-3.5 py-2 bg-[#F6F3EC] rounded-2xl border border-[#E8E2D8]">
               <span className="text-2xl font-black text-[#22352B] block leading-none">
-                {averageScore !== null ? averageScore.toFixed(1) : "3.3"}
+                {averageScore !== null ? averageScore.toFixed(1) : "2.8"}
               </span>
-              <span className="text-[10px] font-bold text-[#787F7A] block mt-0.5">/ 4.0</span>
+              <span className="text-[10px] font-bold text-[#787F7A] block mt-0.5">/ 3.0</span>
             </div>
             <div className="flex-1 bg-[#E4EFE9] text-[#486B5A] p-2.5 rounded-2xl text-xs font-semibold leading-snug border border-[#CBE0D4]">
               Rata-rata capaian fondasi belajar &amp; profil lulusan.
@@ -447,27 +447,27 @@ export default function StudentReportPage() {
 
           <div className="space-y-2.5">
             {aspectList.map((item) => {
-              const val = item.score !== null ? Number(item.score.toFixed(1)) : 3.0;
-              const pct = Math.round((val / 4) * 100);
+              const val = item.score !== null ? Number(item.score.toFixed(1)) : 2.5;
+              const pct = Math.round((val / 3) * 100);
 
               return (
                 <div key={item.num} className="bg-[#FAF8F5] rounded-2xl p-3 border border-[#E8E2D8] space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#22352B]">{item.name}</span>
-                    <span className="font-extrabold text-[#22352B] font-mono">{val.toFixed(1)} / 4.0</span>
+                    <span className="font-extrabold text-[#22352B] font-mono">{val.toFixed(1)} / 3.0</span>
                   </div>
 
-                  {/* Horizontal Bar with Terracotta Target Marker (75% / 3.0) */}
+                  {/* Horizontal Bar with Terracotta Target Marker (83% / 2.5) */}
                   <div className="relative w-full h-2.5 bg-[#EFECE4] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[#486B5A] rounded-full transition-all duration-300"
                       style={{ width: `${pct}%` }}
                     />
-                    {/* Target 3.0 Line (75%) */}
+                    {/* Target 2.5 Line (83%) */}
                     <div
                       className="absolute top-0 bottom-0 w-[2px] bg-[#B85627] z-10"
-                      style={{ left: "75%" }}
-                      title="Target: 3.0"
+                      style={{ left: "83%" }}
+                      title="Target: 2.5"
                     />
                   </div>
                 </div>
@@ -683,9 +683,9 @@ export default function StudentReportPage() {
 
             {/* Keterangan Bawah */}
             <div className="pt-1.5 border-t border-[#E8E2D8] flex items-center justify-between text-[10px] text-[#565C58] font-medium">
-              <span>Skala: 1 (BM) • 2 (MB) • 3 (MM) • 4 (MK)</span>
+              <span>Skala: 1 (PB) • 2 (B) • 3 (M)</span>
               <span className="font-bold text-[#22352B]">
-                Target: ≥ 3.0 | Rata-rata: {averageScore !== null ? averageScore.toFixed(1) : "3.3"} / 4.0
+                Target: ≥ 2.5 | Rata-rata: {averageScore !== null ? averageScore.toFixed(1) : "2.8"} / 3.0
               </span>
             </div>
           </div>
@@ -728,8 +728,8 @@ export default function StudentReportPage() {
 
               <div className="space-y-1">
                 {aspectList.map((item) => {
-                  const val = item.score !== null ? Number(item.score.toFixed(1)) : 3.0;
-                  const pct = Math.round((val / 4) * 100);
+                  const val = item.score !== null ? Number(item.score.toFixed(1)) : 2.5;
+                  const pct = Math.round((val / 3) * 100);
 
                   return (
                     <div
@@ -740,7 +740,7 @@ export default function StudentReportPage() {
                         {item.name}
                       </span>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Progress Bar with Terracotta Target Marker (75%) */}
+                        {/* Progress Bar with Terracotta Target Marker (83%) */}
                         <div className="relative w-20 h-2 bg-[#EFECE4] rounded-full overflow-hidden">
                           <div
                             className="h-full bg-[#486B5A] rounded-full"
@@ -748,11 +748,11 @@ export default function StudentReportPage() {
                           />
                           <div
                             className="absolute top-0 bottom-0 w-[2px] bg-[#B85627] z-10"
-                            style={{ left: "75%" }}
+                            style={{ left: "83%" }}
                           />
                         </div>
                         <span className="font-bold text-[#22352B] min-w-[32px] text-right font-mono text-[11px]">
-                          {val.toFixed(1)}/4
+                          {val.toFixed(1)}/3
                         </span>
                       </div>
                     </div>

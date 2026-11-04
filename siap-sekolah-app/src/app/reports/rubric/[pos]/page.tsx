@@ -26,10 +26,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Berpisah dari orang tua dengan tenang tanpa kecemasan berlebihan",
         foundation: 3,
         score_descriptors: {
-          "1": "Menangis histeris tidak mau ditinggal",
-          "2": "Menangis tapi mau ditinggal setelah dibujuk lama",
-          "3": "Sedikit cemas tapi mandiri masuk kelas",
-          "4": "Berpisah dengan tenang, ceria, dan antusias",
+          "1": "Menangis histeris / menolak keras ditinggal",
+          "2": "Sempat cemas/menangis, mau masuk setelah dibujuk",
+          "3": "Berpisah dengan tenang, ceria, dan antusias",
         },
       },
       {
@@ -38,10 +37,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Mandiri melepaskan dan merapikan sepatu di rak serta menggantung tas",
         foundation: 5,
         score_descriptors: {
-          "1": "Tidak bisa, sepenuhnya butuh bantuan",
-          "2": "Bisa dengan banyak bantuan verbal",
-          "3": "Bisa dengan sedikit pengingat",
-          "4": "Mandiri sempurna dan rapi tanpa bantuan",
+          "1": "Barang ditinggal berserakan / butuh bantuan fisik penuh",
+          "2": "Merapikan sepatu/tas dengan sedikit arahan/pengingat",
+          "3": "Mandiri dan tertib merapikan sepatu di rak & gantung tas",
         },
       },
       {
@@ -50,10 +48,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Mengikuti instruksi pendamping dengan tertib saat berpindah antar ruang pos",
         foundation: 2,
         score_descriptors: {
-          "1": "Mengabaikan instruksi dan berlarian keluar barisan",
-          "2": "Perlu pengingat berulang untuk tetap tertib",
-          "3": "Mengikuti instruksi transisi dengan baik",
-          "4": "Sangat tertib, fokus, dan tanggap instruksi pemandu",
+          "1": "Mengabaikan instruksi, berlarian keluar barisan",
+          "2": "Mengikuti transisi, sesekali perlu diingatkan tertib",
+          "3": "Sangat tertib, fokus, dan tanggap instruksi pemandu",
         },
       },
       {
@@ -62,10 +59,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Menggunakan kata santun (tolong, terima kasih, maaf) dan budaya sabar mengantre",
         foundation: 1,
         score_descriptors: {
-          "1": "Menyerobot dan tidak mau mengantre",
-          "2": "Kadang santun jika diingatkan pemandu",
-          "3": "Sering berucap santun dan mau mengantre",
-          "4": "Konsisten santun dan sabar mengantre tanpa diingatkan",
+          "1": "Menyerobot antrean / tidak sabar menunggu giliran",
+          "2": "Mau mengantre dan berucap santun jika diingatkan",
+          "3": "Konsisten sabar mengantre & spontan berucap tolong/maaf/terima kasih",
         },
       },
       {
@@ -74,10 +70,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Kemampuan menenangkan diri dan beradaptasi saat menghadapi tantangan",
         foundation: 3,
         score_descriptors: {
-          "1": "Breakdown/meltdown saat ada kesulitan",
-          "2": "Perlu banyak bantuan pendamping untuk tenang",
-          "3": "Mampu regulasi diri dengan sedikit arahan",
-          "4": "Kematangan emosi mandiri dan tenang menghadapi tantangan",
+          "1": "Tantrum / meltdown / menyerah saat ada tantangan",
+          "2": "Sempat frustrasi, mampu tenang dengan sedikit arahan",
+          "3": "Tenang, gigih, dan mampu meregulasi emosi secara mandiri",
         },
       },
       {
@@ -86,10 +81,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Interaksi saat bermain bersama, berbagi alat main/snack, dan dinamika kelompok",
         foundation: 2,
         score_descriptors: {
-          "1": "Menolak berinteraksi atau merebut alat main",
-          "2": "Bermain paralel tanpa komunikasi aktif",
-          "3": "Bermain kooperatif dan mau bergantian mainan",
-          "4": "Inisiatif kolaboratif dan senang berbagi dalam kelompok",
+          "1": "Menolak interaksi / merebut alat main / agresif",
+          "2": "Bermain paralel atau mau bergantian jika difasilitasi",
+          "3": "Aktif berinteraksi positif, kooperatif, dan senang berbagi",
         },
       },
       {
@@ -98,10 +92,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Menunjukkan rasa ingin tahu positif, keceriaan, dan antusiasme belajar",
         foundation: 6,
         score_descriptors: {
-          "1": "Tampak sangat tertekan atau pasif menolak",
-          "2": "Kurang bersemangat, perlu dorongan konstan",
-          "3": "Menikmati rangkaian kegiatan dengan wajar",
-          "4": "Sangat antusias, ceria, dan bangga menceritakan pengalamannya",
+          "1": "Sangat tertekan, pasif, atau menolak kegiatan",
+          "2": "Mengikuti alur kegiatan dengan dorongan sesekali",
+          "3": "Sangat antusias, ceria, dan bangga menceritakan pengalamannya",
         },
       },
     ],
@@ -123,10 +116,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Berjalan lurus pada garis, meniti papan titian, dan melompat 2 kaki bersamaan",
         foundation: 5,
         score_descriptors: {
-          "1": "Tidak bisa menjaga keseimbangan, menolak titian",
-          "2": "Bisa dengan bantuan pegangan fisik erat",
-          "3": "Bisa mandiri meski sesekali goyah",
-          "4": "Lincah, seimbang sempurna, dan percaya diri",
+          "1": "Menolak melangkah / hilang keseimbangan total (harus dipegangi erat)",
+          "2": "Mampu meniti/melompat dengan bantuan minimal (sentuhan tangan/sesekali goyah)",
+          "3": "Lincah, seimbang sempurna, dan melompat 2 kaki mandiri dengan percaya diri",
         },
       },
       {
@@ -135,10 +127,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Merespons instruksi gerak verbal dan koordinasi tangkap-lempar bola",
         foundation: 5,
         score_descriptors: {
-          "1": "Tidak merespons instruksi, gagal tangkap bola",
-          "2": "Respons lambat, sering luput tangkap bola",
-          "3": "Respons baik, konsisten tangkap bola wajar",
-          "4": "Respons cepat, tangkap bola akurat dan gesit",
+          "1": "Tidak merespons instruksi / luput total menangkap bola",
+          "2": "Respons sedikit lambat, berhasil menangkap/melempar setelah 1–2 kali percobaan",
+          "3": "Respons tanggap, tangkap dan lempar bola akurat serta gesit",
         },
       },
     ],
@@ -158,10 +149,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Mengelompokkan benda berdasarkan atribut dan melengkapi pola deret teratur",
         foundation: 4,
         score_descriptors: {
-          "1": "Belum bisa memilah atau melanjutkan pola",
-          "2": "Bisa memilah 1 atribut dengan bimbingan",
-          "3": "Bisa klasifikasi mandiri dan lanjutkan pola sederhana",
-          "4": "Mandiri klasifikasi multi-atribut dan pola kompleks",
+          "1": "Belum mampu memilah benda atau melanjutkan pola walau dicontohkan",
+          "2": "Mampu mengelompokkan 1 atribut atau melengkapi pola sederhana setelah dipandu",
+          "3": "Mandiri dan tepat memilah multi-atribut serta melanjutkan pola deret kompleks",
         },
       },
       {
@@ -170,10 +160,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Memahami perbandingan banyak/sedikit, membilang konkret, dan menyusun balok/puzzle",
         foundation: 4,
         score_descriptors: {
-          "1": "Belum memahami konsep kuantitas dasar",
-          "2": "Paham kuantitas dengan bimbingan benda konkret",
-          "3": "Paham mandiri dan menyelesaikan puzzle dasar",
-          "4": "Pemahaman kuat dan solutif pada tantangan logika kompleks",
+          "1": "Belum paham konsep banyak-sedikit / bingung membilang konkret (1–5)",
+          "2": "Mampu membandingkan kuantitas & menyelesaikan puzzle dasar dengan sedikit petunjuk",
+          "3": "Pemahaman kuantitas kuat, membilang tepat, dan solutif merangkai balok/puzzle",
         },
       },
     ],
@@ -193,10 +182,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Menyimak cerita lisan dan memahami pesan serta alur sederhana yang diceritakan",
         foundation: 2,
         score_descriptors: {
-          "1": "Tidak memperhatikan dan tidak bisa menjawab",
-          "2": "Memperhatikan tapi jawaban belum relevan",
-          "3": "Menyimak baik dan menjawab dengan tepat",
-          "4": "Menyimak aktif dan menceritakan kembali secara rinci",
+          "1": "Tidak memperhatikan cerita / tidak mampu menjawab pertanyaan sederhana",
+          "2": "Menyimak cerita, mampu menjawab jika dipandu pertanyaan arahan",
+          "3": "Menyimak aktif, paham alur, dan mampu menceritakan kembali dengan runtut",
         },
       },
       {
@@ -205,10 +193,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Mengomunikasikan gagasan lisan tentang ide/karya dengan kalimat terstruktur",
         foundation: 2,
         score_descriptors: {
-          "1": "Tidak mau berbicara atau kata tidak jelas",
-          "2": "Menjelaskan dengan 1-2 kata terputus",
-          "3": "Menjelaskan dengan kalimat sederhana",
-          "4": "Menjelaskan dengan kalimat lengkap, percaya diri dan runtut",
+          "1": "Menolak bicara / suara sangat lirih / kata tidak bermakna",
+          "2": "Menjelaskan dengan frasa pendek / 1–2 kata, butuh dipancing",
+          "3": "Berani mengutarakan gagasan dengan kalimat sederhana yang jelas",
         },
       },
       {
@@ -217,10 +204,9 @@ const DEFAULT_CONFIGS: Record<number, {
         description: "Kontrol jemari tangan dan genggaman pensil fungsional (tripod grasp) saat menulis/menggambar",
         foundation: 5,
         score_descriptors: {
-          "1": "Genggaman palmar/tinju, tanpa kontrol gerak",
-          "2": "Peralihan ke pincer, kontrol masih goyah",
-          "3": "Tripod grasp fungsional, goresan mantap",
-          "4": "Dynamic tripod grasp sempurna, presisi dan luwes",
+          "1": "Genggaman palmar/tinju tanpa kontrol gerak jemari",
+          "2": "Genggaman peralihan (pincer), goresan/garis masih kaku",
+          "3": "Dynamic tripod grasp fungsional, goresan luwes, mantap, dan terkontrol",
         },
       },
     ],
@@ -961,27 +947,21 @@ export default function PosRubricPrintPage() {
               </div>
             </div>
 
-            {/* ─── 4. Bar Legenda Skor (1 BM – 4 MK) ─── */}
-            <div className="bg-[#F2F7F4] border border-[#CBE0D4] rounded-xl px-4 py-2.5 text-[10px] text-[#22352B] space-y-1.5">
+            {/* ─── 4. Bar Legenda Skor (1 PB – 3 M) ─── */}
+            <div className="bg-[#F2F7F4] border border-[#CBE0D4] rounded-xl px-4 py-2 text-[10px] text-[#22352B]">
               <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-                <span className="font-extrabold">Skor:</span>
+                <span className="font-extrabold text-[#486B5A]">Skala Penilaian:</span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-4.5 h-4.5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9px]">1</span>
-                  <span>Belum Muncul (BM)</span>
+                  <span className="w-5 h-5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9.5px] bg-white">1</span>
+                  <span><strong>Perlu Bimbingan (PB)</strong> — Belum mampu mandiri / butuh bantuan penuh</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-4.5 h-4.5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9px]">2</span>
-                  <span>Mulai Berkembang (MB)</span>
+                  <span className="w-5 h-5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9.5px] bg-white">2</span>
+                  <span><strong>Berkembang (B)</strong> — Mampu dengan 1–2 kali arahan / pengingat</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-4.5 h-4.5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9px]">3</span>
-                  <span>Mulai Mandiri (MM)</span>
-                </span>
-              </div>
-              <div>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="w-4.5 h-4.5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9px]">4</span>
-                  <span>Membudaya/Konsisten (MK)</span>
+                  <span className="w-5 h-5 rounded-full border border-[#22352B] inline-flex items-center justify-center font-bold text-[9.5px] bg-white">3</span>
+                  <span><strong>Mandiri (M)</strong> — Lancar, tepat, dan konsisten tanpa bantuan</span>
                 </span>
               </div>
             </div>
@@ -1026,7 +1006,7 @@ export default function PosRubricPrintPage() {
 
                   return (
                     <div key={idx} className="bg-white">
-                      {/* Sub-baris Atas: Nama Siswa + 6 Kolom Skor (Masing-masing 4 OMR Capsule) */}
+                      {/* Sub-baris Atas: Nama Siswa + 6 Kolom Skor (Masing-masing 3 OMR Capsule) */}
                       <div className="flex items-center border-b border-[#22352B]/15">
                         {/* Kolom Kiri: Nomor + Nama & ID */}
                         <div className="w-[26%] px-3 py-2">
@@ -1038,20 +1018,20 @@ export default function PosRubricPrintPage() {
                           </div>
                         </div>
 
-                        {/* Kolom Kanan: 6 Kolom Indikator, masing-masing 4 pill capsule [1] [2] [3] [4] */}
+                        {/* Kolom Kanan: 6 Kolom Indikator, masing-masing 3 pill capsule [1] [2] [3] */}
                         <div className="w-[74%] grid grid-cols-6 divide-x divide-[#22352B]/20 py-2">
                           {[1, 2, 3, 4, 5, 6].map((colIdx) => {
                             const ind = displayIndicators[colIdx - 1];
                             const recordedScore = ind && !ind.isPlaceholder ? sScores[ind.id] : null;
 
                             return (
-                              <div key={colIdx} className="flex items-center justify-center gap-0.5 sm:gap-1 px-0.5">
-                                {[1, 2, 3, 4].map((score) => {
+                              <div key={colIdx} className="flex items-center justify-center gap-1 sm:gap-1.5 px-0.5">
+                                {[1, 2, 3].map((score) => {
                                   const isFilled = recordedScore === score;
                                   return (
                                     <span
                                       key={score}
-                                      className={`w-3.5 sm:w-4 h-5 rounded-full border-[1.2px] flex items-center justify-center text-[8.5px] font-black transition-colors ${
+                                      className={`w-4 sm:w-5 h-5 sm:h-5.5 rounded-full border-[1.3px] flex items-center justify-center text-[9px] font-black transition-colors ${
                                         isFilled
                                           ? "bg-[#22352B] text-white border-[#22352B]"
                                           : "bg-white text-[#22352B] border-[#22352B]/85"
@@ -1205,12 +1185,11 @@ export default function PosRubricPrintPage() {
               <table className="w-full text-left text-[8pt] border-collapse">
                 <thead>
                   <tr className="bg-[#E4EFE9] text-[#22352B] font-extrabold border-b border-[#CBD5D0]">
-                    <th className="py-2 px-2.5 w-[25%]">Indikator Observasi</th>
-                    <th className="py-2 px-2 w-[17%]">1 — Belum Muncul (BM)</th>
-                    <th className="py-2 px-2 w-[17%]">2 — Bimbingan (MB)</th>
-                    <th className="py-2 px-2 w-[17%]">3 — Mandiri (MM)</th>
-                    <th className="py-2 px-2 w-[17%]">4 — Konsisten (MK)</th>
-                    <th className="py-2 px-1.5 w-[7%] text-center">Skor</th>
+                    <th className="py-2 px-2.5 w-[28%]">Indikator Observasi</th>
+                    <th className="py-2 px-2 w-[22%]">1 — Perlu Bimbingan (PB)</th>
+                    <th className="py-2 px-2 w-[22%]">2 — Berkembang (B)</th>
+                    <th className="py-2 px-2 w-[22%]">3 — Mandiri (M)</th>
+                    <th className="py-2 px-1.5 w-[6%] text-center">Skor</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E8E2D8]">
@@ -1249,19 +1228,16 @@ export default function PosRubricPrintPage() {
                         <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 1 ? "bg-[#FCEEEF] font-bold text-[#B83A35]" : ""}`}>
                           {ind.score_descriptors["1"] || "-"}
                         </td>
-                        <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 2 ? "bg-[#F9E6DC] font-bold text-[#8C3713]" : ""}`}>
+                        <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 2 ? "bg-[#FAF8F5] font-bold text-[#7D5327]" : ""}`}>
                           {ind.score_descriptors["2"] || "-"}
                         </td>
                         <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 3 ? "bg-[#E4EFE9] font-bold text-[#486B5A]" : ""}`}>
                           {ind.score_descriptors["3"] || "-"}
                         </td>
-                        <td className={`py-2 px-2 align-top text-[#565C58] leading-tight text-[7.5pt] ${currentScore === 4 ? "bg-[#D6E6DC] font-bold text-[#22352B]" : ""}`}>
-                          {ind.score_descriptors["4"] || "-"}
-                        </td>
 
                         <td className="py-2 px-1 align-middle text-center">
-                          <div className="flex flex-col items-center gap-0.5">
-                            {[1, 2, 3, 4].map((s) => {
+                          <div className="flex flex-col items-center gap-1">
+                            {[1, 2, 3].map((s) => {
                               const isChosen = currentScore === s;
                               return (
                                 <span

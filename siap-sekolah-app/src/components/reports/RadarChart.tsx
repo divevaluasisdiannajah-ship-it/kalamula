@@ -21,7 +21,7 @@ export function RadarChart({
 }: RadarChartProps) {
   const center = size / 2;
   const radius = 72; // Balanced radius for 6-axis hexagon with text margins
-  const levels = [1, 2, 3, 4]; // Scores 1 to 4
+  const levels = [1, 2, 3]; // Scores 1 to 3
   const numAxes = 6;
 
   // 6 Fondasi Transisi PAUD-SD Kemendikbudristek
@@ -35,7 +35,7 @@ export function RadarChart({
   ];
 
   // Helper to compute (x, y) coordinates for an axis angle and distance
-  const getCoordinates = (index: number, value: number, maxVal = 4) => {
+  const getCoordinates = (index: number, value: number, maxVal = 3) => {
     // Angle in radians, starting from top (-pi/2)
     const angle = ((Math.PI * 2) / numAxes) * index - Math.PI / 2;
     const r = (value / maxVal) * radius;
@@ -64,7 +64,7 @@ export function RadarChart({
   // Generate polygon points for data
   const dataPoints = axes.map((item, index) => {
     const rawScore = getScoreForAxis(item.id) ?? 1;
-    const clampedScore = Math.max(1, Math.min(4, rawScore));
+    const clampedScore = Math.max(1, Math.min(3, rawScore));
     return getCoordinates(index, clampedScore);
   });
 
@@ -195,7 +195,7 @@ export function RadarChart({
                 fill="#486B5A"
                 className="font-sans"
               >
-                Skor: {scoreText} / 4.0
+                Skor: {scoreText} / 3.0
               </text>
             </g>
           );
