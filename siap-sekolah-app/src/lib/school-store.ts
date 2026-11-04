@@ -16,21 +16,21 @@ const uuidv4 = () =>
     : Math.random().toString(36).substring(2) + Date.now().toString(36);
 
 export const DEFAULT_SCHOOL_PROFILE: SchoolProfile = {
-  id: "school-sdit-annajah",
-  foundation_name: "Yayasan Pendidikan Islam An-Najah",
-  school_name: "SDIT An-Najah",
-  npsn: "20218492",
-  address: "Jl. KH. Noer Ali No. 27, Jatisari",
-  subdistrict: "Jatiasih",
-  city: "Kota Bekasi",
-  province: "Jawa Barat",
-  postal_code: "17426",
-  phone: "(021) 8499-1234",
-  whatsapp: "0812-8899-7766",
-  email: "sdit.annajah@sch.id",
+  id: "school-sdi-annajah",
+  foundation_name: "Yayasan Nurun Najah",
+  school_name: "SD Islam An Najah",
+  npsn: "20109914",
+  address: "Jl. SMA 64 RT 008 RW 02",
+  subdistrict: "Cipayung",
+  city: "Jakarta Timur",
+  province: "DKI Jakarta",
+  postal_code: "13840",
+  phone: "085864464420",
+  whatsapp: "085864464420",
+  email: "sdislamannajah.cpy@gmail.com",
   website: "observasi.sdiannajah.ai.id",
-  principal_name: "Ustadz H. Ahmad Syaikhu, M.Pd.I.",
-  principal_nip: "NIY. 19780512 200501 1 001",
+  principal_name: "Wida Mawaddah, S. Pd., Gr.",
+  principal_nip: "-",
   academic_year: "2026/2027",
   active_semester: "Ganjil",
   logo_url: "/icons/icon-192x192.png",
@@ -38,27 +38,34 @@ export const DEFAULT_SCHOOL_PROFILE: SchoolProfile = {
 };
 
 export const DEFAULT_TEACHERS: TeacherStaff[] = [
-  // 12 Wali Kelas (Homeroom Teachers)
-  { id: "tch-1a", name: "Ustadzah Fatimah, S.Pd.", nip_niy: "NIY. 2018070101", gender: "P", phone: "081234567801", email: "fatimah@sdiannajah.sch.id", role: "homeroom", assigned_class: "1A", is_evaluator: true, evaluator_pos: 1, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-1b", name: "Ustadzah Khadijah, S.Pd.", nip_niy: "NIY. 2018070102", gender: "P", phone: "081234567802", email: "khadijah@sdiannajah.sch.id", role: "homeroom", assigned_class: "1B", is_evaluator: true, evaluator_pos: 2, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-2a", name: "Ustadz Salman, S.Pd.I.", nip_niy: "NIY. 2019070103", gender: "L", phone: "081234567803", email: "salman@sdiannajah.sch.id", role: "homeroom", assigned_class: "2A", is_evaluator: true, evaluator_pos: 3, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-2b", name: "Ustadzah Maryam, M.Pd.", nip_niy: "NIY. 2019070104", gender: "P", phone: "081234567804", email: "maryam@sdiannajah.sch.id", role: "homeroom", assigned_class: "2B", is_evaluator: true, evaluator_pos: 4, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-3a", name: "Ustadzah Aisyah, S.Si.", nip_niy: "NIY. 2020070105", gender: "P", phone: "081234567805", email: "aisyah@sdiannajah.sch.id", role: "homeroom", assigned_class: "3A", is_evaluator: true, evaluator_pos: 5, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-3b", name: "Ustadz Abdullah, S.Pd.", nip_niy: "NIY. 2020070106", gender: "L", phone: "081234567806", email: "abdullah@sdiannajah.sch.id", role: "homeroom", assigned_class: "3B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-4a", name: "Ustadz Ibrahim, M.Pd.", nip_niy: "NIY. 2021070107", gender: "L", phone: "081234567807", email: "ibrahim@sdiannajah.sch.id", role: "homeroom", assigned_class: "4A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-4b", name: "Ustadzah Hafsah, S.Pd.", nip_niy: "NIY. 2021070108", gender: "P", phone: "081234567808", email: "hafsah@sdiannajah.sch.id", role: "homeroom", assigned_class: "4B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-5a", name: "Ustadz Ali, S.T., S.Pd.", nip_niy: "NIY. 2022070109", gender: "L", phone: "081234567809", email: "ali@sdiannajah.sch.id", role: "homeroom", assigned_class: "5A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-5b", name: "Ustadzah Zainab, S.Pd.", nip_niy: "NIY. 2022070110", gender: "P", phone: "081234567810", email: "zainab@sdiannajah.sch.id", role: "homeroom", assigned_class: "5B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-6a", name: "Ustadz Umar, M.Pd.", nip_niy: "NIY. 2017070111", gender: "L", phone: "081234567811", email: "umar@sdiannajah.sch.id", role: "homeroom", assigned_class: "6A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-6b", name: "Ustadzah Ruqayyah, S.Pd.", nip_niy: "NIY. 2017070112", gender: "P", phone: "081234567812", email: "ruqayyah@sdiannajah.sch.id", role: "homeroom", assigned_class: "6B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  // 5 Petugas Evaluator Pos SPMB Resmi
+  { id: "tch-eval-so1", name: "Ahmad Furqoni, S. Pd", nip_niy: "-", gender: "L", phone: "-", email: "", role: "evaluator", is_evaluator: true, evaluator_pos: 1, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-eval-so2", name: "Novia Permatasari, S. Pd", nip_niy: "-", gender: "P", phone: "-", email: "", role: "evaluator", is_evaluator: true, evaluator_pos: 1, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-eval-pos2", name: "Rifky Delsandi Rifai, S. Pd", nip_niy: "-", gender: "L", phone: "-", email: "", role: "evaluator", is_evaluator: true, evaluator_pos: 2, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-eval-pos3", name: "Shalma Ruhail Maldova, S. Pd", nip_niy: "-", gender: "P", phone: "-", email: "", role: "evaluator", is_evaluator: true, evaluator_pos: 3, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-eval-pos4", name: "Susmurtiningsih, S. Pd", nip_niy: "-", gender: "P", phone: "-", email: "", role: "evaluator", is_evaluator: true, evaluator_pos: 4, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 
-  // Guru Mata Pelajaran
-  { id: "tch-sub-1", name: "Ustadz Bilal Al-Habasyi, Lc.", nip_niy: "NIY. 2019080201", gender: "L", phone: "081234567821", email: "bilal@sdiannajah.sch.id", role: "subject", subject_specialty: "Pendidikan Agama Islam & Tahfizh", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-sub-2", name: "Ustadz Hamzah Prakoso, S.Pd.", nip_niy: "NIY. 2020080202", gender: "L", phone: "081234567822", email: "hamzah@sdiannajah.sch.id", role: "subject", subject_specialty: "PJOK & Kesehatan", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "tch-sub-3", name: "Ustadzah Sarah Amalia, B.Ed.", nip_niy: "NIY. 2021080203", gender: "P", phone: "081234567823", email: "sarah@sdiannajah.sch.id", role: "subject", subject_specialty: "Bahasa Inggris & Literasi Global", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  // 12 Rombel Wali Kelas (1A s.d. 6B) - Menunggu pengisian lengkap
+  { id: "tch-1a", name: "Wali Kelas 1A", nip_niy: "-", gender: "P", phone: "-", email: "", role: "homeroom", assigned_class: "1A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-1b", name: "Wali Kelas 1B", nip_niy: "-", gender: "P", phone: "-", email: "", role: "homeroom", assigned_class: "1B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-2a", name: "Wali Kelas 2A", nip_niy: "-", gender: "L", phone: "-", email: "", role: "homeroom", assigned_class: "2A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-2b", name: "Wali Kelas 2B", nip_niy: "-", gender: "P", phone: "-", email: "", role: "homeroom", assigned_class: "2B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-3a", name: "Wali Kelas 3A", nip_niy: "-", gender: "P", phone: "-", email: "", role: "homeroom", assigned_class: "3A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-3b", name: "Wali Kelas 3B", nip_niy: "-", gender: "L", phone: "-", email: "", role: "homeroom", assigned_class: "3B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-4a", name: "Wali Kelas 4A", nip_niy: "-", gender: "L", phone: "-", email: "", role: "homeroom", assigned_class: "4A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-4b", name: "Wali Kelas 4B", nip_niy: "-", gender: "P", phone: "-", email: "", role: "homeroom", assigned_class: "4B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-5a", name: "Wali Kelas 5A", nip_niy: "-", gender: "L", phone: "-", email: "", role: "homeroom", assigned_class: "5A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-5b", name: "Wali Kelas 5B", nip_niy: "-", gender: "P", phone: "-", email: "", role: "homeroom", assigned_class: "5B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-6a", name: "Wali Kelas 6A", nip_niy: "-", gender: "L", phone: "-", email: "", role: "homeroom", assigned_class: "6A", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-6b", name: "Wali Kelas 6B", nip_niy: "-", gender: "P", phone: "-", email: "", role: "homeroom", assigned_class: "6B", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 
-  // Tim Manajemen
-  { id: "tch-mgt-1", name: "Ustadz H. Ahmad Syaikhu, M.Pd.I.", nip_niy: "NIY. 19780512 200501 1 001", gender: "L", phone: "081234567899", email: "kepsek@sdiannajah.sch.id", role: "management", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  // Guru Mata Pelajaran Khusus (Opsional)
+  { id: "tch-sub-1", name: "Guru PAI / Tahfizh", nip_niy: "-", gender: "L", phone: "-", email: "", role: "subject", subject_specialty: "Pendidikan Agama Islam & Tahfizh", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-sub-2", name: "Guru PJOK", nip_niy: "-", gender: "L", phone: "-", email: "", role: "subject", subject_specialty: "PJOK & Kesehatan", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "tch-sub-3", name: "Guru Bahasa Inggris", nip_niy: "-", gender: "P", phone: "-", email: "", role: "subject", subject_specialty: "Bahasa Inggris", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Kepala Sekolah & Tim Manajemen
+  { id: "tch-mgt-1", name: "Wida Mawaddah, S. Pd., Gr.", nip_niy: "-", gender: "P", phone: "085864464420", email: "sdislamannajah.cpy@gmail.com", role: "management", is_evaluator: false, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 export interface SchoolDataState {

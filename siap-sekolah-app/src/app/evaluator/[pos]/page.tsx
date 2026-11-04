@@ -267,9 +267,21 @@ export default function EvaluatorStudentListPage() {
               </Link>
             )}
 
-            <div className="bg-[#E4EFE9] text-[#22352B] px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-2xs">
+            <div className="bg-[#E4EFE9] text-[#22352B] px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-[#486B5A] animate-pulse" />
-              <span>{posNumber === 1 ? "Super Observer Aktif" : "Evaluator Stasioner Aktif"}</span>
+              <span>
+                {posNumber === 1
+                  ? currentSubrole === "so1"
+                    ? "SO 1: Ahmad Furqoni, S. Pd"
+                    : "SO 2: Novia Permatasari, S. Pd"
+                  : posNumber === 2
+                  ? "Evaluator: Rifky Delsandi Rifai, S. Pd"
+                  : posNumber === 3
+                  ? "Evaluator: Shalma Ruhail Maldova, S. Pd"
+                  : posNumber === 4
+                  ? "Evaluator: Susmurtiningsih, S. Pd"
+                  : "Evaluator Aktif"}
+              </span>
             </div>
           </div>
         </div>
@@ -379,15 +391,15 @@ export default function EvaluatorStudentListPage() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                    Tugas Lapangan Anda: Penguji Motorik Kasar &amp; Penjemput Rotasi
+                    Tugas Lapangan: Penguji Motorik Kasar &amp; Penjemput Rotasi
                   </h3>
                   <p className="text-[11px] text-[#486B5A] font-bold">
-                    Ikuti alur waktu jemput &amp; serah-terima berikut agar anak tidak menunggu di koridor:
+                    Petugas: Rifky Delsandi Rifai, S. Pd &bull; Ikuti alur waktu jemput &amp; serah-terima berikut:
                   </p>
                 </div>
               </div>
               <span className="self-start sm:self-auto text-[10px] font-extrabold px-3 py-1 rounded-full bg-[#486B5A] text-white shadow-2xs">
-                Peran: Evaluator Motorik + Escort
+                Peran: Pos A (Motorik) + Escort
               </span>
             </div>
 
@@ -460,11 +472,11 @@ export default function EvaluatorStudentListPage() {
                 <div>
                   <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
                     {currentSubrole === "so1"
-                      ? "Tugas Anda: Super Observer 1 (Fokus Kelompok 2 ➔ Kelompok 1)"
-                      : "Tugas Anda: Super Observer 2 (Fokus Kelompok 3 ➔ Kelompok 2)"}
+                      ? "Tugas Anda: Super Observer 1 (Ahmad Furqoni, S. Pd)"
+                      : "Tugas Anda: Super Observer 2 (Novia Permatasari, S. Pd)"}
                   </h3>
                   <p className="text-[11px] text-[#7D5327] font-bold">
-                    Dampingi perpindahan antar-ruang &amp; catat kemandirian, emosi, dan kepatuhan instruksi secara bertahap.
+                    {currentSubrole === "so1" ? "Fokus awal Kelompok 2 ➔ Kelompok 1" : "Fokus awal Kelompok 3 ➔ Kelompok 2"} &bull; Dampingi perpindahan &amp; catat kemandirian/emosi.
                   </p>
                 </div>
               </div>
@@ -485,7 +497,7 @@ export default function EvaluatorStudentListPage() {
                       : "text-[#7D5327] hover:bg-[#FAF8F5]"
                   }`}
                 >
-                  SO 1 (Aktif)
+                  SO 1 (Ahmad Furqoni)
                 </button>
                 <button
                   type="button"
@@ -501,7 +513,7 @@ export default function EvaluatorStudentListPage() {
                       : "text-[#7D5327] hover:bg-[#FAF8F5]"
                   }`}
                 >
-                  Ganti ke SO 2
+                  SO 2 (Novia Permatasari)
                 </button>
               </div>
             </div>

@@ -445,7 +445,7 @@ export default function AdminClassesPage() {
                 Pengaturan Akses &amp; PIN Guru Kelas (1A s.d. 6B)
               </h2>
               <p className="text-xs sm:text-sm text-[#565C58] mt-1">
-                Kelola 4-digit PIN masuk untuk guru masing-masing rombel ruang kelas SDIT An-Najah.
+                Kelola 4-digit PIN masuk untuk guru masing-masing rombel ruang kelas SD Islam An Najah.
               </p>
             </div>
 

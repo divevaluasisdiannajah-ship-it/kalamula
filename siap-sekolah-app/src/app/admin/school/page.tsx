@@ -315,7 +315,7 @@ export default function AdminSchoolPage() {
                       required
                       value={profileForm.school_name || ""}
                       onChange={(e) => setProfileForm({ ...profileForm, school_name: e.target.value })}
-                      placeholder="Contoh: SDIT An-Najah"
+                      placeholder="Contoh: SD Islam An Najah"
                       className="w-full p-2.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E2D8] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#486B5A]"
                     />
                   </div>
@@ -527,10 +527,10 @@ export default function AdminSchoolPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[#787F7A] truncate">
-                        {profileForm.foundation_name || "Yayasan Pendidikan Islam An-Najah"}
+                        {profileForm.foundation_name || "Yayasan Nurun Najah"}
                       </p>
                       <h3 className="text-base font-black text-[#22352B] tracking-tight leading-snug truncate">
-                        {profileForm.school_name || "SDIT An-Najah"}
+                        {profileForm.school_name || "SD Islam An Najah"}
                       </h3>
                       <p className="text-[10px] text-[#565C58] truncate">
                         {profileForm.address ? `${profileForm.address}, ${profileForm.city}` : "Alamat Sekolah"} &bull; NPSN: {profileForm.npsn || "-"}
@@ -666,7 +666,15 @@ export default function AdminSchoolPage() {
                         )}
                         {t.is_evaluator && (
                           <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#F9E6DC] text-[#B85627] border border-[#F1CFC0]">
-                            Evaluator Pos {t.evaluator_pos || 1}
+                            {t.evaluator_pos === 1
+                              ? "Super Observer (SO)"
+                              : t.evaluator_pos === 2
+                              ? "Evaluator Pos A (Motorik)"
+                              : t.evaluator_pos === 3
+                              ? "Evaluator Pos B (Kognitif)"
+                              : t.evaluator_pos === 4
+                              ? "Evaluator Pos C (Bahasa)"
+                              : `Evaluator Pos ${t.evaluator_pos}`}
                           </span>
                         )}
                       </div>
@@ -884,11 +892,10 @@ export default function AdminSchoolPage() {
                       onChange={(e) => setTeacherForm({ ...teacherForm, evaluator_pos: Number(e.target.value) })}
                       className="p-1.5 rounded-xl bg-white border border-[#E8E2D8] text-xs font-bold text-[#B85627]"
                     >
-                      <option value={1}>Pos 1: Kedatangan &amp; Emosi</option>
-                      <option value={2}>Pos 2: Motorik Kasar &amp; Fisik</option>
-                      <option value={3}>Pos 3: Kognitif &amp; Numerasi</option>
-                      <option value={4}>Pos 4: Literasi &amp; Motorik Halus</option>
-                      <option value={5}>Pos 5: Interaksi Sosial Kelompok</option>
+                      <option value={1}>SO: Super Observer (Kemandirian, Emosi, Transisi)</option>
+                      <option value={2}>Pos A: Motorik Kasar &amp; Koordinasi Fisik</option>
+                      <option value={3}>Pos B: Kematangan Kognitif &amp; Berhitung</option>
+                      <option value={4}>Pos C: Bahasa Lisan &amp; Motorik Halus</option>
                     </select>
                   </div>
                 )}

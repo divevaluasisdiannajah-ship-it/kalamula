@@ -348,9 +348,26 @@ export default function PosRubricPrintPage() {
         const tData = await tRes.json();
         const tList = tData.data || [];
         setTeacherList(tList);
-        const evalTch = tList.find((t: any) => t.is_evaluator && t.evaluator_pos === posNumber);
-        if (evalTch) {
-          setEvaluatorName(evalTch.name);
+        if (isSuperObserver || posNumber === 1) {
+          const soTeachers = tList.filter((t: any) => t.is_evaluator && t.evaluator_pos === 1);
+          if (soTeachers.length >= 2) {
+            setEvaluatorName(`${soTeachers[0].name} / ${soTeachers[1].name}`);
+          } else if (soTeachers.length === 1) {
+            setEvaluatorName(soTeachers[0].name);
+          } else {
+            setEvaluatorName("Ahmad Furqoni, S. Pd / Novia Permatasari, S. Pd");
+          }
+        } else {
+          const evalTch = tList.find((t: any) => t.is_evaluator && t.evaluator_pos === posNumber);
+          if (evalTch) {
+            setEvaluatorName(evalTch.name);
+          } else if (posNumber === 2) {
+            setEvaluatorName("Rifky Delsandi Rifai, S. Pd");
+          } else if (posNumber === 3) {
+            setEvaluatorName("Shalma Ruhail Maldova, S. Pd");
+          } else if (posNumber === 4) {
+            setEvaluatorName("Susmurtiningsih, S. Pd");
+          }
         }
       }
     } catch (err) {
@@ -805,7 +822,7 @@ export default function PosRubricPrintPage() {
                 Instrumen Observasi Asesmen Diagnostik Kesiapan Belajar
               </h1>
               <p className="text-[10px] text-[#565C58] mt-0.5">
-                kalamula &bull; {schoolProfile?.school_name || "SDIT An-Najah"} &bull; {currentBatch ? currentBatch.batch_name : (schoolProfile?.foundation_name || "Yayasan Pendidikan Islam An-Najah")} &bull; T.A. {schoolProfile?.academic_year || "2026/2027"}
+                kalamula &bull; {schoolProfile?.school_name || "SD Islam An Najah"} &bull; {currentBatch ? currentBatch.batch_name : (schoolProfile?.foundation_name || "Yayasan Nurun Najah")} &bull; T.A. {schoolProfile?.academic_year || "2026/2027"}
               </p>
             </div>
           </div>
@@ -872,9 +889,13 @@ export default function PosRubricPrintPage() {
               <i className="mdi mdi-account-edit-outline text-xs text-[#787F7A]" />
               <span>NAMA EVALUATOR</span>
             </span>
-            <div className="border-b border-stone-400 w-full min-h-4 mt-1 font-bold text-[#22352B] text-xs truncate">
-              {evaluatorName || "...................................."}
-            </div>
+            <input
+              type="text"
+              value={evaluatorName}
+              onChange={(e) => setEvaluatorName(e.target.value)}
+              placeholder="...................................."
+              className="border-b border-stone-400 w-full min-h-4 mt-1 font-bold text-[#22352B] text-xs bg-transparent focus:outline-none focus:border-[#486B5A] print:border-none print:p-0"
+            />
           </div>
         </div>
 

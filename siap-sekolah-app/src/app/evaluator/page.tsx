@@ -10,6 +10,7 @@ interface PosInfo {
   name: string;
   roleBadge: string;
   roleBadgeColor: string;
+  evaluatorNames: string;
   desc: string;
   mdiIcon: string;
 }
@@ -19,27 +20,31 @@ const POS_DETAILS: Record<number, PosInfo> = {
     name: "Pos Kemandirian, Regulasi Emosi & Kepatuhan Instruksi",
     roleBadge: "Super Observer (SO 1 & SO 2)",
     roleBadgeColor: "bg-[#EFE7D6] text-[#7D5327] border-[#DDD0B8]",
+    evaluatorNames: "Ahmad Furqoni, S. Pd & Novia Permatasari, S. Pd",
     desc: "Amati kedatangan di titik awal, dampingi transisi rotasi 3 pos, hingga bermain bebas & snack break.",
     mdiIcon: "mdi-account-check-outline",
   },
   2: {
     name: "Pos Motorik Kasar & Koordinasi Fisik",
-    roleBadge: "Station Evaluator + Escort",
+    roleBadge: "Pos A (Motorik) + Escort",
     roleBadgeColor: "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]",
+    evaluatorNames: "Rifky Delsandi Rifai, S. Pd",
     desc: "Jemput Kelompok 1 di titik awal, uji keseimbangan & tangkap bola, jemput Kelompok 3 di Pos Bahasa.",
     mdiIcon: "mdi-run-fast",
   },
   3: {
     name: "Pos Kematangan Kognitif & Berhitung",
-    roleBadge: "Station Evaluator",
+    roleBadge: "Pos B (Kognitif)",
     roleBadgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CBD8E5]",
+    evaluatorNames: "Shalma Ruhail Maldova, S. Pd",
     desc: "Klasifikasi objek, logika pola berulang, perbandingan kuantitas & problem solving balok.",
     mdiIcon: "mdi-head-lightbulb-outline",
   },
   4: {
     name: "Pos Bahasa Lisan, Pra-Literasi & Motorik Halus",
-    roleBadge: "Station Evaluator",
+    roleBadge: "Pos C (Bahasa & Halus)",
     roleBadgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CBD8E5]",
+    evaluatorNames: "Susmurtiningsih, S. Pd",
     desc: "Menyimak cerita lisan (read-aloud), komunikasi verbal ide, & kontrol genggaman pensil (tripod grasp).",
     mdiIcon: "mdi-book-open-page-variant-outline",
   },
@@ -289,6 +294,9 @@ export default function EvaluatorLoginPage() {
                           >
                             {details.roleBadge}
                           </span>
+                          <span className="text-[10.5px] font-bold text-[#486B5A]">
+                            • {details.evaluatorNames}
+                          </span>
                         </div>
                         <span className="text-sm font-semibold text-[#22352B] block truncate">
                           {details.name}
@@ -316,18 +324,21 @@ export default function EvaluatorLoginPage() {
               <div className="bg-white rounded-2xl p-5 shadow-xs border border-[#E8E2D8] space-y-4">
                 <div className="text-center">
                   <span className="text-[11px] font-semibold text-[#565C58] uppercase tracking-wider">
-                    Verifikasi Keamanan
+                    Verifikasi Keamanan Petugas
                   </span>
                   <p className="text-sm font-semibold text-[#22352B] mt-0.5">
                     {posNumber === 1 ? (
                       <span className="text-[#7D5327] font-bold">
-                        {soRole === "so1" ? "Super Observer 1" : "Super Observer 2"}
+                        {soRole === "so1" ? "Super Observer 1: Ahmad Furqoni, S. Pd" : "Super Observer 2: Novia Permatasari, S. Pd"}
                       </span>
                     ) : (
                       <span className="text-[#B85627] font-bold">
-                        {POS_DETAILS[posNumber]?.name}
+                        {POS_DETAILS[posNumber]?.evaluatorNames}
                       </span>
                     )}
+                  </p>
+                  <p className="text-[11px] text-[#787F7A] mt-0.5">
+                    {POS_DETAILS[posNumber]?.name}
                   </p>
                 </div>
 
@@ -347,14 +358,19 @@ export default function EvaluatorLoginPage() {
                           setPin("");
                           setError("");
                         }}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+                        className={`py-2 px-2 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 ${
                           soRole === "so1"
                             ? "bg-[#7D5327] text-white shadow-2xs"
                             : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
                         }`}
                       >
-                        <i className="mdi mdi-account-check text-sm" />
-                        <span>SO 1 (Kel. 2 &rarr; 1)</span>
+                        <div className="flex items-center gap-1">
+                          <i className="mdi mdi-account-check text-sm" />
+                          <span>SO 1 (Kel. 2 &rarr; 1)</span>
+                        </div>
+                        <span className={`text-[9.5px] font-semibold ${soRole === "so1" ? "text-white/90" : "text-[#7D5327]"}`}>
+                          Ahmad Furqoni, S. Pd
+                        </span>
                       </button>
                       <button
                         type="button"
@@ -365,20 +381,25 @@ export default function EvaluatorLoginPage() {
                           setPin("");
                           setError("");
                         }}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+                        className={`py-2 px-2 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 ${
                           soRole === "so2"
                             ? "bg-[#7D5327] text-white shadow-2xs"
                             : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
                         }`}
                       >
-                        <i className="mdi mdi-account-check text-sm" />
-                        <span>SO 2 (Kel. 3 &rarr; 2)</span>
+                        <div className="flex items-center gap-1">
+                          <i className="mdi mdi-account-check text-sm" />
+                          <span>SO 2 (Kel. 3 &rarr; 2)</span>
+                        </div>
+                        <span className={`text-[9.5px] font-semibold ${soRole === "so2" ? "text-white/90" : "text-[#7D5327]"}`}>
+                          Novia Permatasari, S. Pd
+                        </span>
                       </button>
                     </div>
                     <p className="text-[10px] text-[#565C58] text-center leading-tight">
                       {soRole === "so1"
-                        ? "SO 1: Dampingi Kelompok 2 di awal, lalu Kelompok 1 dari Pos B, Pos C, hingga Titik Akhir"
-                        : "SO 2: Dampingi Kelompok 3 di awal, lalu Kelompok 2 dari Pos B hingga Titik Akhir"}
+                        ? "SO 1 (Ahmad Furqoni, S. Pd): Dampingi Kel. 2 di awal, lalu Kel. 1 dari Pos B, C, hingga Titik Akhir"
+                        : "SO 2 (Novia Permatasari, S. Pd): Dampingi Kel. 3 di awal, lalu Kel. 2 dari Pos B, C, hingga Titik Akhir"}
                     </p>
                   </div>
                 )}

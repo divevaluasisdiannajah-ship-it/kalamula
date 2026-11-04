@@ -81,13 +81,13 @@ export default function BatchReportPDFPage() {
 
   // Editable institution & signature state
   const [foundationName, setFoundationName] = useState(
-    "Yayasan Perguruan Islam An-Najah"
+    "Yayasan Nurun Najah"
   );
-  const [schoolName, setSchoolName] = useState("SD Islam Terpadu An-Najah");
+  const [schoolName, setSchoolName] = useState("SD Islam An Najah");
   const [coordinatorName, setCoordinatorName] = useState("Tim Asesor PPDB Fase A");
-  const [schoolUnit, setSchoolUnit] = useState("SDIT An-Najah");
-  const [principalName, setPrincipalName] = useState("Hj. Dra. Masitoh, M.Pd.");
-  const [principalNip, setPrincipalNip] = useState("........................................");
+  const [schoolUnit, setSchoolUnit] = useState("SD Islam An Najah");
+  const [principalName, setPrincipalName] = useState("Wida Mawaddah, S. Pd., Gr.");
+  const [principalNip, setPrincipalNip] = useState("-");
   const [showSettings, setShowSettings] = useState(true);
 
   const loadBatchReport = useCallback(async () => {

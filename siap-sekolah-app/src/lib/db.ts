@@ -212,7 +212,7 @@ function seedDemoBatchAndStudents(s: Store) {
     batch_name: "Gelombang 1 — PPDB 2026/2027",
     batch_date: "2026-10-06",
     status: "active",
-    notes: "Observasi Gelombang Pembuka Fase A Kelas 1 SDIT An-Najah",
+    notes: "Observasi Gelombang Pembuka Fase A Kelas 1 SD Islam An Najah",
     created_by: "system",
     created_at: now,
     updated_at: now,
