@@ -365,7 +365,7 @@ export default function EvaluationFormPage() {
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="bg-[#F9E6DC] text-[#B85627] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+              <span className="bg-[#FAF0E8] text-[#9C4322] border border-[#F2D8C7] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
                 {posNumber === 1 ? "SUPER OBSERVER" : "STATION EVALUATOR"}
               </span>
               <h2 className="text-sm sm:text-base font-bold text-[#22352B] tracking-tight truncate">
@@ -380,7 +380,7 @@ export default function EvaluationFormPage() {
           <div className="flex items-center gap-3 sm:w-60 flex-shrink-0">
             <div className="flex-1 h-2 bg-[#E8E2D8] rounded-full overflow-hidden" role="progressbar" aria-valuenow={completionPct} aria-valuemin={0} aria-valuemax={100}>
               <div
-                className="h-full bg-[#B85627] rounded-full transition-all duration-300"
+                className="h-full bg-[#9C4322] rounded-full transition-all duration-300"
                 style={{ width: `${completionPct}%` }}
               />
             </div>
@@ -656,7 +656,7 @@ export default function EvaluationFormPage() {
             disabled={saving || !isComplete}
             className={`w-full py-3.5 rounded-2xl font-bold text-sm sm:text-base transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
               isComplete
-                ? "bg-[#B85627] hover:bg-[#A34B21] text-white active:scale-[0.96]"
+                ? "bg-[#9C4322] hover:bg-[#84371B] text-white active:scale-[0.96]"
                 : "bg-[#EFECE4] text-[#787F7A] cursor-not-allowed"
             }`}
           >

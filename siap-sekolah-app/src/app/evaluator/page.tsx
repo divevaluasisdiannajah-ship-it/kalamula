@@ -223,18 +223,35 @@ export default function EvaluatorLoginPage() {
           </span>
         </div>
 
-        {/* Hero Judul: Kotak Ikon Besar #D67443 + Teks */}
-        <div className="flex items-center gap-3.5 py-1">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#D67443] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
-            <i className="mdi mdi-clipboard-check-outline text-3xl" />
+        {/* Signature Terracotta Hero Banner Card */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#9C4322] to-[#84371B] rounded-3xl p-5 sm:p-6 text-white shadow-sm space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-3 py-1 rounded-full shadow-2xs">
+              PORTAL EVALUATOR
+            </span>
+            <span className="text-[11px] text-white/80 font-medium">
+              T.A. 2026/2027 &bull; SD Islam An Najah
+            </span>
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#22352B] tracking-tight leading-tight">
-              Ruang Observasi SPMB
+
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+              Ruang Observasi &amp; Asesmen SPMB
             </h1>
-            <p className="text-xs text-[#565C58] mt-0.5">
-              Pilih pos observasi dan masukkan 4 digit PIN tugas Anda.
+            <p className="text-xs text-white/85 font-normal leading-relaxed max-w-xl">
+              Pilih pos observasi untuk masuk, lakukan pencatatan jurnal lapangan, dan verifikasi PIN tugas evaluator Anda.
             </p>
+          </div>
+
+          <div className="pt-1 flex flex-wrap items-center gap-2 text-xs">
+            <span className="bg-black/25 text-white/95 rounded-full px-3 py-1 text-[11px] font-semibold inline-flex items-center gap-1.5">
+              <i className="mdi mdi-shield-check text-sm text-[#E4EFE9]" />
+              <span>Verifikasi PIN 4-Digit Petugas</span>
+            </span>
+            <span className="bg-white/15 text-white/95 rounded-full px-3 py-1 text-[11px] font-semibold inline-flex items-center gap-1.5">
+              <i className="mdi mdi-account-group text-sm text-[#F9E6DC]" />
+              <span>Rotasi 3 Pos + Super Observer</span>
+            </span>
           </div>
         </div>
 

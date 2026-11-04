@@ -147,6 +147,16 @@ export default function EvaluatorStudentListPage() {
     [evaluations]
   );
 
+  const parsedIndicators = useMemo(() => {
+    if (!config?.indicators_json) return [];
+    try {
+      const parsed = typeof config.indicators_json === "string" ? JSON.parse(config.indicators_json) : config.indicators_json;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [config?.indicators_json]);
+
   const completionStats = useMemo(() => {
     if (students.length === 0) return { percent: 0, completed: 0, total: 0, pending: 0 };
     const completed = students.filter((s) => {
@@ -286,98 +296,163 @@ export default function EvaluatorStudentListPage() {
           </div>
         </div>
 
-        {/* Integrated Pos & Batch Elevated Header Strip */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            {/* Left: Pos Info + Batch Selector */}
-            <div className="space-y-1.5 min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="bg-[#F9E6DC] text-[#B85627] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
-                  RUANG ASESMEN
-                </span>
-                {POS_METADATA[posNumber]?.role && (
-                  <span className="bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full">
-                    {POS_METADATA[posNumber].role}
-                  </span>
-                )}
-                {/* Inline Gelombang Selector */}
-                {batches.length > 0 && (
-                  <div className="inline-flex items-center gap-1.5 ml-auto md:ml-0">
-                    <label htmlFor="batch-select-pos" className="sr-only">
-                      Pilih Gelombang
-                    </label>
-                    <select
-                      id="batch-select-pos"
-                      value={activeBatchId || ""}
-                      onChange={(e) => handleBatchChange(e.target.value)}
-                      className="bg-[#FAF8F5] border border-[#DDD0B8] text-[#22352B] font-bold text-xs rounded-xl px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-[#486B5A] cursor-pointer"
-                    >
-                      {batches.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.batch_name} ({b.student_count ?? 0} Siswa){b.status === "active" ? " • Aktif" : ""}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              <h1 className="text-xl sm:text-2xl font-extrabold text-[#22352B] tracking-tight leading-tight">
-                {config?.pos_name || POS_METADATA[posNumber]?.name || "Pos Observasi"}
-              </h1>
-
-              <p className="text-xs text-[#565C58] font-normal leading-relaxed">
-                <span className="font-semibold text-[#22352B]">{batch?.batch_name || "Gelombang Aktif"}</span> &bull; {POS_METADATA[posNumber]?.focus}
-              </p>
-
-              {posNumber === 5 && (
-                <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-2.5 mt-2 text-xs text-[#565C58] leading-relaxed">
-                  <i className="mdi mdi-cookie-clock-outline text-[#B85627] mr-1.5 text-sm" />
-                  <strong className="text-[#22352B]">Sesi Istirahat &amp; Bermain Bebas:</strong> Anak diperkenankan minum &amp; snack sambil bermain. Observasi interaksi dan regulasi diri tetap dicatat secara rileks.
-                </div>
-              )}
+        {/* ─── SIGNATURE TERRACOTTA HERO BANNER CARD (Persis Gambar Referensi) ─── */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#9C4322] via-[#943E1E] to-[#84371B] rounded-3xl p-5 sm:p-6 text-white shadow-md space-y-4">
+          {/* Top Tag & Batch Selector */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-3 py-1 rounded-full shadow-2xs backdrop-blur-xs">
+                {posNumber === 1 ? "POS 1 • SUPER OBSERVER" : `POS ${posNumber} • ${POS_METADATA[posNumber]?.role || "ASESMEN"}`}
+              </span>
+              <span className="text-[11px] text-white/80 font-medium">
+                T.A. 2026/2027 &bull; SD Islam An Najah
+              </span>
             </div>
 
-            {/* Right: Progress Strip & Stats */}
-            <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl p-3.5 sm:p-4 md:w-72 flex-shrink-0 space-y-2.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-[#565C58]">Progres Observasi</span>
-                <span className="font-bold text-[#22352B] tabular-nums font-mono text-sm">
-                  {completionStats.percent}%
-                </span>
+            {/* Inline Gelombang Selector */}
+            {batches.length > 0 && (
+              <div className="inline-flex items-center gap-1.5">
+                <label htmlFor="batch-select-pos" className="sr-only">
+                  Pilih Gelombang
+                </label>
+                <select
+                  id="batch-select-pos"
+                  value={activeBatchId || ""}
+                  onChange={(e) => handleBatchChange(e.target.value)}
+                  className="bg-black/25 hover:bg-black/35 border border-white/25 text-white font-bold text-xs rounded-xl px-2.5 py-1 focus:outline-none cursor-pointer transition shadow-2xs"
+                >
+                  {batches.map((b) => (
+                    <option key={b.id} value={b.id} className="text-[#22352B] bg-white">
+                      {b.batch_name} ({b.student_count ?? 0} Siswa){b.status === "active" ? " • Aktif" : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
+            )}
+          </div>
 
-              <div className="w-full h-2 bg-[#E8E2D8] rounded-full overflow-hidden" role="progressbar" aria-valuenow={completionStats.percent} aria-valuemin={0} aria-valuemax={100}>
-                <div
-                  className="h-full bg-[#486B5A] rounded-full transition-all duration-300"
-                  style={{ width: `${completionStats.percent}%` }}
-                />
-              </div>
+          {/* Pos Title & Focus Description */}
+          <div className="space-y-1.5">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+              {config?.pos_name || POS_METADATA[posNumber]?.name || "Pos Observasi"}
+            </h1>
+            <p className="text-xs text-white/90 font-normal leading-relaxed max-w-2xl">
+              {POS_METADATA[posNumber]?.focus || "Lakukan pencatatan jurnal lapangan, amati capaian perkembangan, dan catat indikator perilaku siswa secara teliti."}
+            </p>
+          </div>
 
-              {/* 3 Angka Ringkas */}
-              <div className="grid grid-cols-3 gap-2 pt-1 border-t border-[#E8E2D8]/60 text-center">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-[#787F7A] block">TOTAL</span>
-                  <span className="text-base font-bold text-[#22352B] tabular-nums font-mono block">
-                    {completionStats.total}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-[#486B5A] block">SELESAI</span>
-                  <span className="text-base font-bold text-[#486B5A] tabular-nums font-mono block">
-                    {completionStats.completed}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-[#B85627] block">MENUNGGU</span>
-                  <span className="text-base font-bold text-[#B85627] tabular-nums font-mono block">
-                    {completionStats.pending}
-                  </span>
-                </div>
-              </div>
+          {/* Evaluator Duty Bar */}
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            <div className="bg-black/25 text-white/95 rounded-full px-3.5 py-1.5 text-xs font-semibold inline-flex items-center gap-2 shadow-2xs">
+              <i className="mdi mdi-account-check text-sm text-[#E4EFE9]" />
+              <span>
+                {posNumber === 1
+                  ? currentSubrole === "so1"
+                    ? "Petugas: Ahmad Furqoni, S. Pd (SO 1)"
+                    : "Petugas: Novia Permatasari, S. Pd (SO 2)"
+                  : posNumber === 2
+                  ? "Petugas: Rifky Delsandi Rifai, S. Pd (Pos A)"
+                  : posNumber === 3
+                  ? "Petugas: Shalma Ruhail Maldova, S. Pd (Pos B)"
+                  : posNumber === 4
+                  ? "Petugas: Susmurtiningsih, S. Pd (Pos C)"
+                  : "Petugas Evaluator Aktif"}
+              </span>
+            </div>
+
+            <span className="bg-white/15 text-white/90 rounded-full px-3 py-1.5 text-[11px] font-semibold inline-flex items-center gap-1.5">
+              <i className="mdi mdi-calendar-clock text-xs text-[#F9E6DC]" />
+              <span>{batch?.batch_name || "Gelombang Aktif"}</span>
+            </span>
+          </div>
+
+          {/* ─── KARTU METRIK KEMBAR (TOTAL & SELESAI - Persis Gambar) ─── */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="bg-white rounded-2xl p-3 sm:p-4 text-center shadow-xs">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
+                TOTAL
+              </span>
+              <span className="text-2xl sm:text-3xl font-black text-[#9C4322] font-mono tabular-nums block mt-0.5">
+                {completionStats.total}
+              </span>
+            </div>
+            <div className="bg-white rounded-2xl p-3 sm:p-4 text-center shadow-xs">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
+                SELESAI
+              </span>
+              <span className="text-2xl sm:text-3xl font-black text-[#2E6B4D] font-mono tabular-nums block mt-0.5">
+                {completionStats.completed}
+              </span>
+            </div>
+          </div>
+
+          {/* Progress Bar Kelengkapan */}
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center justify-between text-[11px] text-white/90">
+              <span className="font-semibold">Progres Observasi:</span>
+              <span className="font-mono font-bold tabular-nums">
+                {completionStats.percent}% ({completionStats.completed} dari {completionStats.total} Siswa)
+              </span>
+            </div>
+            <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden" role="progressbar" aria-valuenow={completionStats.percent} aria-valuemin={0} aria-valuemax={100}>
+              <div
+                className="h-full bg-white rounded-full transition-all duration-300"
+                style={{ width: `${completionStats.percent}%` }}
+              />
             </div>
           </div>
         </div>
+
+        {/* ─── PANDUAN INDIKATOR OBSERVASI POS (Card Informasional) ─── */}
+        {parsedIndicators.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#FAF8F5]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#F9E6DC] text-[#9C4322] flex items-center justify-center flex-shrink-0 text-base font-bold shadow-2xs">
+                  <i className="mdi mdi-clipboard-text-outline" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-[#22352B]">
+                    Panduan Indikator Observasi ({parsedIndicators.length} Indikator)
+                  </h3>
+                  <p className="text-[11px] text-[#565C58]">
+                    Acuan rubrik capaian perkembangan siswa untuk pos ini
+                  </p>
+                </div>
+              </div>
+
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#FAF8F5] border border-[#E8E2D8] text-[#787F7A]">
+                Skala 1 (PB) – 3 (M)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {parsedIndicators.map((ind: { id: string; label: string; description: string; foundation?: string }, idx: number) => (
+                <div
+                  key={ind.id || idx}
+                  className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8E2D8] space-y-1 shadow-2xs"
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="font-mono font-extrabold text-[#9C4322] text-[11px] px-1.5 py-0.2 bg-[#F9E6DC] rounded">
+                      {ind.id || `IND-${idx + 1}`}
+                    </span>
+                    {ind.foundation && (
+                      <span className="text-[9px] font-bold text-[#486B5A]">
+                        Pondasi {ind.foundation}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-bold text-[#22352B] leading-tight">
+                    {ind.label}
+                  </p>
+                  <p className="text-[10.5px] text-[#565C58] leading-snug line-clamp-2">
+                    {ind.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ═══════════════════════════════════════════════════════════════════ */}
         {/* ─── KARTU PANDUAN PRIBADI (PERSONALIZED FIELD TASK CARD) ─────────── */}
@@ -661,10 +736,10 @@ export default function EvaluatorStudentListPage() {
           </div>
         )}
 
-        {/* Responsive Toolbar: Pencarian, Kelompok, dan Filter Status */}
-        <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-[#E8E2D8] shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
+        {/* Responsive Toolbar: Pencarian, Kelompok, dan Filter Status (Gaya Chips Sesuai Gambar) */}
+        <div className="bg-white p-3 rounded-2xl border border-[#E8E2D8] shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Input pencarian */}
-          <div className="relative flex-1 min-w-[200px] bg-[#FAF8F5] rounded-xl border border-[#E8E2D8] px-3 py-1.5 flex items-center gap-2">
+          <div className="relative flex-1 min-w-[200px] bg-[#FAF8F5] rounded-xl border border-[#E8E2D8] px-3 py-2 flex items-center gap-2">
             <i className="mdi mdi-magnify text-base text-[#787F7A] flex-shrink-0" />
             <input
               type="text"
@@ -685,15 +760,15 @@ export default function EvaluatorStudentListPage() {
             )}
           </div>
 
-          {/* Segmented Filter Kelompok */}
-          <div className="flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-xl border border-[#E8E2D8] overflow-x-auto no-scrollbar">
+          {/* Segmented Filter Kelompok - Chips Pills Sesuai Gambar */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             <button
               type="button"
               onClick={() => setSelectedGroup("all")}
-              className={`py-1 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer text-center whitespace-nowrap active:scale-[0.96] ${
+              className={`py-1.5 px-3 rounded-full text-xs font-bold transition cursor-pointer text-center whitespace-nowrap active:scale-[0.96] ${
                 selectedGroup === "all"
-                  ? "bg-[#22352B] text-white shadow-2xs"
-                  : "text-[#565C58] hover:text-[#22352B] hover:bg-white"
+                  ? "bg-[#9C4322] text-white shadow-2xs font-extrabold"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#DDD7CE]"
               }`}
             >
               Semua Kelompok
@@ -703,10 +778,10 @@ export default function EvaluatorStudentListPage() {
                 key={grp}
                 type="button"
                 onClick={() => setSelectedGroup(grp)}
-                className={`py-1 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer text-center whitespace-nowrap active:scale-[0.96] ${
+                className={`py-1.5 px-3 rounded-full text-xs font-bold transition cursor-pointer text-center whitespace-nowrap active:scale-[0.96] ${
                   selectedGroup === grp
-                    ? "bg-[#B85627] text-white shadow-2xs"
-                    : "text-[#565C58] hover:text-[#22352B] hover:bg-white"
+                    ? "bg-[#9C4322] text-white shadow-2xs font-extrabold"
+                    : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#DDD7CE]"
                 }`}
               >
                 {grp.replace("Kelompok ", "Kel. ")}
@@ -715,14 +790,14 @@ export default function EvaluatorStudentListPage() {
           </div>
 
           {/* Filter Status Siswa */}
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             <button
               type="button"
               onClick={() => setFilterTab("all")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap active:scale-[0.96] ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer whitespace-nowrap active:scale-[0.96] ${
                 filterTab === "all"
-                  ? "bg-[#486B5A] text-white shadow-2xs"
-                  : "bg-[#FAF8F5] border border-[#E8E2D8] text-[#565C58] hover:bg-white"
+                  ? "bg-[#22352B] text-white shadow-2xs"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#DDD7CE]"
               }`}
             >
               Semua
@@ -730,10 +805,10 @@ export default function EvaluatorStudentListPage() {
             <button
               type="button"
               onClick={() => setFilterTab("mandiri")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap active:scale-[0.96] ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer whitespace-nowrap active:scale-[0.96] ${
                 filterTab === "mandiri"
-                  ? "bg-[#486B5A] text-white shadow-2xs"
-                  : "bg-[#FAF8F5] border border-[#E8E2D8] text-[#565C58] hover:bg-white"
+                  ? "bg-[#2E6B4D] text-white shadow-2xs"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#DDD7CE]"
               }`}
             >
               Mandiri
@@ -741,10 +816,10 @@ export default function EvaluatorStudentListPage() {
             <button
               type="button"
               onClick={() => setFilterTab("bimbingan")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap active:scale-[0.96] ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer whitespace-nowrap active:scale-[0.96] ${
                 filterTab === "bimbingan"
-                  ? "bg-[#B85627] text-white shadow-2xs"
-                  : "bg-[#FAF8F5] border border-[#E8E2D8] text-[#565C58] hover:bg-white"
+                  ? "bg-[#9C4322] text-white shadow-2xs"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#DDD7CE]"
               }`}
             >
               Perlu Bimbingan
@@ -760,26 +835,26 @@ export default function EvaluatorStudentListPage() {
             <button
               type="button"
               onClick={loadData}
-              className="mt-2 px-4 py-2 bg-[#B85627] text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer active:scale-[0.96]"
+              className="mt-2 px-4 py-2 bg-[#9C4322] text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer active:scale-[0.96]"
             >
               Coba Lagi
             </button>
           </div>
         )}
 
-        {/* Daftar Kartu Siswa */}
+        {/* Daftar Kartu Siswa (Karakter Visual Persis Gambar Referensi) */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-28 bg-white rounded-2xl border border-[#E8E2D8] p-4.5 animate-pulse"
+                className="h-36 bg-white rounded-2xl border border-[#E8E2D8] p-4.5 animate-pulse"
               />
             ))}
           </div>
         ) : !error && students.length === 0 ? (
           <div className="p-6 sm:p-8 bg-white rounded-2xl border border-[#E8E2D8] shadow-xs text-center space-y-3">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#F6F2E9] border border-[#E8E2D8] flex items-center justify-center text-[#B85627]">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#F6F2E9] border border-[#E8E2D8] flex items-center justify-center text-[#9C4322]">
               <i className="mdi mdi-account-group-outline text-3xl" />
             </div>
             <div>
@@ -839,209 +914,131 @@ export default function EvaluatorStudentListPage() {
                 activeBatchId ? `?batch=${activeBatchId}` : ""
               }`;
 
-              if (isNeedsGuidance) {
-                // Card Siswa Perlu Bimbingan: bg-[#FDF7F4] border border-[#F1CFC0]
-                return (
-                  <article
-                    key={student.id}
-                    onClick={() => router.push(targetUrl)}
-                    tabIndex={0}
-                    role="link"
-                    aria-label={`Buka observasi ${student.nickname || student.full_name}, status dengan bimbingan`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        router.push(targetUrl);
-                      }
-                    }}
-                    className="bg-[#FDF7F4] border border-[#F1CFC0] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
-                  >
-                    {/* Baris Atas */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 min-w-0">
-                        {/* Avatar Bulat #B85627 */}
-                        <div className="w-11 h-11 rounded-full bg-[#B85627] text-white flex items-center justify-center font-extrabold text-sm flex-shrink-0 shadow-2xs">
-                          {student.nickname ? student.nickname.charAt(0).toUpperCase() : student.full_name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="text-base font-bold text-[#22352B] leading-tight truncate" title={student.nickname || student.full_name}>
-                            {student.nickname || student.full_name}
-                          </h3>
-                          <p className="text-xs text-[#565C58] mt-0.5 truncate" title={student.full_name}>
-                            {student.full_name}
-                          </p>
-                          <p className="text-[11px] text-[#787F7A] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
-                            {student.observation_group && (
-                              <span className="font-bold text-[#7D5327]">
-                                {student.observation_group}
-                              </span>
-                            )}
-                            {student.observation_group && <span>&bull;</span>}
-                            <span>{calculateAge(student.birth_date)}</span>
-                            <span>&bull;</span>
-                            <span className="font-mono tabular-nums text-[#8C3713]">
-                              Skor: {score.toFixed(1)}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
+              // Tentukan avatar style & status box sesuai gambar
+              const avatarBg = isMandiri
+                ? "bg-[#3D5A47] text-white"
+                : isNeedsGuidance
+                ? "bg-[#9C4322] text-white"
+                : "bg-[#EFECE4] text-[#787F7A]";
 
-                      {/* Lingkaran Ceklis Peach di Kanan Atas */}
-                      <div className="w-7 h-7 rounded-full bg-[#F9E6DC] text-[#8C3713] flex items-center justify-center flex-shrink-0 shadow-2xs">
-                        <i className="mdi mdi-check text-base font-bold" />
-                      </div>
-                    </div>
-
-                    {/* Baris Bawah */}
-                    <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#F2DDD2]">
-                      <span className="bg-[#F9E6DC] text-[#8C3713] text-[11px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                        <i className="mdi mdi-heart-outline text-xs" />
-                        <span>Dengan Bimbingan</span>
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(targetUrl);
-                        }}
-                        className="bg-[#F9E6DC] text-[#8C3713] hover:bg-[#F2D7CA] text-xs font-bold px-3 py-1 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
-                      >
-                        <span>Lihat Jurnal</span>
-                        <i className="mdi mdi-chevron-right text-sm" />
-                      </button>
-                    </div>
-                  </article>
-                );
-              }
-
-              if (isMandiri) {
-                // Card Siswa Mandiri: bg-white
-                return (
-                  <article
-                    key={student.id}
-                    onClick={() => router.push(targetUrl)}
-                    tabIndex={0}
-                    role="link"
-                    aria-label={`Buka observasi ${student.nickname || student.full_name}, status mandiri dan konsisten`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        router.push(targetUrl);
-                      }
-                    }}
-                    className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
-                  >
-                    {/* Baris Atas */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 min-w-0">
-                        {/* Avatar Bulat #486B5A */}
-                        <div className="w-11 h-11 rounded-full bg-[#486B5A] text-white flex items-center justify-center font-extrabold text-sm flex-shrink-0 shadow-2xs">
-                          {student.nickname ? student.nickname.charAt(0).toUpperCase() : student.full_name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="text-base font-bold text-[#22352B] leading-tight truncate" title={student.nickname || student.full_name}>
-                            {student.nickname || student.full_name}
-                          </h3>
-                          <p className="text-xs text-[#565C58] mt-0.5 truncate" title={student.full_name}>
-                            {student.full_name}
-                          </p>
-                          <p className="text-[11px] text-[#787F7A] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
-                            {student.observation_group && (
-                              <span className="font-bold text-[#486B5A]">
-                                {student.observation_group}
-                              </span>
-                            )}
-                            {student.observation_group && <span>&bull;</span>}
-                            <span>{calculateAge(student.birth_date)}</span>
-                            <span>&bull;</span>
-                            <span className="font-mono tabular-nums text-[#486B5A]">
-                              Skor: {score.toFixed(1)}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Lingkaran Ceklis Hijau Lembut di Kanan Atas */}
-                      <div className="w-7 h-7 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center flex-shrink-0 shadow-2xs">
-                        <i className="mdi mdi-check text-base font-bold" />
-                      </div>
-                    </div>
-
-                    {/* Baris Bawah */}
-                    <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#FAF8F5]">
-                      <span className="bg-[#E4EFE9] text-[#22352B] text-[11px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                        <i className="mdi mdi-shield-check-outline text-[#486B5A] text-xs" />
-                        <span>Mandiri &amp; Konsisten</span>
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(targetUrl);
-                        }}
-                        className="bg-[#F3EFE6] text-[#22352B] hover:bg-[#EAE4D8] text-xs font-bold px-3 py-1 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
-                      >
-                        <span>Lihat Jurnal</span>
-                        <i className="mdi mdi-chevron-right text-sm" />
-                      </button>
-                    </div>
-                  </article>
-                );
-              }
-
-              // Card Siswa Belum Diobservasi
               return (
                 <article
                   key={student.id}
                   onClick={() => router.push(targetUrl)}
                   tabIndex={0}
                   role="link"
-                  aria-label={`Buka observasi ${student.nickname || student.full_name}, status belum observasi`}
+                  aria-label={`Buka observasi ${student.nickname || student.full_name}`}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       router.push(targetUrl);
                     }
                   }}
-                  className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-xs cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
+                  className={`rounded-2xl p-4 sm:p-4.5 shadow-xs flex flex-col justify-between gap-3 relative transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer active:scale-[0.98] border ${
+                    isNeedsGuidance
+                      ? "bg-[#FDF9F7] border-[#F1CFC0]"
+                      : isMandiri
+                      ? "bg-white border-[#E8E2D8]"
+                      : "bg-white border-[#E8E2D8]"
+                  }`}
                 >
-                  {/* Baris Atas */}
+                  {/* Baris Atas: Avatar + Nama + Kelompok + Gender */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className="w-11 h-11 rounded-full bg-[#EFECE4] text-[#787F7A] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-2xs">
+                      {/* Avatar Bulat Bersih */}
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 shadow-2xs ${avatarBg}`}>
                         {student.nickname ? student.nickname.charAt(0).toUpperCase() : student.full_name.charAt(0).toUpperCase()}
                       </div>
+
                       <div className="min-w-0">
-                        <h3 className="text-base font-bold text-[#22352B] leading-tight truncate" title={student.nickname || student.full_name}>
-                          {student.nickname || student.full_name}
-                        </h3>
-                        <p className="text-xs text-[#565C58] mt-0.5 truncate" title={student.full_name}>
-                          {student.full_name}
-                        </p>
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <h3 className="text-sm sm:text-base font-bold text-[#22352B] leading-tight truncate" title={student.nickname || student.full_name}>
+                            {student.nickname || student.full_name}
+                          </h3>
+                          {student.nickname && (
+                            <span className="text-[11px] text-[#787F7A] truncate font-normal">
+                              ({student.full_name})
+                            </span>
+                          )}
+                        </div>
+
                         <p className="text-[11px] text-[#787F7A] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
                           {student.observation_group && (
-                            <span className="font-bold text-[#7D5327]">
+                            <span className="font-bold text-[#9C4322] bg-[#FAF0E8] border border-[#F2D8C7] px-2 py-0.2 rounded-md text-[10px]">
                               {student.observation_group}
                             </span>
                           )}
-                          {student.observation_group && <span>&bull;</span>}
                           <span>{calculateAge(student.birth_date)}</span>
+                          <span>&bull;</span>
+                          <span className="font-mono tabular-nums text-[#565C58]">
+                            {student.registration_no}
+                          </span>
                         </p>
                       </div>
                     </div>
 
-                    <span className="bg-[#FAF8F5] text-[#787F7A] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border border-[#E8E2D8]">
-                      Belum Observasi
-                    </span>
+                    {/* Status Badge Ringkas Kanan Atas */}
+                    {isComplete && (
+                      <div
+                        className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-2xs ${
+                          isMandiri
+                            ? "bg-[#E4EFE9] text-[#2E6B4D]"
+                            : "bg-[#FAF0E8] text-[#9C4322]"
+                        }`}
+                        title={isMandiri ? "Mandiri & Konsisten" : "Dengan Bimbingan"}
+                      >
+                        <i className="mdi mdi-check text-base font-black" />
+                      </div>
+                    )}
                   </div>
 
-                  {/* Baris Bawah */}
-                  <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#FAF8F5]">
-                    <span className="text-[11px] text-[#787F7A] font-mono tabular-nums">
-                      No: {student.registration_no}
-                    </span>
+                  {/* ─── KOTAK SNAPSHOT PROGRES OBSERVASI (Persis Gambar Referensi) ─── */}
+                  <div>
+                    {isMandiri ? (
+                      <div className="bg-[#EAF3EE] text-[#2E6B4D] border border-[#CFE4D7] rounded-xl p-2.5 text-xs flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-bold">
+                          <i className="mdi mdi-shield-check-outline text-sm" />
+                          <span>Mandiri &amp; Konsisten</span>
+                        </span>
+                        <span className="font-mono font-extrabold tabular-nums">
+                          Skor: {score.toFixed(1)} / 3.0
+                        </span>
+                      </div>
+                    ) : isNeedsGuidance ? (
+                      <div className="bg-[#FAF0E8] text-[#9C4322] border border-[#F2D8C7] rounded-xl p-2.5 text-xs flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-bold">
+                          <i className="mdi mdi-alert-circle-outline text-sm" />
+                          <span>Perlu Bimbingan / Sinyal Adaptif</span>
+                        </span>
+                        <span className="font-mono font-extrabold tabular-nums">
+                          Skor: {score.toFixed(1)} / 3.0
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="bg-[#FAF8F5] text-[#787F7A] border border-[#E8E2D8] rounded-xl p-2.5 text-xs flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <i className="mdi mdi-clock-outline text-sm text-[#A8A09A]" />
+                          <span>Belum diobservasi di pos ini</span>
+                        </span>
+                        <span className="text-[11px] font-bold text-[#9C4322]">
+                          Siap dinilai
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Baris Bawah: Status Pill + Tombol Aksi */}
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#FAF8F5]">
+                    {isComplete ? (
+                      <span className="text-[11px] font-bold text-[#2E6B4D] flex items-center gap-1">
+                        <i className="mdi mdi-check-circle text-xs" />
+                        <span>Selesai Dievaluasi</span>
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-[#787F7A]">
+                        Menunggu Asesmen
+                      </span>
+                    )}
 
                     <button
                       type="button"
@@ -1049,10 +1046,14 @@ export default function EvaluatorStudentListPage() {
                         e.stopPropagation();
                         router.push(targetUrl);
                       }}
-                      className="bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-bold px-3.5 py-1.5 rounded-full transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
+                      className={`text-xs font-bold px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-[0.96] ${
+                        isComplete
+                          ? "bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8]"
+                          : "bg-[#9C4322] hover:bg-[#84371B] text-white"
+                      }`}
                     >
-                      <i className="mdi mdi-pencil-outline text-xs" />
-                      <span>Catat Observasi</span>
+                      <span>{isComplete ? "Lihat / Edit" : "Mulai Observasi"}</span>
+                      <i className={`mdi ${isComplete ? "mdi-pencil-outline text-xs text-[#9C4322]" : "mdi-arrow-right text-sm"}`} />
                     </button>
                   </div>
                 </article>

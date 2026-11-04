@@ -88,8 +88,8 @@ export function StudentHeroCard({
       >
         {/* Top Info Row */}
         <div className="flex items-center gap-3.5">
-          {/* Avatar konsentris #486B5A */}
-          <div className="w-12 h-12 rounded-xl bg-[#486B5A] text-white flex items-center justify-center font-bold text-base flex-shrink-0 shadow-2xs">
+          {/* Avatar bulat konsisten dengan visual evaluator */}
+          <div className="w-12 h-12 rounded-full bg-[#3D5A47] text-white flex items-center justify-center font-black text-base flex-shrink-0 shadow-2xs">
             {initials}
           </div>
 
@@ -105,9 +105,9 @@ export function StudentHeroCard({
               </div>
 
               {hasRedFlag && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F9E6DC] text-[#8C3713] border border-[#F1CFC0]">
-                  <i className="mdi mdi-alert text-xs text-[#B85627]" />
-                  <span>Perhatian Khusus</span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FAF0E8] text-[#9C4322] border border-[#F2D8C7]">
+                  <i className="mdi mdi-alert text-xs text-[#9C4322]" />
+                  <span>Sinyal Perhatian</span>
                 </span>
               )}
             </div>
@@ -115,7 +115,7 @@ export function StudentHeroCard({
             {/* Consolidated Metadata Row */}
             <p className="text-xs text-[#565C58] mt-1 flex flex-wrap items-center gap-1.5 font-medium">
               {student.observation_group && (
-                <span className="font-bold text-[#7D5327] bg-[#EFE7D6] px-2 py-0.5 rounded-md text-[10.5px]">
+                <span className="font-bold text-[#9C4322] bg-[#FAF0E8] border border-[#F2D8C7] px-2 py-0.5 rounded-md text-[10.5px]">
                   {student.observation_group}
                 </span>
               )}
