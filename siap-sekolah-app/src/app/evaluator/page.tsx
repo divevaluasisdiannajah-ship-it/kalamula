@@ -1,7 +1,7 @@
 "use client";
 export const runtime = 'edge';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Batch } from "@/types";
@@ -13,40 +13,45 @@ interface PosInfo {
   evaluatorNames: string;
   desc: string;
   mdiIcon: string;
+  isSo: boolean;
 }
 
 const POS_DETAILS: Record<number, PosInfo> = {
   1: {
     name: "Pos Kemandirian, Regulasi Emosi & Kepatuhan Instruksi",
     roleBadge: "Super Observer (SO 1 & SO 2)",
-    roleBadgeColor: "bg-[#EFE7D6] text-[#7D5327] border-[#DDD0B8]",
+    roleBadgeColor: "bg-[#FAF0E8] text-[#9C4322] border-[#F2D8C7]",
     evaluatorNames: "Ahmad Furqoni, S. Pd & Novia Permatasari, S. Pd",
     desc: "Amati kedatangan di titik awal, dampingi transisi rotasi 3 pos, hingga bermain bebas & snack break.",
     mdiIcon: "mdi-account-check-outline",
+    isSo: true,
   },
   2: {
     name: "Pos Motorik Kasar & Koordinasi Fisik",
     roleBadge: "Pos A (Motorik) + Escort",
-    roleBadgeColor: "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]",
+    roleBadgeColor: "bg-[#F0F4F1] text-[#385642] border-[#D5E3DA]",
     evaluatorNames: "Rifky Delsandi Rifai, S. Pd",
     desc: "Jemput Kelompok 1 di titik awal, uji keseimbangan & tangkap bola, jemput Kelompok 3 di Pos Bahasa.",
     mdiIcon: "mdi-run-fast",
+    isSo: false,
   },
   3: {
     name: "Pos Kematangan Kognitif & Berhitung",
     roleBadge: "Pos B (Kognitif)",
-    roleBadgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CBD8E5]",
+    roleBadgeColor: "bg-[#F0F4F1] text-[#385642] border-[#D5E3DA]",
     evaluatorNames: "Shalma Ruhail Maldova, S. Pd",
     desc: "Klasifikasi objek, logika pola berulang, perbandingan kuantitas & problem solving balok.",
     mdiIcon: "mdi-head-lightbulb-outline",
+    isSo: false,
   },
   4: {
     name: "Pos Bahasa Lisan, Pra-Literasi & Motorik Halus",
     roleBadge: "Pos C (Bahasa & Halus)",
-    roleBadgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CBD8E5]",
+    roleBadgeColor: "bg-[#F0F4F1] text-[#385642] border-[#D5E3DA]",
     evaluatorNames: "Susmurtiningsih, S. Pd",
     desc: "Menyimak cerita lisan (read-aloud), komunikasi verbal ide, & kontrol genggaman pensil (tripod grasp).",
     mdiIcon: "mdi-book-open-page-variant-outline",
+    isSo: false,
   },
 };
 
@@ -59,6 +64,7 @@ export default function EvaluatorLoginPage() {
   const [soRole, setSoRole] = useState<"so1" | "so2">("so1");
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string>("");
+  const [posFilter, setPosFilter] = useState<"all" | "so" | "posA" | "posB" | "posC">("all");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -93,6 +99,10 @@ export default function EvaluatorLoginPage() {
     }
     loadBatches();
   }, []);
+
+  const currentBatch = useMemo(() => {
+    return batches.find((b) => b.id === selectedBatchId) || batches[0] || null;
+  }, [batches, selectedBatchId]);
 
   // Modal open with smooth in-transition
   const openPinModal = useCallback((pos: number) => {
@@ -205,6 +215,17 @@ export default function EvaluatorLoginPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isModalOpen, isModalVisible, handlePinInput, handleDelete, closePinModal]);
 
+  const filteredPosList = useMemo(() => {
+    return [1, 2, 3, 4].filter((pos) => {
+      if (posFilter === "all") return true;
+      if (posFilter === "so") return pos === 1;
+      if (posFilter === "posA") return pos === 2;
+      if (posFilter === "posB") return pos === 3;
+      if (posFilter === "posC") return pos === 4;
+      return true;
+    });
+  }, [posFilter]);
+
   return (
     <main className="min-h-screen bg-[#F6F2E9] text-[#22352B] pb-16 font-sans">
       <div className="p-4 sm:p-6 max-w-xl md:max-w-4xl lg:max-w-5xl mx-auto space-y-5">
@@ -218,170 +239,293 @@ export default function EvaluatorLoginPage() {
             <span>Kembali ke Beranda</span>
           </Link>
 
-          <span className="bg-[#F9E6DC] text-[#B85627] text-xs font-extrabold px-3 py-1 rounded-full shadow-2xs">
-            OBSERVASI SPMB
-          </span>
-        </div>
-
-        {/* Signature Terracotta Hero Banner Card */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#9C4322] to-[#84371B] rounded-3xl p-5 sm:p-6 text-white shadow-sm space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <span className="bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-3 py-1 rounded-full shadow-2xs">
-              PORTAL EVALUATOR
-            </span>
-            <span className="text-[11px] text-white/80 font-medium">
-              T.A. 2026/2027 &bull; SD Islam An Najah
+          <div className="flex items-center gap-1.5 bg-white border border-[#E8E2D8] px-3 py-1 rounded-full shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-[#385642] animate-pulse" />
+            <span className="text-[#385642] text-[11px] font-extrabold uppercase tracking-wide">
+              Online
             </span>
           </div>
+        </div>
 
-          <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-              Ruang Observasi &amp; Asesmen SPMB
-            </h1>
-            <p className="text-xs text-white/85 font-normal leading-relaxed max-w-xl">
-              Pilih pos observasi untuk masuk, lakukan pencatatan jurnal lapangan, dan verifikasi PIN tugas evaluator Anda.
+        {/* Hero Banner: Deep Forest Pine (#385642) */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#385642] to-[#2D4535] rounded-3xl p-5 sm:p-6 text-white shadow-sm space-y-4">
+          {/* Top Row: Icon + Portal Badge + Title + Subtitle */}
+          <div className="flex items-start gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center flex-shrink-0 text-2xl shadow-inner border border-white/10">
+              <i className="mdi mdi-shield-account-outline" />
+            </div>
+            <div className="space-y-1 min-w-0">
+              <span className="bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-2.5 py-0.5 rounded-full inline-block">
+                PORTAL EVALUATOR
+              </span>
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                Ruang Observasi SPMB
+              </h1>
+              <p className="text-xs text-white/85 font-normal leading-relaxed">
+                Pilih pos observasi dan masukkan 4 digit PIN tugas Anda.
+              </p>
+            </div>
+          </div>
+
+          {/* Active Batch Strip */}
+          <div className="space-y-1.5 pt-1">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-white/75">
+              GELOMBANG OBSERVASI AKTIF
             </p>
-          </div>
-
-          <div className="pt-1 flex flex-wrap items-center gap-2 text-xs">
-            <span className="bg-black/25 text-white/95 rounded-full px-3 py-1 text-[11px] font-semibold inline-flex items-center gap-1.5">
-              <i className="mdi mdi-shield-check text-sm text-[#E4EFE9]" />
-              <span>Verifikasi PIN 4-Digit Petugas</span>
-            </span>
-            <span className="bg-white/15 text-white/95 rounded-full px-3 py-1 text-[11px] font-semibold inline-flex items-center gap-1.5">
-              <i className="mdi mdi-account-group text-sm text-[#F9E6DC]" />
-              <span>Rotasi 3 Pos + Super Observer</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Pilihan Gelombang Observasi */}
-        {batches.length > 0 && (
-          <div className="bg-white rounded-2xl p-3.5 border border-[#E8E2D8] shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-[#F6F2E9] border border-[#E8E2D8] text-[#486B5A] flex items-center justify-center flex-shrink-0">
-                <i className="mdi mdi-calendar-clock text-lg" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#787F7A] leading-tight">
-                  Gelombang Observasi
-                </p>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-[#22352B] truncate">
-                    {batches.find((b) => b.id === selectedBatchId)?.batch_name || "Pilih Gelombang"}
+            <div className="bg-white rounded-2xl p-2.5 sm:p-3 flex items-center justify-between text-[#22352B] shadow-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-[#E4EFE9] text-[#385642] flex items-center justify-center flex-shrink-0">
+                  <i className="mdi mdi-calendar-check text-lg" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs sm:text-sm font-bold text-[#22352B] truncate block">
+                    {currentBatch ? `${currentBatch.batch_name} (${currentBatch.student_count ?? 0} Siswa)` : "Pilih Gelombang"}
                   </span>
-                  {selectedBatchId && (
-                    <span className="text-[11px] font-medium text-[#486B5A] tabular-nums font-mono">
-                      ({batches.find((b) => b.id === selectedBatchId)?.student_count ?? 0} Siswa)
-                    </span>
-                  )}
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <label htmlFor="batch-select-entrance" className="sr-only">
-                Pilih Gelombang
-              </label>
-              <select
-                id="batch-select-entrance"
-                value={selectedBatchId}
-                onChange={(e) => {
-                  setSelectedBatchId(e.target.value);
-                  if (typeof window !== "undefined") {
-                    localStorage.setItem("kalamula_evaluator_batch_id", e.target.value);
-                  }
-                }}
-                className="w-full sm:w-auto bg-[#FAF8F5] border border-[#DDD0B8] text-[#22352B] font-bold text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#486B5A] cursor-pointer"
-              >
-                {batches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.batch_name} ({b.student_count ?? 0} Siswa){b.status === "active" ? " • Aktif" : ""}
-                  </option>
-                ))}
-              </select>
+              {batches.length > 1 && (
+                <div className="flex-shrink-0">
+                  <label htmlFor="batch-hero-select" className="sr-only">
+                    Pilih Gelombang
+                  </label>
+                  <select
+                    id="batch-hero-select"
+                    value={selectedBatchId}
+                    onChange={(e) => {
+                      setSelectedBatchId(e.target.value);
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("kalamula_evaluator_batch_id", e.target.value);
+                      }
+                    }}
+                    className="bg-[#FAF8F5] border border-[#DDD0B8] text-[#22352B] font-bold text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#385642] cursor-pointer"
+                  >
+                    {batches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.batch_name} ({b.student_count ?? 0} Siswa)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Responsive Grid of Pos Cards */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-0.5">
-            <p className="text-[11px] font-bold text-[#565C58] uppercase tracking-wider">
+          {/* 3 Metric Cards */}
+          <div className="grid grid-cols-3 gap-2.5 pt-1">
+            {/* Card 1: Total Pos */}
+            <div className="bg-white/15 backdrop-blur-xs rounded-2xl p-3 text-center border border-white/10 flex flex-col justify-center items-center">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-white/80 block">
+                TOTAL POS
+              </span>
+              <span className="text-2xl font-black text-white leading-tight font-mono tabular-nums">
+                4
+              </span>
+            </div>
+
+            {/* Card 2: Peserta (Highlighted Solid White Card) */}
+            <div className="bg-white rounded-2xl p-3 text-center shadow-xs flex flex-col justify-center items-center">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#385642]/80 block">
+                PESERTA
+              </span>
+              <span className="text-2xl font-black text-[#385642] leading-tight font-mono tabular-nums">
+                {currentBatch?.student_count ?? 0}
+              </span>
+            </div>
+
+            {/* Card 3: Status */}
+            <div className="bg-white/15 backdrop-blur-xs rounded-2xl p-3 text-center border border-white/10 flex flex-col justify-center items-center">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-white/80 block">
+                STATUS
+              </span>
+              <span className="text-base sm:text-lg font-black text-white leading-tight tracking-wide">
+                AKTIF
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Section Header & Filter Chips */}
+        <div className="space-y-3 pt-1">
+          <div className="space-y-0.5 px-0.5">
+            <h2 className="text-xs sm:text-sm font-black text-[#22352B] uppercase tracking-wider">
               PILIH RUANG &amp; DOMAIN OBSERVASI
+            </h2>
+            <p className="text-[11px] text-[#787F7A]">
+              Ketuk kartu pos untuk verifikasi PIN &amp; mulai menilai
             </p>
-            <span className="text-[11px] text-[#787F7A]">
-              Klik kartu pos untuk memasukkan PIN
-            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5" role="group" aria-label="Daftar Ruang Observasi">
-            {[1, 2, 3, 4].map((pos) => {
+          {/* Filter Chips Horizontal Bar */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-label="Filter Pos Observasi">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={posFilter === "all"}
+              onClick={() => setPosFilter("all")}
+              className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
+                posFilter === "all"
+                  ? "bg-[#9C4322] text-white shadow-2xs"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#9C4322]/40"
+              }`}
+            >
+              Semua Pos (4)
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={posFilter === "so"}
+              onClick={() => setPosFilter("so")}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
+                posFilter === "so"
+                  ? "bg-[#9C4322] text-white shadow-2xs font-extrabold"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#9C4322]/40"
+              }`}
+            >
+              Super Observer (1)
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={posFilter === "posA"}
+              onClick={() => setPosFilter("posA")}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
+                posFilter === "posA"
+                  ? "bg-[#9C4322] text-white shadow-2xs font-extrabold"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#9C4322]/40"
+              }`}
+            >
+              Pos A (Motorik)
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={posFilter === "posB"}
+              onClick={() => setPosFilter("posB")}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
+                posFilter === "posB"
+                  ? "bg-[#9C4322] text-white shadow-2xs font-extrabold"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#9C4322]/40"
+              }`}
+            >
+              Pos B (Kognitif)
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={posFilter === "posC"}
+              onClick={() => setPosFilter("posC")}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
+                posFilter === "posC"
+                  ? "bg-[#9C4322] text-white shadow-2xs font-extrabold"
+                  : "bg-white border border-[#E8E2D8] text-[#565C58] hover:border-[#9C4322]/40"
+              }`}
+            >
+              Pos C (Bahasa)
+            </button>
+          </div>
+
+          {/* Pos Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1" role="group" aria-label="Daftar Ruang Observasi">
+            {filteredPosList.map((pos) => {
               const details = POS_DETAILS[pos];
+              const isSo = details.isSo;
 
               return (
-                <button
+                <div
                   key={pos}
-                  type="button"
                   onClick={() => openPinModal(pos)}
-                  className="w-full bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs hover:border-[#D67443]/60 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group active:scale-[0.98] cursor-pointer"
+                  className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-xs hover:border-[#9C4322]/40 hover:shadow-md transition-all text-left flex flex-col justify-between gap-4 group cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openPinModal(pos);
+                    }
+                  }}
                 >
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-[#F9E6DC] text-[#8C3713] flex items-center justify-center flex-shrink-0 group-hover:bg-[#B85627] group-hover:text-white transition-colors shadow-2xs">
-                          <i className={`mdi ${details.mdiIcon} text-xl`} />
-                        </div>
-                        <div>
-                          <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${details.roleBadgeColor}`}>
-                            {details.roleBadge}
-                          </span>
-                        </div>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3.5">
+                      {/* Circular avatar: Terracotta for SO, Soft sage for Pos A, B, C */}
+                      <div
+                        className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105 shadow-2xs ${
+                          isSo
+                            ? "bg-[#9C4322] text-white"
+                            : "bg-[#E4EFE9] text-[#385642]"
+                        }`}
+                      >
+                        <i className={`mdi ${details.mdiIcon} text-xl`} />
                       </div>
 
-                      <div className="w-7 h-7 rounded-full bg-[#FAF8F5] border border-[#E8E2D8] text-[#787F7A] group-hover:text-[#B85627] group-hover:border-[#B85627]/30 flex items-center justify-center transition-all flex-shrink-0">
-                        <i className="mdi mdi-lock-outline text-sm" />
+                      <div className="min-w-0 flex-1">
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border inline-block mb-1 ${details.roleBadgeColor}`}
+                        >
+                          {details.roleBadge}
+                        </span>
+                        <h3 className="text-sm font-extrabold text-[#22352B] group-hover:text-[#9C4322] transition-colors leading-snug">
+                          {details.name}
+                        </h3>
+                        <p className="text-[11px] font-semibold text-[#385642] mt-1 flex items-center gap-1.5 flex-wrap">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#385642]" />
+                          <span>{details.evaluatorNames}</span>
+                        </p>
+                        <p className="text-xs text-[#565C58] mt-2 font-normal leading-relaxed">
+                          {details.desc}
+                        </p>
                       </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-sm font-bold text-[#22352B] group-hover:text-[#B85627] transition-colors leading-snug">
-                        {details.name}
-                      </h3>
-                      <p className="text-[11px] font-semibold text-[#486B5A] mt-0.5">
-                        • {details.evaluatorNames}
-                      </p>
-                      <p className="text-xs text-[#565C58] mt-1 font-normal leading-relaxed">
-                        {details.desc}
-                      </p>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-[#FAF8F5] flex items-center justify-between text-xs font-bold text-[#B85627]">
-                    <span className="flex items-center gap-1.5">
-                      <i className="mdi mdi-key-outline text-sm" />
-                      <span>Masuk Pos &amp; Verifikasi PIN</span>
-                    </span>
-                    <i className="mdi mdi-arrow-right text-base group-hover:translate-x-1 transition-transform" />
+                  {/* Bottom row */}
+                  <div className="pt-3 border-t border-[#F6F2E9] flex items-center justify-between gap-2">
+                    {/* Left pill */}
+                    {isSo ? (
+                      <span className="bg-[#FAF0E8] text-[#9C4322] border border-[#F2D8C7] rounded-full px-3 py-1 text-[11px] font-bold inline-flex items-center gap-1.5">
+                        <i className="mdi mdi-shield-key-outline text-xs" />
+                        <span>Wajib PIN Tugas</span>
+                      </span>
+                    ) : (
+                      <span className="bg-[#FAF8F5] text-[#787F7A] border border-[#E8E2D8] rounded-full px-3 py-1 text-[11px] font-bold inline-flex items-center gap-1.5">
+                        <i className="mdi mdi-key-outline text-xs" />
+                        <span>PIN 4 Digit</span>
+                      </span>
+                    )}
+
+                    {/* Right Action Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPinModal(pos);
+                      }}
+                      className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer ${
+                        isSo
+                          ? "bg-[#9C4322] hover:bg-[#85371B] text-white"
+                          : "bg-[#ECE7DF] hover:bg-[#9C4322] hover:text-white text-[#4A4F4C]"
+                      }`}
+                    >
+                      <span>Masuk &amp; Verifikasi PIN</span>
+                      <i className="mdi mdi-chevron-right text-sm" />
+                    </button>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
         </div>
 
         {/* Quick Link: Cetak Lembar Observasi Fisik Lapangan */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs space-y-3 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-[#22352B] flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#F6F2E9] border border-[#E8E2D8] text-[#486B5A] flex items-center justify-center">
-                <i className="mdi mdi-printer-outline text-base" />
-              </div>
-              <div>
-                <span className="block text-sm font-bold text-[#22352B]">Lembar Cetak Observasi Fisik (A4)</span>
-                <span className="block text-[11px] text-[#787F7A] font-normal">Format matriks observasi lapangan untuk dicetak</span>
-              </div>
-            </span>
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs space-y-3.5 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#E4EFE9] text-[#385642] flex items-center justify-center flex-shrink-0">
+              <i className="mdi mdi-printer-outline text-lg" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#22352B]">Lembar Cetak Observasi Fisik</h3>
+              <p className="text-[11px] text-[#787F7A] font-normal">Format matriks observasi lapangan cadangan / manual</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
@@ -389,7 +533,7 @@ export default function EvaluatorLoginPage() {
               href={`/reports/rubric/so${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#E4EFE9] hover:bg-[#D4E6DC] text-[#486B5A] border border-[#CBE0D4] px-3 py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
+              className="bg-[#E4EFE9] hover:bg-[#D4E6DC] text-[#385642] border border-[#CBE0D4] px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
             >
               <i className="mdi mdi-eye-check-outline" />
               <span>SO Terpadu</span>
@@ -398,27 +542,27 @@ export default function EvaluatorLoginPage() {
               href={`/reports/rubric/2${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
+              className="bg-[#FAF0E8] hover:bg-[#F2DFD3] text-[#9C4322] border border-[#F2D8C7] px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
             >
-              <i className="mdi mdi-run-fast text-[#B85627]" />
+              <i className="mdi mdi-run-fast" />
               <span>Pos A (Motorik)</span>
             </Link>
             <Link
               href={`/reports/rubric/3${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
+              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
             >
-              <i className="mdi mdi-head-lightbulb-outline text-[#36506C]" />
+              <i className="mdi mdi-head-lightbulb-outline text-[#385642]" />
               <span>Pos B (Kognitif)</span>
             </Link>
             <Link
               href={`/reports/rubric/4${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
+              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
             >
-              <i className="mdi mdi-book-open-page-variant-outline text-[#36506C]" />
+              <i className="mdi mdi-book-open-page-variant-outline text-[#385642]" />
               <span>Pos C (Bahasa)</span>
             </Link>
           </div>
@@ -453,7 +597,13 @@ export default function EvaluatorLoginPage() {
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#FAF8F5]">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-2xl bg-[#D67443] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                <div
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xs ${
+                    POS_DETAILS[activePos]?.isSo
+                      ? "bg-[#9C4322] text-white"
+                      : "bg-[#E4EFE9] text-[#385642]"
+                  }`}
+                >
                   <i className={`mdi ${POS_DETAILS[activePos]?.mdiIcon} text-2xl`} />
                 </div>
                 <div className="min-w-0">
@@ -488,7 +638,7 @@ export default function EvaluatorLoginPage() {
             {/* Sub-Role Selector Khusus Pos 1 (Super Observer) */}
             {activePos === 1 && (
               <div className="bg-[#FAF8F5] p-2.5 rounded-2xl border border-[#DDD0B8] space-y-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7D5327] block text-center">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#9C4322] block text-center">
                   PILIH PENUGASAN ANDA HARI INI
                 </span>
                 <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Penugasan Super Observer">
@@ -503,15 +653,15 @@ export default function EvaluatorLoginPage() {
                     }}
                     className={`py-2 px-2 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 ${
                       soRole === "so1"
-                        ? "bg-[#7D5327] text-white shadow-2xs"
-                        : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
+                        ? "bg-[#9C4322] text-white shadow-2xs"
+                        : "bg-white text-[#9C4322] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
                     }`}
                   >
                     <div className="flex items-center gap-1">
                       <i className="mdi mdi-account-check text-sm" />
                       <span>SO 1 (Kel. 2 &rarr; 1)</span>
                     </div>
-                    <span className={`text-[9.5px] font-semibold ${soRole === "so1" ? "text-white/90" : "text-[#7D5327]"}`}>
+                    <span className={`text-[9.5px] font-semibold ${soRole === "so1" ? "text-white/90" : "text-[#9C4322]"}`}>
                       Ahmad Furqoni, S. Pd
                     </span>
                   </button>
@@ -526,15 +676,15 @@ export default function EvaluatorLoginPage() {
                     }}
                     className={`py-2 px-2 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 ${
                       soRole === "so2"
-                        ? "bg-[#7D5327] text-white shadow-2xs"
-                        : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
+                        ? "bg-[#9C4322] text-white shadow-2xs"
+                        : "bg-white text-[#9C4322] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
                     }`}
                   >
                     <div className="flex items-center gap-1">
                       <i className="mdi mdi-account-check text-sm" />
                       <span>SO 2 (Kel. 3 &rarr; 2)</span>
                     </div>
-                    <span className={`text-[9.5px] font-semibold ${soRole === "so2" ? "text-white/90" : "text-[#7D5327]"}`}>
+                    <span className={`text-[9.5px] font-semibold ${soRole === "so2" ? "text-white/90" : "text-[#9C4322]"}`}>
                       Novia Permatasari, S. Pd
                     </span>
                   </button>
@@ -558,7 +708,7 @@ export default function EvaluatorLoginPage() {
                     key={i}
                     className={`w-4 h-4 rounded-full transition-all duration-150 ${
                       pin.length > i
-                        ? "bg-[#B85627] shadow-xs scale-115"
+                        ? "bg-[#9C4322] shadow-xs scale-115"
                         : "border-2 border-[#C5B4A5] bg-transparent"
                     }`}
                   />
@@ -575,7 +725,7 @@ export default function EvaluatorLoginPage() {
 
             {/* Loading Status */}
             {loading && (
-              <div className="flex items-center justify-center gap-2 text-xs text-[#B85627] font-medium py-1 animate-pulse">
+              <div className="flex items-center justify-center gap-2 text-xs text-[#9C4322] font-medium py-1 animate-pulse">
                 <i className="mdi mdi-loading mdi-spin text-base" />
                 <span>Memverifikasi PIN Pos <strong className="font-mono">{activePos}</strong>...</span>
               </div>
@@ -589,7 +739,7 @@ export default function EvaluatorLoginPage() {
                   type="button"
                   onClick={() => handlePinInput(String(num))}
                   disabled={loading}
-                  className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:outline-none"
+                  className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#385642] focus-visible:outline-none"
                   aria-label={`Digit ${num}`}
                 >
                   {num}
@@ -602,7 +752,7 @@ export default function EvaluatorLoginPage() {
                 type="button"
                 onClick={() => handlePinInput("0")}
                 disabled={loading}
-                className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:outline-none"
+                className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#385642] focus-visible:outline-none"
                 aria-label="Digit 0"
               >
                 0
@@ -612,7 +762,7 @@ export default function EvaluatorLoginPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={loading || pin.length === 0}
-                className="bg-[#F9E6DC] text-[#B85627] border border-[#F1CFC0] rounded-2xl h-12 font-bold hover:bg-[#F2D7CA] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:outline-none"
+                className="bg-[#FAF0E8] text-[#9C4322] border border-[#F2D8C7] rounded-2xl h-12 font-bold hover:bg-[#F5E6DC] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[#385642] focus-visible:outline-none"
                 aria-label="Hapus satu digit"
               >
                 <i className="mdi mdi-backspace-outline text-xl" />
