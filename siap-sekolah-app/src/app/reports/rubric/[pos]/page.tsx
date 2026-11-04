@@ -239,10 +239,18 @@ export default function PosRubricPrintPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Route pos slug: '1'..'5' or 'so' (Super Observer)
-  const posParam = String(params.pos || "1").toLowerCase();
-  const isSuperObserver = posParam === "so" || posParam === "super-observer";
+  // Route pos slug: 'so', '2', '3', '4' (Pos 1 is Super Observer, Pos 5 is legacy redirected to SO)
+  const posParam = String(params.pos || "so").toLowerCase();
+  const isSuperObserver = posParam === "so" || posParam === "super-observer" || posParam === "1";
   const posNumber = isSuperObserver ? 1 : Number(posParam) || 1;
+
+  useEffect(() => {
+    // If someone visits /reports/rubric/5 or /reports/rubric/1, gracefully normalize URL to /reports/rubric/so
+    if (posParam === "5" || posParam === "1") {
+      const q = searchParams.toString();
+      router.replace(`/reports/rubric/so${q ? `?${q}` : ""}`);
+    }
+  }, [posParam, router, searchParams]);
 
   const initialStudentId = searchParams.get("student_id") || "";
 
@@ -423,41 +431,13 @@ export default function PosRubricPrintPage() {
   };
 
   // Active indicators for current view
-  // If Super Observer: Pos 1, 3, 4, 5 combined
-  // If Station Evaluator: specific Pos
+  // If Super Observer: Pos 1 (SO-01 to SO-07)
+  // If Station Evaluator: specific Pos (Pos 2 Motorik, Pos 3 Kognitif, Pos 4 Bahasa)
   const activeIndicators = useMemo(() => {
-    if (isSuperObserver) {
-      const posList = [1, 3, 4, 5];
-      const combined: {
-        pos: number;
-        id: string;
-        label: string;
-        description: string;
-        foundation?: FoundationNumber;
-        score_descriptors: Record<string | number, string>;
-      }[] = [];
-
-      posList.forEach((p) => {
-        const cfg = allConfigs[p] || DEFAULT_CONFIGS[p];
-        if (cfg?.indicators) {
-          cfg.indicators.forEach((ind) => {
-            combined.push({
-              pos: p,
-              id: ind.id,
-              label: ind.label,
-              description: ind.description,
-              foundation: ind.foundation,
-              score_descriptors: (ind.score_descriptors as unknown as Record<string | number, string>) || {},
-            });
-          });
-        }
-      });
-      return combined;
-    }
-
-    const cfg = allConfigs[posNumber] || DEFAULT_CONFIGS[posNumber] || DEFAULT_CONFIGS[1];
+    const targetPos = isSuperObserver ? 1 : posNumber;
+    const cfg = allConfigs[targetPos] || DEFAULT_CONFIGS[targetPos] || DEFAULT_CONFIGS[1];
     return (cfg.indicators || []).map((ind) => ({
-      pos: posNumber,
+      pos: targetPos,
       id: ind.id,
       label: ind.label,
       description: ind.description,
@@ -543,19 +523,9 @@ export default function PosRubricPrintPage() {
 
   // Red flags for single format
   const activeRedFlags = useMemo(() => {
-    if (isSuperObserver) {
-      const posList = [1, 3, 4, 5];
-      const combined: { id: string; label: string; pos: number }[] = [];
-      posList.forEach((p) => {
-        const cfg = allConfigs[p] || DEFAULT_CONFIGS[p];
-        if (cfg?.red_flags) {
-          cfg.red_flags.forEach((rf) => combined.push({ ...rf, pos: p }));
-        }
-      });
-      return combined;
-    }
-    const cfg = allConfigs[posNumber] || DEFAULT_CONFIGS[posNumber] || DEFAULT_CONFIGS[1];
-    return (cfg.red_flags || []).map((rf) => ({ ...rf, pos: posNumber }));
+    const targetPos = isSuperObserver ? 1 : posNumber;
+    const cfg = allConfigs[targetPos] || DEFAULT_CONFIGS[targetPos] || DEFAULT_CONFIGS[1];
+    return (cfg.red_flags || []).map((rf) => ({ ...rf, pos: targetPos }));
   }, [isSuperObserver, posNumber, allConfigs]);
 
   const currentDateFormatted = new Date().toLocaleDateString("id-ID", {
@@ -565,12 +535,12 @@ export default function PosRubricPrintPage() {
   });
 
   const activeFocusText = useMemo(() => {
-    if (isSuperObserver) {
-      return "Super Observer (Pos 1, 3, 4, 5) Terpadu";
+    if (isSuperObserver || posNumber === 1) {
+      return "Kemandirian, Regulasi Emosi Individu & Sosial, Kepatuhan Mengikuti Instruksi";
     }
     const defaultCfg = DEFAULT_CONFIGS[posNumber];
     const customCfg = allConfigs[posNumber];
-    return defaultCfg?.focus || customCfg?.pos_name || "Kedatangan, Kemandirian & Emosi";
+    return customCfg?.pos_name || defaultCfg?.focus || "Observasi Kesiapan Belajar";
   }, [isSuperObserver, posNumber, allConfigs]);
 
   return (
@@ -625,38 +595,72 @@ export default function PosRubricPrintPage() {
               <span>Dashboard Admin</span>
             </Link>
 
-            {/* Pos & Super Observer Switcher */}
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
-              {[1, 2, 3, 4, 5].map((pos) => {
-                const isActive = !isSuperObserver && pos === posNumber;
-                return (
-                  <button
-                    key={pos}
-                    type="button"
-                    onClick={() => router.push(`/reports/rubric/${pos}?batch_id=${selectedBatchId}${selectedStudentId ? `&student_id=${selectedStudentId}` : ""}`)}
-                    className={`px-3 py-1 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1 ${
-                      isActive
-                        ? "bg-[#B85627] text-white shadow-xs"
-                        : "bg-[#FAF8F5] text-[#565C58] hover:bg-[#EFECE4] border border-[#E8E2D8]"
+            {/* Ruang Observasi Switcher (SO + 3 Pos Stasioner) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+              {[
+                {
+                  id: "so",
+                  path: "/reports/rubric/so",
+                  badge: "SO",
+                  label: "Super Observer",
+                  isActive: isSuperObserver || posNumber === 1,
+                  activeClass: "bg-[#486B5A] text-white shadow-xs",
+                  badgeBg: "bg-white/20 text-white",
+                },
+                {
+                  id: "2",
+                  path: "/reports/rubric/2",
+                  badge: "POS A",
+                  label: "Pos A (Motorik)",
+                  isActive: !isSuperObserver && posNumber === 2,
+                  activeClass: "bg-[#7D5327] text-white shadow-xs",
+                  badgeBg: "bg-white/20 text-white",
+                },
+                {
+                  id: "3",
+                  path: "/reports/rubric/3",
+                  badge: "POS B",
+                  label: "Pos B (Kognitif)",
+                  isActive: !isSuperObserver && posNumber === 3,
+                  activeClass: "bg-[#36506C] text-white shadow-xs",
+                  badgeBg: "bg-white/20 text-white",
+                },
+                {
+                  id: "4",
+                  path: "/reports/rubric/4",
+                  badge: "POS C",
+                  label: "Pos C (Bahasa)",
+                  isActive: !isSuperObserver && posNumber === 4,
+                  activeClass: "bg-[#8C3713] text-white shadow-xs",
+                  badgeBg: "bg-white/20 text-white",
+                },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() =>
+                    router.push(
+                      `${item.path}?batch_id=${selectedBatchId}${
+                        selectedStudentId ? `&student_id=${selectedStudentId}` : ""
+                      }`
+                    )
+                  }
+                  className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                    item.isActive
+                      ? item.activeClass
+                      : "bg-[#FAF8F5] text-[#565C58] hover:bg-[#EFECE4] border border-[#E8E2D8]"
+                  }`}
+                >
+                  <span
+                    className={`text-[9px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${
+                      item.isActive ? item.badgeBg : "bg-[#EFECE4] text-[#22352B]"
                     }`}
                   >
-                    <span>Pos {pos}</span>
-                  </button>
-                );
-              })}
-
-              <button
-                type="button"
-                onClick={() => router.push(`/reports/rubric/so?batch_id=${selectedBatchId}`)}
-                className={`px-3 py-1 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 ${
-                  isSuperObserver
-                    ? "bg-[#486B5A] text-white shadow-xs"
-                    : "bg-[#E4EFE9] text-[#486B5A] hover:bg-[#D4E6DC] border border-[#CBE0D4]"
-                }`}
-              >
-                <i className="mdi mdi-eye-check-outline text-sm" />
-                <span>Super Observer</span>
-              </button>
+                    {item.badge}
+                  </span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -830,12 +834,24 @@ export default function PosRubricPrintPage() {
           <div className="text-right flex-shrink-0">
             <span
               className={`font-extrabold px-3.5 py-1 rounded-full text-[10px] sm:text-xs text-white uppercase tracking-wide inline-block shadow-2xs print:border ${
-                isSuperObserver
+                isSuperObserver || posNumber === 1
                   ? "bg-[#486B5A] print:border-[#486B5A]"
-                  : "bg-[#B85627] print:border-[#B85627]"
+                  : posNumber === 2
+                  ? "bg-[#7D5327] print:border-[#7D5327]"
+                  : posNumber === 3
+                  ? "bg-[#36506C] print:border-[#36506C]"
+                  : "bg-[#8C3713] print:border-[#8C3713]"
               }`}
             >
-              {isSuperObserver ? "SUPER OBSERVER" : `POS OBSERVASI ${posNumber}`}
+              {isSuperObserver || posNumber === 1
+                ? "SUPER OBSERVER (TERPADU)"
+                : posNumber === 2
+                ? "POS A: MOTORIK KASAR & FISIK"
+                : posNumber === 3
+                ? "POS B: KOGNITIF & BERHITUNG"
+                : posNumber === 4
+                ? "POS C: BAHASA LISAN & PRA-LITERASI"
+                : `POS OBSERVASI ${posNumber}`}
             </span>
             <p className="text-[9.5px] text-[#787F7A] font-semibold mt-1 text-right">
               {currentDateFormatted}
@@ -1123,33 +1139,23 @@ export default function PosRubricPrintPage() {
 
             {/* ─── 6. Footer Rotasi & Tanda Tangan ─── */}
             <div className="flex items-end justify-between pt-2 text-[10px] text-[#22352B]">
-              {/* Rotasi 12 Menit */}
+              {/* Alur Rotasi Pos SPMB Terbaru */}
               <div className="max-w-md text-[9.5px] leading-relaxed">
-                <span className="font-extrabold text-[#22352B]">Rotasi 12 menit: </span>
-                <span className={posNumber === 1 && !isSuperObserver ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
-                  Pos 1 Kedatangan
+                <span className="font-extrabold text-[#22352B]">Alur Observasi (3 Pos + 2 Superobserver): </span>
+                <span className={posNumber === 2 && !isSuperObserver ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
+                  Pos A (Motorik)
                 </span>
-                <span className="text-stone-400 mx-1">&rsaquo;</span>
-                <span className={posNumber === 2 ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
-                  Pos 2 Motorik
+                <span className="text-stone-400 mx-1">&bull;</span>
+                <span className={posNumber === 3 && !isSuperObserver ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
+                  Pos B (Kognitif)
                 </span>
-                <span className="text-stone-400 mx-1">&rsaquo;</span>
-                <span className={posNumber === 3 ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
-                  Pos 3 Kognitif
+                <span className="text-stone-400 mx-1">&bull;</span>
+                <span className={posNumber === 4 && !isSuperObserver ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
+                  Pos C (Bahasa)
                 </span>
-                <span className="text-stone-400 mx-1">&rsaquo;</span>
-                <span className={posNumber === 4 ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
-                  Pos 4 Bahasa
-                </span>
-                <span className="text-stone-400 mx-1">&rsaquo;</span>
-                <span className={posNumber === 5 ? "font-bold underline text-[#22352B]" : "text-[#565C58]"}>
-                  Pos 5 Bermain/Snack
-                </span>
-                {isSuperObserver && (
-                  <div className="mt-0.5 font-bold underline text-[#486B5A]">
-                    Super Observer: Memandu Pos 1 &rarr; 3 &rarr; 4 &rarr; 5
-                  </div>
-                )}
+                <div className="mt-0.5 text-[9px] text-[#486B5A] font-semibold">
+                  Longitudinal: 2 Superobserver (Titik Awal &rarr; Transisi 3 Pos &rarr; Titik Akhir Bermain/Snack)
+                </div>
               </div>
 
               {/* Blok Tanda Tangan */}
@@ -1342,7 +1348,7 @@ export default function PosRubricPrintPage() {
               <div>
                 <p className="text-[7.5pt] text-[#565C58]">Koordinator Observasi</p>
                 <div className="h-6 flex items-end justify-center">
-                  <span className="font-bold text-[#22352B] underline text-[8pt]">( Tim PPDB SDIT An-Najah )</span>
+                  <span className="font-bold text-[#22352B] underline text-[8pt]">( Tim PPDB SD Islam An Najah )</span>
                 </div>
               </div>
               <div>
