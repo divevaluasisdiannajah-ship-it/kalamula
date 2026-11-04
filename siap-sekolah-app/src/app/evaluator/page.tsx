@@ -53,7 +53,9 @@ const POS_DETAILS: Record<number, PosInfo> = {
 export default function EvaluatorLoginPage() {
   const router = useRouter();
   const [pin, setPin] = useState("");
-  const [posNumber, setPosNumber] = useState<number | null>(1); // Default to Pos 1 as in reference
+  const [activePos, setActivePos] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [soRole, setSoRole] = useState<"so1" | "so2">("so1");
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string>("");
@@ -91,6 +93,43 @@ export default function EvaluatorLoginPage() {
     }
     loadBatches();
   }, []);
+
+  // Modal open with smooth in-transition
+  const openPinModal = useCallback((pos: number) => {
+    setActivePos(pos);
+    setPin("");
+    setError("");
+    setIsModalOpen(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsModalVisible(true);
+      });
+    });
+  }, []);
+
+  // Modal close with smooth out-transition
+  const closePinModal = useCallback(() => {
+    if (loading) return;
+    setIsModalVisible(false);
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setActivePos(null);
+      setPin("");
+      setError("");
+    }, 250);
+  }, [loading]);
+
+  // Lock body scroll when popup is active
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
 
   const submitLogin = useCallback(
     async (pinValue: string, pos: number) => {
@@ -131,17 +170,17 @@ export default function EvaluatorLoginPage() {
   );
 
   const handlePinInput = useCallback((digit: string) => {
-    if (loading) return;
+    if (loading || !activePos) return;
     if (pin.length < 4) {
       const newPin = pin + digit;
       setPin(newPin);
       setError("");
 
-      if (newPin.length === 4 && posNumber) {
-        submitLogin(newPin, posNumber);
+      if (newPin.length === 4) {
+        submitLogin(newPin, activePos);
       }
     }
-  }, [pin, posNumber, loading, submitLogin]);
+  }, [pin, activePos, loading, submitLogin]);
 
   const handleDelete = useCallback(() => {
     if (loading) return;
@@ -149,21 +188,22 @@ export default function EvaluatorLoginPage() {
     setError("");
   }, [loading]);
 
-  // Physical keyboard support
+  // Physical keyboard support when modal is active
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isModalOpen || !isModalVisible) return;
       if (e.key >= "0" && e.key <= "9") {
         handlePinInput(e.key);
       } else if (e.key === "Backspace") {
         handleDelete();
       } else if (e.key === "Escape") {
-        setPin("");
+        closePinModal();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handlePinInput, handleDelete]);
+  }, [isModalOpen, isModalVisible, handlePinInput, handleDelete, closePinModal]);
 
   return (
     <main className="min-h-screen bg-[#F6F2E9] text-[#22352B] pb-16 font-sans">
@@ -247,264 +287,327 @@ export default function EvaluatorLoginPage() {
           </div>
         )}
 
-        {/* Responsive Grid: Pos List (Left) + PIN Numpad (Right) */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-          {/* Kolom Kiri: PILIH RUANG & DOMAIN OBSERVASI */}
-          <div className="md:col-span-7 space-y-2.5">
-            <p className="text-[11px] font-semibold text-[#565C58] uppercase tracking-wider px-0.5">
+        {/* Responsive Grid of Pos Cards */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-0.5">
+            <p className="text-[11px] font-bold text-[#565C58] uppercase tracking-wider">
               PILIH RUANG &amp; DOMAIN OBSERVASI
             </p>
-
-            <div className="space-y-2.5" role="group" aria-label="Daftar Ruang & Domain Observasi">
-              {[1, 2, 3, 4].map((pos) => {
-                const isSelected = posNumber === pos;
-                const details = POS_DETAILS[pos];
-
-                return (
-                  <button
-                    key={pos}
-                    type="button"
-                    onClick={() => {
-                      setPosNumber(pos);
-                      setPin("");
-                      setError("");
-                    }}
-                    className={`w-full bg-white rounded-2xl p-3.5 flex items-center justify-between cursor-pointer transition text-left active:scale-[0.98] ${
-                      isSelected
-                        ? "border-[2px] border-[#B85627] shadow-sm ring-2 ring-[#B85627]/20"
-                        : "border border-[#E8E2D8] shadow-xs hover:border-[#DDD7CE]"
-                    }`}
-                    aria-pressed={isSelected}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-                          isSelected
-                            ? "bg-[#B85627] text-white shadow-2xs"
-                            : "bg-[#F9E6DC] text-[#8C3713]"
-                        }`}
-                      >
-                        <i className={`mdi ${details.mdiIcon} text-2xl`} />
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-                          <span
-                            className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${details.roleBadgeColor}`}
-                          >
-                            {details.roleBadge}
-                          </span>
-                          <span className="text-[10.5px] font-bold text-[#486B5A]">
-                            • {details.evaluatorNames}
-                          </span>
-                        </div>
-                        <span className="text-sm font-semibold text-[#22352B] block truncate">
-                          {details.name}
-                        </span>
-                        <span className="text-xs text-[#565C58] block truncate mt-0.5 font-normal leading-relaxed">
-                          {details.desc}
-                        </span>
-                      </div>
-                    </div>
-
-                    {isSelected && (
-                      <div className="w-6 h-6 rounded-full bg-[#B85627] text-white flex items-center justify-center flex-shrink-0 ml-2 shadow-2xs">
-                        <i className="mdi mdi-check text-sm font-bold" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <span className="text-[11px] text-[#787F7A]">
+              Klik kartu pos untuk memasukkan PIN
+            </span>
           </div>
 
-          {/* Kolom Kanan: Card Numpad PIN 4-Digit & Lembar Cetak */}
-          <div className="md:col-span-5 space-y-4">
-            {posNumber && (
-              <div className="bg-white rounded-2xl p-5 shadow-xs border border-[#E8E2D8] space-y-4">
-                <div className="text-center">
-                  <span className="text-[11px] font-semibold text-[#565C58] uppercase tracking-wider">
-                    Verifikasi Keamanan Petugas
-                  </span>
-                  <p className="text-sm font-semibold text-[#22352B] mt-0.5">
-                    {posNumber === 1 ? (
-                      <span className="text-[#7D5327] font-bold">
-                        {soRole === "so1" ? "Super Observer 1: Ahmad Furqoni, S. Pd" : "Super Observer 2: Novia Permatasari, S. Pd"}
-                      </span>
-                    ) : (
-                      <span className="text-[#B85627] font-bold">
-                        {POS_DETAILS[posNumber]?.evaluatorNames}
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-[11px] text-[#787F7A] mt-0.5">
-                    {POS_DETAILS[posNumber]?.name}
-                  </p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5" role="group" aria-label="Daftar Ruang Observasi">
+            {[1, 2, 3, 4].map((pos) => {
+              const details = POS_DETAILS[pos];
 
-                {/* Sub-Role Selector Khusus Pos 1 (Super Observer) */}
-                {posNumber === 1 && (
-                  <div className="bg-[#FAF8F5] p-2.5 rounded-xl border border-[#DDD0B8] space-y-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7D5327] block text-center">
-                      PILIH PENUGASAN ANDA HARI INI
-                    </span>
-                    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Penugasan Super Observer">
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={soRole === "so1"}
-                        onClick={() => {
-                          setSoRole("so1");
-                          setPin("");
-                          setError("");
-                        }}
-                        className={`py-2 px-2 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 ${
-                          soRole === "so1"
-                            ? "bg-[#7D5327] text-white shadow-2xs"
-                            : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
-                        }`}
-                      >
-                        <div className="flex items-center gap-1">
-                          <i className="mdi mdi-account-check text-sm" />
-                          <span>SO 1 (Kel. 2 &rarr; 1)</span>
+              return (
+                <button
+                  key={pos}
+                  type="button"
+                  onClick={() => openPinModal(pos)}
+                  className="w-full bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs hover:border-[#D67443]/60 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group active:scale-[0.98] cursor-pointer"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-xl bg-[#F9E6DC] text-[#8C3713] flex items-center justify-center flex-shrink-0 group-hover:bg-[#B85627] group-hover:text-white transition-colors shadow-2xs">
+                          <i className={`mdi ${details.mdiIcon} text-xl`} />
                         </div>
-                        <span className={`text-[9.5px] font-semibold ${soRole === "so1" ? "text-white/90" : "text-[#7D5327]"}`}>
-                          Ahmad Furqoni, S. Pd
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={soRole === "so2"}
-                        onClick={() => {
-                          setSoRole("so2");
-                          setPin("");
-                          setError("");
-                        }}
-                        className={`py-2 px-2 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 ${
-                          soRole === "so2"
-                            ? "bg-[#7D5327] text-white shadow-2xs"
-                            : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
-                        }`}
-                      >
-                        <div className="flex items-center gap-1">
-                          <i className="mdi mdi-account-check text-sm" />
-                          <span>SO 2 (Kel. 3 &rarr; 2)</span>
+                        <div>
+                          <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${details.roleBadgeColor}`}>
+                            {details.roleBadge}
+                          </span>
                         </div>
-                        <span className={`text-[9.5px] font-semibold ${soRole === "so2" ? "text-white/90" : "text-[#7D5327]"}`}>
-                          Novia Permatasari, S. Pd
-                        </span>
-                      </button>
+                      </div>
+
+                      <div className="w-7 h-7 rounded-full bg-[#FAF8F5] border border-[#E8E2D8] text-[#787F7A] group-hover:text-[#B85627] group-hover:border-[#B85627]/30 flex items-center justify-center transition-all flex-shrink-0">
+                        <i className="mdi mdi-lock-outline text-sm" />
+                      </div>
                     </div>
-                    <p className="text-[10px] text-[#565C58] text-center leading-tight">
-                      {soRole === "so1"
-                        ? "SO 1 (Ahmad Furqoni, S. Pd): Dampingi Kel. 2 di awal, lalu Kel. 1 dari Pos B, C, hingga Titik Akhir"
-                        : "SO 2 (Novia Permatasari, S. Pd): Dampingi Kel. 3 di awal, lalu Kel. 2 dari Pos B, C, hingga Titik Akhir"}
-                    </p>
+
+                    <div>
+                      <h3 className="text-sm font-bold text-[#22352B] group-hover:text-[#B85627] transition-colors leading-snug">
+                        {details.name}
+                      </h3>
+                      <p className="text-[11px] font-semibold text-[#486B5A] mt-0.5">
+                        • {details.evaluatorNames}
+                      </p>
+                      <p className="text-xs text-[#565C58] mt-1 font-normal leading-relaxed">
+                        {details.desc}
+                      </p>
+                    </div>
                   </div>
-                )}
 
-                {/* 4 Indikator Titik Bulat */}
-                <div className="flex justify-center gap-3.5 my-2" aria-label={`PIN terisi ${pin.length} dari 4 digit`}>
-                  {[0, 1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className={`w-3.5 h-3.5 rounded-full transition-all duration-150 ${
-                        pin.length > i
-                          ? "bg-[#B85627] shadow-xs scale-110"
-                          : "border-2 border-[#C5B4A5] bg-transparent"
-                      }`}
-                    />
-                  ))}
-                </div>
+                  <div className="pt-2 border-t border-[#FAF8F5] flex items-center justify-between text-xs font-bold text-[#B85627]">
+                    <span className="flex items-center gap-1.5">
+                      <i className="mdi mdi-key-outline text-sm" />
+                      <span>Masuk Pos &amp; Verifikasi PIN</span>
+                    </span>
+                    <i className="mdi mdi-arrow-right text-base group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                {/* Error Message */}
-                {error && (
-                  <p className="text-xs text-[#B83A35] text-center font-medium bg-[#FCEEEF] p-2 rounded-xl border border-[#F2D8C7]">
-                    {error}
-                  </p>
-                )}
-
-                {/* Loading Status */}
-                {loading && (
-                  <p className="text-xs text-[#B85627] text-center font-medium animate-pulse">
-                    Memverifikasi PIN Pos <span className="font-mono tabular-nums">{posNumber}</span>...
-                  </p>
-                )}
-
-                {/* Keypad 3 Kolom */}
-                <div className={`grid grid-cols-3 gap-2 max-w-[240px] mx-auto transition-opacity ${loading ? "opacity-50 pointer-events-none" : ""}`}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => handlePinInput(String(num))}
-                      disabled={loading}
-                      className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
-                      aria-label={`Digit ${num}`}
-                    >
-                      {num}
-                    </button>
-                  ))}
-
-                  <div /> {/* Slot Kiri Bawah Kosong */}
-
-                  <button
-                    type="button"
-                    onClick={() => handlePinInput("0")}
-                    disabled={loading}
-                    className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
-                    aria-label="Digit 0"
-                  >
-                    0
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    disabled={loading || pin.length === 0}
-                    className="bg-[#F9E6DC] text-[#B85627] border border-[#F1CFC0] rounded-xl h-12 font-bold hover:bg-[#F2D7CA] active:scale-[0.96] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none"
-                    aria-label="Hapus satu digit"
-                  >
-                    <i className="mdi mdi-backspace-outline text-xl" />
-                  </button>
-                </div>
+        {/* Quick Link: Cetak Lembar Observasi Fisik Lapangan */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs space-y-3 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-[#22352B] flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#F6F2E9] border border-[#E8E2D8] text-[#486B5A] flex items-center justify-center">
+                <i className="mdi mdi-printer-outline text-base" />
               </div>
-            )}
+              <div>
+                <span className="block text-sm font-bold text-[#22352B]">Lembar Cetak Observasi Fisik (A4)</span>
+                <span className="block text-[11px] text-[#787F7A] font-normal">Format matriks observasi lapangan untuk dicetak</span>
+              </div>
+            </span>
+          </div>
 
-            {/* Quick Link: Cetak Lembar Observasi Fisik Lapangan */}
-            <div className="bg-white rounded-2xl p-4 border border-[#E8E2D8] shadow-xs space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-[#22352B] flex items-center gap-1.5">
-                  <i className="mdi mdi-printer-outline text-base text-[#486B5A]" />
-                  <span>Lembar Cetak Observasi Fisik</span>
-                </span>
-                <span className="text-[10px] font-medium text-[#787F7A]">A4 Cetak</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <Link
-                  href={`/reports/rubric/${posNumber}${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 text-xs shadow-2xs active:scale-[0.96]"
-                >
-                  <i className="mdi mdi-table-large text-[#B85627]" />
-                  <span>Lembar Pos {posNumber}</span>
-                </Link>
-                <Link
-                  href={`/reports/rubric/so${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-[#E4EFE9] hover:bg-[#D4E6DC] text-[#486B5A] border border-[#CBE0D4] px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 text-xs shadow-2xs active:scale-[0.96]"
-                >
-                  <i className="mdi mdi-eye-check-outline text-[#486B5A]" />
-                  <span>Lembar SO Terpadu</span>
-                </Link>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            <Link
+              href={`/reports/rubric/so${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#E4EFE9] hover:bg-[#D4E6DC] text-[#486B5A] border border-[#CBE0D4] px-3 py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
+            >
+              <i className="mdi mdi-eye-check-outline" />
+              <span>SO Terpadu</span>
+            </Link>
+            <Link
+              href={`/reports/rubric/2${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
+            >
+              <i className="mdi mdi-run-fast text-[#B85627]" />
+              <span>Pos A (Motorik)</span>
+            </Link>
+            <Link
+              href={`/reports/rubric/3${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
+            >
+              <i className="mdi mdi-head-lightbulb-outline text-[#36506C]" />
+              <span>Pos B (Kognitif)</span>
+            </Link>
+            <Link
+              href={`/reports/rubric/4${selectedBatchId ? `?batch_id=${selectedBatchId}` : ""}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#22352B] border border-[#E8E2D8] px-3 py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs shadow-2xs active:scale-[0.96] text-center"
+            >
+              <i className="mdi mdi-book-open-page-variant-outline text-[#36506C]" />
+              <span>Pos C (Bahasa)</span>
+            </Link>
           </div>
         </div>
       </div>
+
+      {/* ─── POPUP MODAL VERIFIKASI PIN (Smooth In-Out Transition) ─── */}
+      {isModalOpen && activePos && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 font-sans"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pin-modal-title"
+        >
+          {/* Backdrop with smooth opacity transition */}
+          <div
+            className={`fixed inset-0 bg-[#22352B]/60 backdrop-blur-xs transition-opacity duration-250 ease-out ${
+              isModalVisible ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={closePinModal}
+            aria-hidden="true"
+          />
+
+          {/* Modal Container with smooth scale, opacity & translateY transition */}
+          <div
+            className={`relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E2D8] shadow-2xl z-10 space-y-4 max-h-[92vh] overflow-y-auto transform transition-all duration-250 ease-out ${
+              isModalVisible
+                ? "opacity-100 scale-100 translate-y-0"
+                : "opacity-0 scale-95 translate-y-3 pointer-events-none"
+            }`}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#FAF8F5]">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-2xl bg-[#D67443] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <i className={`mdi ${POS_DETAILS[activePos]?.mdiIcon} text-2xl`} />
+                </div>
+                <div className="min-w-0">
+                  <span
+                    className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border inline-block mb-0.5 ${POS_DETAILS[activePos]?.roleBadgeColor}`}
+                  >
+                    {POS_DETAILS[activePos]?.roleBadge}
+                  </span>
+                  <h2 id="pin-modal-title" className="text-sm font-bold text-[#22352B] truncate">
+                    {activePos === 1 ? (
+                      soRole === "so1" ? "Ahmad Furqoni, S. Pd" : "Novia Permatasari, S. Pd"
+                    ) : (
+                      POS_DETAILS[activePos]?.evaluatorNames
+                    )}
+                  </h2>
+                  <p className="text-[11px] text-[#787F7A] truncate">
+                    {POS_DETAILS[activePos]?.name}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={closePinModal}
+                className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#22352B] hover:bg-[#EFECE4] flex items-center justify-center border border-[#DDD7CE] transition cursor-pointer active:scale-95 flex-shrink-0"
+                aria-label="Tutup Popup PIN"
+              >
+                <i className="mdi mdi-close text-lg" />
+              </button>
+            </div>
+
+            {/* Sub-Role Selector Khusus Pos 1 (Super Observer) */}
+            {activePos === 1 && (
+              <div className="bg-[#FAF8F5] p-2.5 rounded-2xl border border-[#DDD0B8] space-y-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7D5327] block text-center">
+                  PILIH PENUGASAN ANDA HARI INI
+                </span>
+                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Penugasan Super Observer">
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={soRole === "so1"}
+                    onClick={() => {
+                      setSoRole("so1");
+                      setPin("");
+                      setError("");
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 ${
+                      soRole === "so1"
+                        ? "bg-[#7D5327] text-white shadow-2xs"
+                        : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <i className="mdi mdi-account-check text-sm" />
+                      <span>SO 1 (Kel. 2 &rarr; 1)</span>
+                    </div>
+                    <span className={`text-[9.5px] font-semibold ${soRole === "so1" ? "text-white/90" : "text-[#7D5327]"}`}>
+                      Ahmad Furqoni, S. Pd
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={soRole === "so2"}
+                    onClick={() => {
+                      setSoRole("so2");
+                      setPin("");
+                      setError("");
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 ${
+                      soRole === "so2"
+                        ? "bg-[#7D5327] text-white shadow-2xs"
+                        : "bg-white text-[#7D5327] border border-[#DDD0B8] hover:bg-[#F5EFE6]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <i className="mdi mdi-account-check text-sm" />
+                      <span>SO 2 (Kel. 3 &rarr; 2)</span>
+                    </div>
+                    <span className={`text-[9.5px] font-semibold ${soRole === "so2" ? "text-white/90" : "text-[#7D5327]"}`}>
+                      Novia Permatasari, S. Pd
+                    </span>
+                  </button>
+                </div>
+                <p className="text-[10px] text-[#565C58] text-center leading-tight">
+                  {soRole === "so1"
+                    ? "SO 1 (Ahmad Furqoni, S. Pd): Dampingi Kel. 2 di awal, lalu Kel. 1 dari Pos B, C, hingga Titik Akhir"
+                    : "SO 2 (Novia Permatasari, S. Pd): Dampingi Kel. 3 di awal, lalu Kel. 2 dari Pos B, C, hingga Titik Akhir"}
+                </p>
+              </div>
+            )}
+
+            {/* 4 PIN Dots */}
+            <div className="text-center pt-1">
+              <span className="text-[11px] font-semibold text-[#565C58] uppercase tracking-wider block">
+                Masukkan 4 Digit PIN Tugas
+              </span>
+              <div className="flex justify-center gap-4 my-3" aria-label={`PIN terisi ${pin.length} dari 4 digit`}>
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className={`w-4 h-4 rounded-full transition-all duration-150 ${
+                      pin.length > i
+                        ? "bg-[#B85627] shadow-xs scale-115"
+                        : "border-2 border-[#C5B4A5] bg-transparent"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <p className="text-xs text-[#B83A35] text-center font-medium bg-[#FCEEEF] p-2.5 rounded-xl border border-[#F2D8C7] animate-in fade-in duration-150">
+                {error}
+              </p>
+            )}
+
+            {/* Loading Status */}
+            {loading && (
+              <div className="flex items-center justify-center gap-2 text-xs text-[#B85627] font-medium py-1 animate-pulse">
+                <i className="mdi mdi-loading mdi-spin text-base" />
+                <span>Memverifikasi PIN Pos <strong className="font-mono">{activePos}</strong>...</span>
+              </div>
+            )}
+
+            {/* Keypad 3 Kolom */}
+            <div className={`grid grid-cols-3 gap-2 max-w-[240px] mx-auto transition-opacity ${loading ? "opacity-50 pointer-events-none" : ""}`}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => handlePinInput(String(num))}
+                  disabled={loading}
+                  className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:outline-none"
+                  aria-label={`Digit ${num}`}
+                >
+                  {num}
+                </button>
+              ))}
+
+              <div />
+
+              <button
+                type="button"
+                onClick={() => handlePinInput("0")}
+                disabled={loading}
+                className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:outline-none"
+                aria-label="Digit 0"
+              >
+                0
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={loading || pin.length === 0}
+                className="bg-[#F9E6DC] text-[#B85627] border border-[#F1CFC0] rounded-2xl h-12 font-bold hover:bg-[#F2D7CA] active:scale-[0.94] transition flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:outline-none"
+                aria-label="Hapus satu digit"
+              >
+                <i className="mdi mdi-backspace-outline text-xl" />
+              </button>
+            </div>
+
+            <p className="text-[10px] text-[#787F7A] text-center pt-1">
+              Dapat menggunakan keyboard angka fisik atau tombol layar.
+            </p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
