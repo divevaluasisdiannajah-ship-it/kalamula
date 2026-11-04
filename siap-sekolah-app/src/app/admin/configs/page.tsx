@@ -19,6 +19,68 @@ function parseConfig(cfg: AssessmentConfig): ConfigParsed {
   };
 }
 
+const getPosMeta = (posNum: number) => {
+  switch (posNum) {
+    case 1:
+      return {
+        code: "SO",
+        badgeBg: "bg-[#486B5A] text-white",
+        subBadge: "Superobserver Terpadu",
+        flowRole: "Pendamping longitudinal (Titik Awal → Transisi 3 Pos → Titik Akhir)",
+        rubricLink: "/reports/rubric/so",
+        printTitle: "Cetak Lembar Superobserver (A4)",
+      };
+    case 2:
+      return {
+        code: "POS A",
+        badgeBg: "bg-[#EFE7D6] text-[#7D5327] border border-[#DDD0B8]",
+        subBadge: "Motorik Kasar & Koordinasi Fisik",
+        flowRole: "Ikut menjemput Kel. 1 di titik awal & observasi ketangkasan fisik",
+        rubricLink: "/reports/rubric/2",
+        printTitle: "Cetak Lembar Pos A (A4)",
+      };
+    case 3:
+      return {
+        code: "POS B",
+        badgeBg: "bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4]",
+        subBadge: "Kematangan Kognitif dan Berhitung",
+        flowRole: "Observasi klasifikasi atribut, pola deret logis & kuantitas konkret",
+        rubricLink: "/reports/rubric/3",
+        printTitle: "Cetak Lembar Pos B (A4)",
+      };
+    case 4:
+      return {
+        code: "POS C",
+        badgeBg: "bg-[#E4EAF2] text-[#36506C] border border-[#CBD5E1]",
+        subBadge: "Bahasa Lisan, Pra-Literasi & Motorik Halus",
+        flowRole: "Observasi menyimak read-aloud, komunikasi lisan & tripod grasp pensil",
+        rubricLink: "/reports/rubric/4",
+        printTitle: "Cetak Lembar Pos C (A4)",
+      };
+    default:
+      return {
+        code: `P${posNum}`,
+        badgeBg: "bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8]",
+        subBadge: "Pos Observasi",
+        flowRole: "Evaluasi pengamatan diagnostik",
+        rubricLink: `/reports/rubric/${posNum}`,
+        printTitle: "Cetak Lembar Fisik (A4)",
+      };
+  }
+};
+
+const scoreLabels: Record<number, string> = { 1: "PB", 2: "B", 3: "M" };
+const scoreFullLabels: Record<number, string> = {
+  1: "Perlu Bimbingan",
+  2: "Berkembang",
+  3: "Mandiri",
+};
+const scoreColors: Record<number, string> = {
+  1: "text-[#B83A35] bg-[#FCEEEF] border border-[#F1CFC0]",
+  2: "text-[#7D5327] bg-[#FAF8F5] border border-[#DDD0B8]",
+  3: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]",
+};
+
 export default function AssessmentConfigPage() {
   const [configs, setConfigs] = useState<ConfigParsed[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +88,8 @@ export default function AssessmentConfigPage() {
 
   // Editor state
   const [editMode, setEditMode] = useState<number | null>(null);
+  const [editPosName, setEditPosName] = useState("");
+  const [editPosDescription, setEditPosDescription] = useState("");
   const [editIndicators, setEditIndicators] = useState<Indicator[]>([]);
   const [editRedFlags, setEditRedFlags] = useState<RedFlag[]>([]);
   const [saving, setSaving] = useState(false);
@@ -51,6 +115,8 @@ export default function AssessmentConfigPage() {
 
   const startEdit = (cfg: ConfigParsed) => {
     setEditMode(cfg.pos_number);
+    setEditPosName(cfg.pos_name);
+    setEditPosDescription(cfg.pos_description || "");
     setEditIndicators(JSON.parse(JSON.stringify(cfg.indicators)));
     setEditRedFlags(JSON.parse(JSON.stringify(cfg.red_flags)));
     setExpandedPos(cfg.pos_number);
@@ -58,6 +124,8 @@ export default function AssessmentConfigPage() {
 
   const cancelEdit = () => {
     setEditMode(null);
+    setEditPosName("");
+    setEditPosDescription("");
     setEditIndicators([]);
     setEditRedFlags([]);
   };
@@ -69,6 +137,8 @@ export default function AssessmentConfigPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          pos_name: editPosName,
+          pos_description: editPosDescription,
           indicators_json: JSON.stringify(editIndicators),
           red_flags_json: JSON.stringify(editRedFlags),
         }),
@@ -85,8 +155,8 @@ export default function AssessmentConfigPage() {
   // ─── Indicator CRUD ───────────────────────────────────────
   const addIndicator = () => {
     const posNum = editMode || 1;
-    const newId = `${posNum}.${editIndicators.length + 1}`;
-    // Smart default foundation based on pos
+    const prefix = posNum === 1 ? "SO" : posNum === 2 ? "MK" : posNum === 3 ? "KG" : "BL";
+    const newId = `${prefix}-0${editIndicators.length + 1}`;
     const defaultFoundation: FoundationNumber =
       posNum === 1 ? 3 : posNum === 2 ? 5 : posNum === 3 ? 4 : posNum === 4 ? 2 : 6;
 
@@ -97,7 +167,7 @@ export default function AssessmentConfigPage() {
         label: "",
         description: "",
         foundation: defaultFoundation,
-        score_descriptors: { 1: "", 2: "", 3: "", 4: "" },
+        score_descriptors: { 1: "", 2: "", 3: "" },
       },
     ]);
   };
@@ -128,7 +198,8 @@ export default function AssessmentConfigPage() {
   // ─── Red Flag CRUD ────────────────────────────────────────
   const addRedFlag = () => {
     const posNum = editMode || 1;
-    const newId = `rf-${posNum}-${editRedFlags.length + 1}`;
+    const prefix = posNum === 1 ? "so" : posNum === 2 ? "mk" : posNum === 3 ? "kg" : "bl";
+    const newId = `rf-${prefix}-${editRedFlags.length + 1}`;
     setEditRedFlags([...editRedFlags, { id: newId, label: "", severity: "moderate" }]);
   };
 
@@ -142,14 +213,6 @@ export default function AssessmentConfigPage() {
 
   const removeRedFlag = (idx: number) => {
     setEditRedFlags(editRedFlags.filter((_, i) => i !== idx));
-  };
-
-  const scoreLabels: Record<number, string> = { 1: "BM", 2: "MB", 3: "MM", 4: "MK" };
-  const scoreColors: Record<number, string> = {
-    1: "text-[#565C58] bg-[#FAF8F5] border border-[#DDD7CE]",
-    2: "text-[#8C3713] bg-[#F9E6DC] border border-[#F1CFC0]",
-    3: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]",
-    4: "text-[#22352B] bg-[#E4EFE9] border border-[#486B5A] font-extrabold",
   };
 
   return (
@@ -171,11 +234,72 @@ export default function AssessmentConfigPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-extrabold text-[#22352B] tracking-tight">
-          Rubrik &amp; Indikator Asesmen
+          Rubrik &amp; Indikator Asesmen SPMB
         </h1>
         <p className="text-xs text-[#565C58] mt-1">
-          Kelola deskripsi capaian belajar dan parameter sinyal pendampingan untuk seluruh ruang dan domain asesmen SPMB
+          Konfigurasi deskriptor capaian belajar (Skala 1–3) dan sinyal pendampingan terpadu untuk Pos A, B, C, serta Superobserver.
         </p>
+      </div>
+
+      {/* Workflow & System Structure Banner */}
+      <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="w-8 h-8 rounded-xl bg-[#486B5A] text-white flex items-center justify-center font-bold text-sm">
+              <i className="mdi mdi-sitemap-outline text-lg" />
+            </span>
+            <div>
+              <h2 className="font-extrabold text-sm text-[#22352B]">
+                Struktur Pos &amp; Alur Observasi Terpadu
+              </h2>
+              <p className="text-[11px] text-[#565C58]">
+                3 Ruang Pos Teknis + 2 Superobserver Pendamping Transisi
+              </p>
+            </div>
+          </div>
+          <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4]">
+            Skala Penilaian: 1 — 3
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 pt-1 text-xs">
+          <div className="bg-white p-3 rounded-xl border border-[#E8E2D8] space-y-1">
+            <span className="font-extrabold text-[10px] text-white bg-[#486B5A] px-2 py-0.5 rounded-full inline-block">
+              SUPER OBSERVER
+            </span>
+            <div className="font-bold text-[#22352B]">Kemandirian &amp; Emosi</div>
+            <p className="text-[11px] text-[#787F7A] leading-tight">
+              2 SO menilai awal kedatangan, transisi 3 pos, hingga bermain di titik akhir.
+            </p>
+          </div>
+          <div className="bg-white p-3 rounded-xl border border-[#E8E2D8] space-y-1">
+            <span className="font-extrabold text-[10px] text-[#7D5327] bg-[#EFE7D6] border border-[#DDD0B8] px-2 py-0.5 rounded-full inline-block">
+              POS A
+            </span>
+            <div className="font-bold text-[#22352B]">Motorik Kasar &amp; Fisik</div>
+            <p className="text-[11px] text-[#787F7A] leading-tight">
+              Keseimbangan titian, lompat 2 kaki, koordinasi tangkap-lempar bola.
+            </p>
+          </div>
+          <div className="bg-white p-3 rounded-xl border border-[#E8E2D8] space-y-1">
+            <span className="font-extrabold text-[10px] text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4] px-2 py-0.5 rounded-full inline-block">
+              POS B
+            </span>
+            <div className="font-bold text-[#22352B]">Kognitif &amp; Berhitung</div>
+            <p className="text-[11px] text-[#787F7A] leading-tight">
+              Klasifikasi objek multi-atribut, pola deret berulang, konsep kuantitas.
+            </p>
+          </div>
+          <div className="bg-white p-3 rounded-xl border border-[#E8E2D8] space-y-1">
+            <span className="font-extrabold text-[10px] text-[#36506C] bg-[#E4EAF2] border border-[#CBD5E1] px-2 py-0.5 rounded-full inline-block">
+              POS C
+            </span>
+            <div className="font-bold text-[#22352B]">Bahasa &amp; Pra-Literasi</div>
+            <p className="text-[11px] text-[#787F7A] leading-tight">
+              Menyimak cerita lisan, komunikasi verbal runtut, dan kontrol tripod grasp.
+            </p>
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -203,6 +327,7 @@ export default function AssessmentConfigPage() {
           {configs.map((cfg) => {
             const isExpanded = expandedPos === cfg.pos_number;
             const isEditing = editMode === cfg.pos_number;
+            const meta = getPosMeta(cfg.pos_number);
 
             return (
               <div
@@ -216,13 +341,18 @@ export default function AssessmentConfigPage() {
                   className="w-full p-4.5 sm:p-5 flex items-center justify-between text-left hover:bg-[#FAF8F5]/80 transition cursor-pointer"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-2xl bg-[#E4EAF2] text-[#36506C] flex items-center justify-center shadow-xs flex-shrink-0 font-extrabold text-sm">
-                      <span>P{cfg.pos_number}</span>
+                    <div className={`w-14 h-11 rounded-2xl flex items-center justify-center shadow-xs flex-shrink-0 font-extrabold text-xs tracking-wider ${meta.badgeBg}`}>
+                      <span>{meta.code}</span>
                     </div>
                     <div>
-                      <p className="font-extrabold text-base text-[#22352B]">{cfg.pos_name}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-extrabold text-base text-[#22352B]">{cfg.pos_name}</p>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8]">
+                          {meta.subBadge}
+                        </span>
+                      </div>
                       <p className="text-xs text-[#565C58] mt-0.5">
-                        {cfg.indicators.length} indikator &bull; {cfg.red_flags.length} catatan khusus
+                        {cfg.indicators.length} indikator (Skala 1–3) &bull; {cfg.red_flags.length} sinyal pendampingan
                       </p>
                     </div>
                   </div>
@@ -236,11 +366,48 @@ export default function AssessmentConfigPage() {
                 {/* Expanded Content */}
                 {isExpanded && (
                   <div className="px-5 pb-5 pt-1 space-y-4 border-t border-[#FAF8F5]">
-                    {/* Description */}
-                    {cfg.pos_description && (
-                      <p className="text-xs text-[#565C58] italic bg-[#FAF8F5] p-3.5 rounded-2xl border border-[#E8E2D8] leading-relaxed">
-                        &ldquo;{cfg.pos_description}&rdquo;
-                      </p>
+                    {/* Role Notice */}
+                    <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#E8E2D8] flex items-start gap-2.5 text-xs text-[#565C58]">
+                      <i className="mdi mdi-information-outline text-[#486B5A] text-base flex-shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="text-[#22352B] font-bold">Peran Alur: </strong>
+                        <span>{meta.flowRole}</span>
+                      </div>
+                    </div>
+
+                    {/* Edit Form: Name & Description */}
+                    {isEditing ? (
+                      <div className="space-y-3 bg-[#FAF8F5] p-4 rounded-2xl border border-[#E8E2D8]">
+                        <div>
+                          <label className="text-[11px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                            Nama Domain / Pos:
+                          </label>
+                          <input
+                            value={editPosName}
+                            onChange={(e) => setEditPosName(e.target.value)}
+                            placeholder="Nama pos..."
+                            className="w-full h-9 rounded-xl px-3 text-xs bg-white text-[#22352B] font-bold border border-[#DDD7CE] focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                            Deskripsi Fokus Pengamatan:
+                          </label>
+                          <textarea
+                            value={editPosDescription}
+                            onChange={(e) => setEditPosDescription(e.target.value)}
+                            placeholder="Deskripsi fokus pengamatan pos..."
+                            rows={2}
+                            className="w-full rounded-xl p-2.5 text-xs bg-white text-[#22352B] border border-[#DDD7CE] focus:outline-none resize-none leading-relaxed"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      cfg.pos_description && (
+                        <p className="text-xs text-[#565C58] italic bg-[#FAF8F5] p-3.5 rounded-2xl border border-[#E8E2D8] leading-relaxed">
+                          &ldquo;{cfg.pos_description}&rdquo;
+                        </p>
+                      )
                     )}
 
                     {/* Edit Trigger & Cetak Lembar Fisik */}
@@ -255,24 +422,29 @@ export default function AssessmentConfigPage() {
                           <span>Edit Rubrik Pos Ini</span>
                         </button>
                         <Link
-                          href={`/reports/rubric/${cfg.pos_number}`}
+                          href={meta.rubricLink}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-[#FAF8F5] hover:bg-[#EFECE4] text-[#486B5A] border border-[#CBD5D0] font-extrabold px-4 py-2 text-xs rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
-                          title="Cetak Lembar Observasi Fisik Pos Ini (A4)"
+                          title={meta.printTitle}
                         >
                           <i className="mdi mdi-printer text-base" />
-                          <span>Cetak Lembar Fisik (A4)</span>
+                          <span>{meta.printTitle}</span>
                         </Link>
                       </div>
                     )}
 
                     {/* Indicators */}
                     <div className="space-y-3">
-                      <h4 className="text-xs font-extrabold text-[#787F7A] uppercase tracking-wider flex items-center gap-1.5">
-                        <i className="mdi mdi-check-all text-base text-[#486B5A]" />
-                        <span>Indikator Capaian Belajar</span>
-                      </h4>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-extrabold text-[#787F7A] uppercase tracking-wider flex items-center gap-1.5">
+                          <i className="mdi mdi-check-all text-base text-[#486B5A]" />
+                          <span>Indikator Capaian Belajar (Skala 1–3)</span>
+                        </h4>
+                        <span className="text-[10px] text-[#787F7A] font-semibold">
+                          1: PB (Bimbingan) &bull; 2: B (Berkembang) &bull; 3: M (Mandiri)
+                        </span>
+                      </div>
 
                       <div className="space-y-3">
                         {(isEditing ? editIndicators : cfg.indicators).map((ind, idx) => (
@@ -320,17 +492,18 @@ export default function AssessmentConfigPage() {
                                   placeholder="Deskripsi fokus pengamatan..."
                                   className="w-full h-9 rounded-xl px-3 text-xs bg-white text-[#22352B] border border-[#DDD7CE] focus:outline-none"
                                 />
-                                <div className="grid grid-cols-2 gap-1.5 pt-1">
-                                  {([1, 2, 3, 4] as const).map((score) => (
-                                    <div key={score} className={`rounded-xl p-2 text-xs ${scoreColors[score]}`}>
-                                      <span className="text-[10px] font-bold block">
-                                        Skor {score} ({scoreLabels[score]})
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                                  {([1, 2, 3] as const).map((score) => (
+                                    <div key={score} className={`rounded-xl p-2.5 text-xs ${scoreColors[score]}`}>
+                                      <span className="text-[10px] font-extrabold block">
+                                        Skor {score} ({scoreLabels[score]}: {scoreFullLabels[score]})
                                       </span>
-                                      <input
-                                        value={ind.score_descriptors[score]}
+                                      <textarea
+                                        value={ind.score_descriptors[score] || ""}
                                         onChange={(e) => updateScoreDescriptor(idx, score, e.target.value)}
-                                        placeholder={`Deskripsi skor ${score}`}
-                                        className="w-full text-[11px] bg-transparent border-0 focus:outline-none text-[#22352B] mt-0.5"
+                                        placeholder={`Deskripsi capaian skor ${score}...`}
+                                        rows={2}
+                                        className="w-full text-[11px] bg-transparent border-0 focus:outline-none text-[#22352B] mt-1 resize-none leading-relaxed"
                                       />
                                     </div>
                                   ))}
@@ -356,14 +529,14 @@ export default function AssessmentConfigPage() {
                                 <p className="text-xs text-[#565C58] ml-7 mb-2 leading-relaxed">
                                   {ind.description}
                                 </p>
-                                <div className="ml-7 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                  {([1, 2, 3, 4] as const).map((score) => (
-                                    <div key={score} className={`rounded-xl px-2.5 py-1.5 ${scoreColors[score]}`}>
-                                      <span className="text-[10px] font-bold">
-                                        {score} ({scoreLabels[score]}):{" "}
+                                <div className="ml-7 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                  {([1, 2, 3] as const).map((score) => (
+                                    <div key={score} className={`rounded-xl px-2.5 py-2 ${scoreColors[score]}`}>
+                                      <span className="text-[10px] font-bold block">
+                                        {score} ({scoreLabels[score]}: {scoreFullLabels[score]}):
                                       </span>
-                                      <span className="text-[10px] leading-tight font-medium">
-                                        {ind.score_descriptors[score]}
+                                      <span className="text-[10.5px] leading-tight font-medium block mt-0.5">
+                                        {ind.score_descriptors[score] || "-"}
                                       </span>
                                     </div>
                                   ))}
@@ -380,7 +553,7 @@ export default function AssessmentConfigPage() {
                             className="w-full h-10 bg-[#E4EFE9] text-[#486B5A] rounded-xl text-xs font-bold border border-[#CBE0D4] hover:bg-[#D4E2D8] transition flex items-center justify-center gap-1 cursor-pointer"
                           >
                             <i className="mdi mdi-plus text-base" />
-                            <span>Tambah Indikator</span>
+                            <span>Tambah Indikator Baru</span>
                           </button>
                         )}
                       </div>
