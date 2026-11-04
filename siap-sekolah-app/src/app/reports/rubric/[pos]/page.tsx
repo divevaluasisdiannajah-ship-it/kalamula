@@ -446,35 +446,27 @@ export default function PosRubricPrintPage() {
     }));
   }, [isSuperObserver, posNumber, allConfigs]);
 
-  // Display indicators normalized to exactly 6 slots (matching reference layout 2 cols x 3 rows)
+  // Responsive display indicators: matches activeIndicators dynamically without artificial padding
   const displayIndicators = useMemo(() => {
-    const list: {
-      id: string;
-      label: string;
-      description: string;
-      isPlaceholder?: boolean;
-    }[] = [];
-
-    activeIndicators.forEach((ind) => {
-      list.push({
-        id: ind.id,
-        label: ind.label,
-        description: ind.description,
-        isPlaceholder: false,
-      });
-    });
-
-    while (list.length < 6) {
-      const idx = list.length + 1;
-      list.push({
-        id: `${idx}`,
-        label: `[Indikator ${idx}]`,
-        description: `[Deskripsi singkat indikator, maks. 2 baris]`,
-        isPlaceholder: true,
-      });
+    if (activeIndicators.length === 0) {
+      return [
+        {
+          id: "1",
+          label: "Indikator Observasi",
+          description: "Belum ada indikator terkonfigurasi untuk pos ini",
+          foundation: "",
+          isPlaceholder: true,
+        },
+      ];
     }
 
-    return list.slice(0, 6);
+    return activeIndicators.map((ind) => ({
+      id: ind.id,
+      label: ind.label,
+      description: ind.description,
+      foundation: ind.foundation,
+      isPlaceholder: false,
+    }));
   }, [activeIndicators]);
 
   // Students for the 5 rows in matrix format
@@ -920,60 +912,81 @@ export default function PosRubricPrintPage() {
         {/* ═════════════════════════════════════════════════════════════════ */}
         {printFormat === "matrix" && (
           <div className="space-y-3">
-            {/* ─── 3. Kotak Panduan Indikator (Grid 2 Kolom x 3 Baris = 6 Indikator) ─── */}
+            {/* ─── 3. Kotak Panduan Indikator (Responsive 2 Kolom) ─── */}
             <div className="border-[1.5px] border-[#22352B]/75 rounded-2xl p-3.5 space-y-2.5 bg-white">
-              <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#22352B]">
-                <i className="mdi mdi-clipboard-text-outline text-sm text-[#486B5A]" />
-                <span>PANDUAN INDIKATOR</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#22352B]">
+                  <i className="mdi mdi-clipboard-text-outline text-sm text-[#486B5A]" />
+                  <span>PANDUAN INDIKATOR ({displayIndicators.length} Indikator Observasi)</span>
+                </div>
+                <span className="text-[9px] font-medium text-[#787F7A]">
+                  Format Matriks Observasi
+                </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
-                {/* Kolom Kiri: Indikator 1, 2, 3 */}
-                <div className="space-y-2.5">
-                  {[1, 2, 3].map((num) => {
-                    const ind = displayIndicators[num - 1];
-                    const isPlaceholder = !ind || ind.isPlaceholder;
-                    return (
-                      <div key={num} className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#22352B] text-white flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">
-                          {num}
-                        </span>
-                        <div className="min-w-0">
-                          <div className="font-bold text-[#22352B] text-[11px] leading-tight">
-                            {isPlaceholder ? `[Indikator ${num}]` : ind.label}
-                          </div>
-                          <div className="text-[9.5px] text-[#565C58] leading-tight mt-0.5">
-                            {isPlaceholder ? `[Deskripsi singkat indikator, maks. 2 baris]` : ind.description}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+              {(() => {
+                const halfCount = Math.ceil(displayIndicators.length / 2);
+                const leftIndicators = displayIndicators.slice(0, halfCount);
+                const rightIndicators = displayIndicators.slice(halfCount);
 
-                {/* Kolom Kanan: Indikator 4, 5, 6 */}
-                <div className="space-y-2.5">
-                  {[4, 5, 6].map((num) => {
-                    const ind = displayIndicators[num - 1];
-                    const isPlaceholder = !ind || ind.isPlaceholder;
-                    return (
-                      <div key={num} className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#22352B] text-white flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">
-                          {num}
-                        </span>
-                        <div className="min-w-0">
-                          <div className="font-bold text-[#22352B] text-[11px] leading-tight">
-                            {isPlaceholder ? `[Indikator ${num}]` : ind.label}
+                return (
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+                    {/* Kolom Kiri */}
+                    <div className="space-y-2.5">
+                      {leftIndicators.map((ind, idx) => {
+                        const num = idx + 1;
+                        return (
+                          <div key={ind.id || num} className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-[#22352B] text-white flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">
+                              {num}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="font-bold text-[#22352B] text-[11px] leading-tight flex items-center gap-1.5 flex-wrap">
+                                <span>{ind.label}</span>
+                                {!ind.isPlaceholder && (
+                                  <span className="text-[9px] font-mono font-semibold px-1 py-0.2 bg-[#F2F7F4] border border-[#CBE0D4] text-[#486B5A] rounded">
+                                    {ind.id}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[9.5px] text-[#565C58] leading-tight mt-0.5">
+                                {ind.description}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-[9.5px] text-[#565C58] leading-tight mt-0.5">
-                            {isPlaceholder ? `[Deskripsi singkat indikator, maks. 2 baris]` : ind.description}
+                        );
+                      })}
+                    </div>
+
+                    {/* Kolom Kanan */}
+                    <div className="space-y-2.5">
+                      {rightIndicators.map((ind, idx) => {
+                        const num = halfCount + idx + 1;
+                        return (
+                          <div key={ind.id || num} className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-[#22352B] text-white flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">
+                              {num}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="font-bold text-[#22352B] text-[11px] leading-tight flex items-center gap-1.5 flex-wrap">
+                                <span>{ind.label}</span>
+                                {!ind.isPlaceholder && (
+                                  <span className="text-[9px] font-mono font-semibold px-1 py-0.2 bg-[#F2F7F4] border border-[#CBE0D4] text-[#486B5A] rounded">
+                                    {ind.id}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[9.5px] text-[#565C58] leading-tight mt-0.5">
+                                {ind.description}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Sinyal Adaptif Notice at bottom of box */}
               <div className="border-t border-stone-200 pt-2 flex items-center gap-1.5 text-[9.5px] text-[#565C58]">
@@ -1003,19 +1016,29 @@ export default function PosRubricPrintPage() {
               </div>
             </div>
 
-            {/* ─── 5. Tabel Utama Observasi (5 Siswa x 6 Kolom Indikator) ─── */}
+            {/* ─── 5. Tabel Utama Observasi (5 Siswa x N Kolom Indikator) ─── */}
             <div className="border-[1.5px] border-[#22352B]/85 rounded-2xl overflow-hidden bg-white">
               {/* Header Tabel */}
               <div className="bg-[#F2F7F4] border-b border-[#22352B]/40 flex items-center">
                 <div className="w-[26%] px-3 py-2 font-extrabold text-[10px] text-[#22352B] uppercase tracking-wider">
                   SISWA
                 </div>
-                <div className="w-[74%] grid grid-cols-6 divide-x divide-[#22352B]/20 py-1.5">
-                  {[1, 2, 3, 4, 5, 6].map((num) => (
-                    <div key={num} className="text-center">
+                <div
+                  className="w-[74%] grid divide-x divide-[#22352B]/20 py-1.5"
+                  style={{
+                    gridTemplateColumns: `repeat(${displayIndicators.length}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {displayIndicators.map((ind, colIdx) => (
+                    <div key={ind.id || colIdx} className="text-center flex flex-col items-center justify-center px-0.5">
                       <span className="w-5 h-5 rounded-full bg-[#22352B] text-white inline-flex items-center justify-center font-extrabold text-[10px]">
-                        {num}
+                        {colIdx + 1}
                       </span>
+                      {!ind.isPlaceholder && (
+                        <span className="text-[8px] font-mono text-[#486B5A] font-bold mt-0.5 truncate max-w-full">
+                          {ind.id}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1040,10 +1063,11 @@ export default function PosRubricPrintPage() {
                   }
                   const hasAman = Boolean(ev?.is_complete && !hasRf);
                   const note = ev?.anecdotal_note || "";
+                  const isDense = displayIndicators.length > 5;
 
                   return (
                     <div key={idx} className="bg-white">
-                      {/* Sub-baris Atas: Nama Siswa + 6 Kolom Skor (Masing-masing 3 OMR Capsule) */}
+                      {/* Sub-baris Atas: Nama Siswa + N Kolom Skor (Masing-masing 3 OMR Capsule) */}
                       <div className="flex items-center border-b border-[#22352B]/15">
                         {/* Kolom Kiri: Nomor + Nama & ID */}
                         <div className="w-[26%] px-3 py-2">
@@ -1055,20 +1079,33 @@ export default function PosRubricPrintPage() {
                           </div>
                         </div>
 
-                        {/* Kolom Kanan: 6 Kolom Indikator, masing-masing 3 pill capsule [1] [2] [3] */}
-                        <div className="w-[74%] grid grid-cols-6 divide-x divide-[#22352B]/20 py-2">
-                          {[1, 2, 3, 4, 5, 6].map((colIdx) => {
-                            const ind = displayIndicators[colIdx - 1];
-                            const recordedScore = ind && !ind.isPlaceholder ? sScores[ind.id] : null;
+                        {/* Kolom Kanan: N Kolom Indikator, masing-masing 3 pill capsule [1] [2] [3] */}
+                        <div
+                          className="w-[74%] grid divide-x divide-[#22352B]/20 py-2"
+                          style={{
+                            gridTemplateColumns: `repeat(${displayIndicators.length}, minmax(0, 1fr))`,
+                          }}
+                        >
+                          {displayIndicators.map((ind, colIdx) => {
+                            const recordedScore = !ind.isPlaceholder ? sScores[ind.id] : null;
 
                             return (
-                              <div key={colIdx} className="flex items-center justify-center gap-1 sm:gap-1.5 px-0.5">
+                              <div
+                                key={ind.id || colIdx}
+                                className={`flex items-center justify-center ${
+                                  isDense ? "gap-0.5 px-0.5" : "gap-1 sm:gap-1.5 px-1"
+                                }`}
+                              >
                                 {[1, 2, 3].map((score) => {
                                   const isFilled = recordedScore === score;
                                   return (
                                     <span
                                       key={score}
-                                      className={`w-4 sm:w-5 h-5 sm:h-5.5 rounded-full border-[1.3px] flex items-center justify-center text-[9px] font-black transition-colors ${
+                                      className={`rounded-full border-[1.3px] flex items-center justify-center font-black transition-colors ${
+                                        isDense
+                                          ? "w-3.5 sm:w-4 h-4.5 sm:h-5 text-[8px] sm:text-[8.5px]"
+                                          : "w-4.5 sm:w-5 h-5 sm:h-5.5 text-[9px] sm:text-[9.5px]"
+                                      } ${
                                         isFilled
                                           ? "bg-[#22352B] text-white border-[#22352B]"
                                           : "bg-white text-[#22352B] border-[#22352B]/85"
