@@ -169,31 +169,58 @@ export default function StudentReportPage() {
   };
 
   const aspectList = [
-    { num: 1, name: "P1: Agama & Budi Pekerti", score: clampScore(fScores[1] ?? profile.pos_scores[1], 2.6) },
-    { num: 2, name: "P2: Keterampilan Sosial & Bahasa", score: clampScore(fScores[2] ?? profile.pos_scores[4], 2.6) },
-    { num: 3, name: "P3: Kematangan Emosi", score: clampScore(fScores[3] ?? profile.pos_scores[1], 2.5) },
-    { num: 4, name: "P4: Kematangan Kognitif", score: clampScore(fScores[4] ?? profile.pos_scores[3], 2.5) },
-    { num: 5, name: "P5: Motorik & Perawatan Diri", score: clampScore(fScores[5] ?? profile.pos_scores[2], 2.7) },
-    { num: 6, name: "P6: Pemaknaan Belajar Positif", score: clampScore(fScores[6] ?? profile.pos_scores[5], 2.8) },
+    { num: 1, code: "P1", name: "Agama & Budi Pekerti", score: clampScore(fScores[1] ?? profile.pos_scores[1], 2.9) },
+    { num: 2, code: "P2", name: "Keterampilan Sosial & Bahasa", score: clampScore(fScores[2] ?? profile.pos_scores[4], 2.8) },
+    { num: 3, code: "P3", name: "Kematangan Emosi", score: clampScore(fScores[3] ?? profile.pos_scores[1], 2.7) },
+    { num: 4, code: "P4", name: "Kematangan Kognitif", score: clampScore(fScores[4] ?? profile.pos_scores[3], 2.6) },
+    { num: 5, code: "P5", name: "Motorik & Perawatan Diri", score: clampScore(fScores[5] ?? profile.pos_scores[2], 2.9) },
+    { num: 6, code: "P6", name: "Pemaknaan Belajar Positif", score: clampScore(fScores[6] ?? profile.pos_scores[5], 2.9) },
   ];
 
   const posNarrativeList = [
-    { pos: 1, title: "Kematangan Emosi & Kemandirian", text: narratives[1] || "Ananda berpisah dengan tenang dari orang tua dan langsung mandiri meletakkan barang bawaan di loker." },
-    { pos: 2, title: "Motorik Kasar & Koordinasi", text: narratives[2] || "Mampu melompat dengan keseimbangan prima dan mengikuti instruksi rintangan fisik dengan lincah." },
-    { pos: 3, title: "Kognitif & Numerasi Dasar", text: narratives[3] || "Memahami pola berurutan, mampu mengelompokkan bentuk benda, dan menyelesaikan teka-teki logika." },
-    { pos: 4, title: "Bahasa Lisan & Pra-Literasi", text: narratives[4] || "Dapat menceritakan kembali cerita bergambar dengan runtut dan mengenali suku kata sederhana." },
-    { pos: 5, title: "Interaksi Sosial & Kolaborasi", text: narratives[5] || "Spontan berbagi alat bermain, aktif mengajak kawan baru, dan santun dalam menunggu giliran." },
-  ].filter((p) => Boolean(p.text));
-
-  const homeStimulationList = stimulations.length > 0 ? stimulations : [
-    "Ajak Ananda membaca buku cerita bergambar 10–15 menit sebelum tidur dan tanyakan alur ceritanya.",
-    "Latih kemandirian merapikan sepatu dan tas sekolah secara konsisten setiap pulang bepergian.",
-    "Beri kesempatan Ananda menghitung benda konkret di rumah seperti sendok makan atau buah.",
-    "Perbanyak kegiatan motorik luar ruangan seperti bersepeda santai atau melempar tangkap bola.",
+    {
+      num: 1,
+      title: "Kematangan Emosi & Kemandirian",
+      text:
+        narratives[1] ||
+        "Ananda berpisah dengan tenang dari orang tua dan langsung mandiri meletakkan barang bawaan di loker.",
+    },
+    {
+      num: 2,
+      title: "Motorik Kasar & Koordinasi",
+      text:
+        narratives[2] ||
+        "Mampu melompat dengan keseimbangan prima dan mengikuti instruksi rintangan fisik dengan lincah.",
+    },
+    {
+      num: 3,
+      title: "Kognitif & Numerasi Dasar",
+      text:
+        narratives[3] ||
+        "Memahami pola berurutan, mampu mengelompokkan bentuk benda, dan menyelesaikan teka-teki logika.",
+    },
+    {
+      num: 4,
+      title: "Bahasa Lisan & Pra-Literasi",
+      text:
+        narratives[4] ||
+        "Dapat menceritakan kembali cerita bergambar dengan runtut dan mengenali suku kata sederhana.",
+    },
   ];
 
-  const batchTitle = profile.batch?.batch_name || "Batch 1 (TP 2026/2027, 56 Siswa)";
-  const reportDate = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const homeStimulationList = [
+    stimulations[0] ||
+      "Ajak Ananda membaca buku cerita bergambar 10–15 menit sebelum tidur dan tanyakan alur ceritanya.",
+    stimulations[1] ||
+      "Latih kemandirian merapikan sepatu dan tas sekolah secara konsisten setiap pulang bepergian.",
+  ];
+
+  const batchTitle = profile.batch?.batch_name || "Gelombang 1 • TP 2027/2028";
+  const reportDate = new Date().toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="min-h-screen bg-[#F6F2E9] text-[#22352B] py-4 sm:py-6 px-3 sm:px-6 print:bg-white print:p-0 print:min-h-0 font-sans">
@@ -208,8 +235,7 @@ export default function StudentReportPage() {
             background: #ffffff !important;
             margin: 0 !important;
             padding: 0 !important;
-            height: auto !important;
-            font-size: 11pt !important;
+            font-size: 10pt !important;
             color: #22352B !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -249,7 +275,7 @@ export default function StudentReportPage() {
 
         <button
           onClick={handlePrint}
-          className="bg-[#B85627] hover:bg-[#A34B21] text-white px-5 py-2 text-xs font-extrabold rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+          className="bg-[#9B3F18] hover:bg-[#853714] text-white px-5 py-2 text-xs font-extrabold rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95"
         >
           <i className="mdi mdi-printer-outline text-base" />
           <span>Cetak A4 (1 Lembar)</span>
@@ -257,544 +283,239 @@ export default function StudentReportPage() {
       </div>
 
       {/* ═════════════════════════════════════════════════════════════════ */}
-      {/* ─── A. MOBILE VIEW (Specification B: Exact Mobile Layout) ─────── */}
+      {/* ─── A4 PRINT & WEB SHEET (Persis Tata Letak Gambar Referensi) ─── */}
       {/* ═════════════════════════════════════════════════════════════════ */}
-      <div className="block md:hidden print-hidden-nav space-y-4 max-w-lg mx-auto">
-        {/* Kop Laporan Mobile */}
-        <div className="bg-white rounded-[1.85rem] p-4.5 border border-[#E8E2D8]/60 shadow-sm space-y-2.5">
+      <div className="a4-print-sheet max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8 print:p-0 print:border-none print:shadow-none text-[#22352B] space-y-3.5 print:space-y-3 leading-snug">
+        {/* ─── 1. KOP LAPORAN (Header) ─── */}
+        <div className="flex items-start justify-between gap-4 pb-2.5 border-b border-[#22352B]/80">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#D67443] text-white flex items-center justify-center text-xl flex-shrink-0 shadow-xs">
-              <i className="mdi mdi-leaf" />
+            <div className="w-10 h-10 rounded-xl bg-[#9B3F18] text-white flex items-center justify-center text-xl flex-shrink-0 shadow-xs">
+              <i className="mdi mdi-sprout" />
             </div>
-            <div className="min-w-0">
-              <h1 className="font-extrabold text-lg text-[#22352B] tracking-tight leading-none">
-                kalamula &bull; {schoolProfile?.school_name || "SD Islam An Najah"}
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-[#22352B] tracking-tight leading-none">
+                kalamula
               </h1>
-              <p className="text-[11px] font-bold text-[#565C58] mt-0.5 truncate">
+              <p className="text-xs font-medium text-[#565C58] mt-1 leading-tight">
                 Laporan Asesmen Diagnostik Kesiapan Belajar Siswa
+              </p>
+              <p className="text-[11px] text-[#787F7A] mt-0.5 leading-tight">
+                {schoolProfile?.school_name || "SD Islam An Najah"} &bull; {schoolProfile?.foundation_name || "Yayasan Nurun Najah"} &bull; T.A. {schoolProfile?.academic_year || "2026/2027"}
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-between text-[11px] text-[#787F7A] pt-2 border-t border-[#EFECE4]">
-            <span className="font-semibold text-[#22352B] truncate">{batchTitle}</span>
-            <span className="flex-shrink-0 ml-2">{reportDate}</span>
+
+          <div className="text-right flex-shrink-0">
+            <span className="inline-block bg-[#284034] text-white text-xs font-bold px-3.5 py-1 rounded-full shadow-2xs">
+              {batchTitle}
+            </span>
+            <p className="text-[11px] text-[#787F7A] mt-1">
+              Dicetak {reportDate}
+            </p>
           </div>
         </div>
 
-        {/* Kartu Identitas Siswa (Solid Deep Sage Green #486B5A) */}
-        <div className="bg-[#486B5A] text-white rounded-[1.85rem] p-5 shadow-sm space-y-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-14 h-14 rounded-full bg-white text-[#22352B] font-extrabold text-base flex items-center justify-center flex-shrink-0 shadow-xs">
+        {/* ─── 2. KARTU IDENTITAS SISWA (Soft Sage #F4F7F5) ─── */}
+        <div className="bg-[#F4F7F5] border border-[#DFE7E2] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+            <div className="w-12 h-12 rounded-full bg-[#2E5442] text-white font-extrabold text-base flex items-center justify-center flex-shrink-0 shadow-xs">
               {initials}
             </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-black text-white leading-tight truncate">
-                {student.full_name}
-              </h2>
-              <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                <span className="inline-block bg-white/15 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                  &ldquo;{student.nickname}&rdquo;
-                </span>
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-base sm:text-lg font-black text-[#22352B] leading-tight">
+                  {student.full_name}
+                </h2>
+                {student.nickname && (
+                  <span className="bg-white border border-[#E8E2D8] text-[#565C58] text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-2xs">
+                    &ldquo;{student.nickname}&rdquo;
+                  </span>
+                )}
                 {student.observation_group && (
-                  <span className="bg-[#EFE7D6] text-[#7D5327] text-xs font-extrabold px-2.5 py-0.5 rounded-full shadow-2xs inline-flex items-center gap-1">
+                  <span className="bg-[#FAF0E8] border border-[#F2D8C7] text-[#9B3F18] text-xs font-bold px-2.5 py-0.5 rounded-full shadow-2xs flex items-center gap-1">
                     <i className="mdi mdi-account-group text-xs" />
                     <span>{student.observation_group}</span>
                   </span>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Grid 2x2 Informasi Siswa */}
-          <div className="grid grid-cols-2 gap-2.5 pt-1 text-xs border-t border-white/15">
-            <div className="bg-white/10 rounded-xl p-2.5">
-              <span className="text-[10px] uppercase font-bold text-white/70 block leading-tight">NO. PPDB</span>
-              <span className="font-mono font-bold text-white mt-0.5 block">{student.registration_no}</span>
-            </div>
-            <div className="bg-white/10 rounded-xl p-2.5">
-              <span className="text-[10px] uppercase font-bold text-white/70 block leading-tight">JENIS KELAMIN</span>
-              <span className="font-bold text-white mt-0.5 block">{student.gender === "L" ? "Laki-laki" : "Perempuan"}</span>
-            </div>
-            <div className="bg-white/10 rounded-xl p-2.5">
-              <span className="text-[10px] uppercase font-bold text-white/70 block leading-tight">USIA</span>
-              <span className="font-bold text-white mt-0.5 block">{ageString}</span>
-            </div>
-            <div className="bg-white/10 rounded-xl p-2.5">
-              <span className="text-[10px] uppercase font-bold text-white/70 block leading-tight">ORANG TUA</span>
-              <span className="font-bold text-white mt-0.5 block truncate">{student.parent_name || "-"}</span>
-            </div>
-          </div>
-
-          {/* Banner Putih di Bagian Bawah Kartu Hijau */}
-          <div className="bg-white rounded-2xl p-3 flex items-center justify-between text-[#22352B] shadow-2xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center flex-shrink-0">
-                <i className="mdi mdi-shield-check-outline text-lg" />
-              </div>
-              <div>
-                <span className="text-[9.5px] uppercase font-extrabold text-[#787F7A] block leading-none">
-                  KEMANDIRIAN
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#565C58]">
+                <span>
+                  No. Reg <strong className="font-mono font-bold text-[#22352B]">{student.registration_no}</strong>
                 </span>
-                <span className="text-xs font-extrabold text-[#486B5A] leading-tight mt-0.5 block">
-                  {continuumText}
+                <span>
+                  JK <strong className="font-bold text-[#22352B]">{student.gender === "L" ? "Laki-laki" : "Perempuan"}</strong>
+                </span>
+                <span>
+                  Usia <strong className="font-bold text-[#22352B]">{ageString}</strong>
+                </span>
+                <span>
+                  Ortu <strong className="font-bold text-[#22352B]">{student.parent_name || "-"}</strong>
                 </span>
               </div>
             </div>
-            <div className="w-6 h-6 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center">
-              <i className="mdi mdi-check text-sm font-bold" />
-            </div>
-          </div>
-        </div>
-
-        {/* Kartu Radar Kesiapan Belajar Mobile (Hexagon 6 Fondasi) */}
-        <div className="bg-white rounded-[1.85rem] p-5 border border-[#E8E2D8]/60 shadow-sm space-y-3.5">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#F6F3EC]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center flex-shrink-0 text-lg">
-                <i className="mdi mdi-hexagon-outline" />
-              </div>
-              <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                Radar Kesiapan Belajar (6 Fondasi)
-              </h3>
-            </div>
-            <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-[#E4EAF2] text-[#36506C]">
-              Profil 360°
-            </span>
           </div>
 
-          {/* Skor Rata-rata & Box Keterangan */}
-          <div className="flex items-center gap-3">
-            <div className="text-center px-3.5 py-2 bg-[#F6F3EC] rounded-2xl border border-[#E8E2D8]">
-              <span className="text-2xl font-black text-[#22352B] block leading-none">
-                {averageScore !== null ? Math.min(3.0, averageScore).toFixed(1) : "2.6"}
-              </span>
-              <span className="text-[10px] font-bold text-[#787F7A] block mt-0.5">/ 3.0</span>
-            </div>
-            <div className="flex-1 bg-[#E4EFE9] text-[#486B5A] p-2.5 rounded-2xl text-xs font-semibold leading-snug border border-[#CBE0D4]">
-              Rata-rata capaian fondasi belajar &amp; profil lulusan.
-            </div>
-          </div>
-
-          {/* Grafik Radar Hexagon */}
-          <div className="flex justify-center items-center py-2">
-            <RadarChart
-              foundationScores={profile.foundation_scores}
-              scores={profile.pos_scores}
-              size={230}
-            />
-          </div>
-
-          <div className="pt-2 border-t border-[#EFECE4] flex items-center justify-between text-[11px] text-[#787F7A] font-medium">
-            <span>Skala: 1 (PB) • 2 (BSH) • 3 (M)</span>
-            <span className="font-bold text-[#B85627]">Target: ≥ 2.5</span>
-          </div>
-        </div>
-
-        {/* Kartu Tingkat Kemampuan Membaca Mobile */}
-        <div className="bg-white rounded-[1.85rem] p-5 border border-[#E8E2D8]/60 shadow-sm space-y-3.5">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#F6F3EC]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#EFE7D6] text-[#7D5327] flex items-center justify-center flex-shrink-0 text-lg">
-                <i className="mdi mdi-book-open-page-variant-outline" />
-              </div>
-              <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                Tingkat Kemampuan Membaca
-              </h3>
-            </div>
-            <div className="w-7 h-7 rounded-full bg-[#486B5A] text-white text-xs font-extrabold flex items-center justify-center">
-              {activeReadingLevel}
-            </div>
-          </div>
-
-          {/* 4-Segment Step Bar */}
-          <div className="grid grid-cols-4 gap-1.5" role="progressbar" aria-valuenow={currentLevelNum} aria-valuemin={1} aria-valuemax={4}>
-            {[1, 2, 3, 4].map((step) => {
-              const isFilled = step <= currentLevelNum;
-              return (
-                <div key={step} className="space-y-1 text-center">
-                  <div
-                    className={`h-2 rounded-full transition-all ${
-                      isFilled ? "bg-[#486B5A]" : "bg-[#EFECE4]"
-                    }`}
-                  />
-                  <span className={`text-[10px] font-extrabold ${isFilled ? "text-[#486B5A]" : "text-[#787F7A]"}`}>
-                    L{step}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Kotak Penjelasan */}
-          <div className="bg-[#F2F7F4] border border-[#CBE0D4] rounded-2xl p-3.5 text-xs text-[#22352B] space-y-1">
-            <h4 className="font-extrabold text-[#22352B] text-xs">
-              {readingLevelMap[activeReadingLevel]?.title || "Tingkat 3: Membaca Suku Kata"}
-            </h4>
-            <p className="text-[#565C58] leading-relaxed">
-              {readingLevelMap[activeReadingLevel]?.desc || "Membaca gabungan suku kata sederhana (bu-ku, bo-la)."}
-            </p>
-          </div>
-        </div>
-
-        {/* Kartu Rincian Skor Capaian Mobile */}
-        <div className="bg-white rounded-[1.85rem] p-5 border border-[#E8E2D8]/60 shadow-sm space-y-3.5">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#F6F3EC]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#E4EAF2] text-[#36506C] flex items-center justify-center flex-shrink-0 text-lg">
-                <i className="mdi mdi-chart-box-outline" />
-              </div>
-              <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                Rincian Skor Capaian
-              </h3>
-            </div>
-            <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-[#E4EAF2] text-[#36506C]">
-              Fondasi Belajar &amp; Profil Lulusan
-            </span>
-          </div>
-
-          <div className="space-y-2.5">
-            {aspectList.map((item) => {
-              const val = item.score !== null ? Math.min(3.0, Number(item.score.toFixed(1))) : 2.5;
-              const pct = Math.min(100, Math.round((val / 3) * 100));
-
-              return (
-                <div key={item.num} className="bg-[#FAF8F5] rounded-2xl p-3 border border-[#E8E2D8] space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-[#22352B]">{item.name}</span>
-                    <span className="font-extrabold text-[#22352B] font-mono">{val.toFixed(1)} / 3.0</span>
-                  </div>
-
-                  {/* Horizontal Bar with Terracotta Target Marker (83% / 2.5) */}
-                  <div className="relative w-full h-2.5 bg-[#EFECE4] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#486B5A] rounded-full transition-all duration-300"
-                      style={{ width: `${pct}%` }}
-                    />
-                    {/* Target 2.5 Line (83%) */}
-                    <div
-                      className="absolute top-0 bottom-0 w-[2px] bg-[#B85627] z-10"
-                      style={{ left: "83%" }}
-                      title="Target: 2.5"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Kartu Catatan Pengamatan Guru Mobile */}
-        <div className="bg-white rounded-[1.85rem] p-5 border border-[#E8E2D8]/60 shadow-sm space-y-3.5">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#F6F3EC]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#F9E6DC] text-[#8C3713] flex items-center justify-center flex-shrink-0 text-lg">
-                <i className="mdi mdi-pencil-outline" />
-              </div>
-              <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                Catatan Pengamatan Guru
-              </h3>
-            </div>
-            <span className="text-[11px] font-semibold text-[#565C58]">
-              {posNarrativeList.length} Catatan
-            </span>
-          </div>
-
-          <div className="space-y-2.5">
-            {(expandedNotes ? posNarrativeList : posNarrativeList.slice(0, 3)).map((item) => (
-              <div
-                key={item.pos}
-                className="p-3.5 bg-[#FDF7F4] rounded-2xl border border-[#F1CFC0]/60 space-y-1"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#B85627] text-white flex items-center justify-center font-extrabold text-[10px] flex-shrink-0">
-                    {item.pos}
-                  </span>
-                  <span className="font-bold text-xs text-[#22352B]">{item.title}</span>
-                </div>
-                <p className="text-xs text-[#565C58] italic leading-relaxed pl-7">
-                  &ldquo;{item.text}&rdquo;
-                </p>
-              </div>
-            ))}
-
-            {posNarrativeList.length > 3 && (
-              <button
-                type="button"
-                onClick={() => setExpandedNotes(!expandedNotes)}
-                className="w-full py-2 bg-[#F6F3EC] hover:bg-[#EFECE4] text-xs font-bold text-[#486B5A] rounded-xl transition text-center cursor-pointer flex items-center justify-center gap-1"
-              >
-                <span>{expandedNotes ? "Sembunyikan catatan" : `Lihat ${posNarrativeList.length - 3} catatan lainnya`}</span>
-                <i className={`mdi ${expandedNotes ? "mdi-chevron-up" : "mdi-chevron-down"}`} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Kartu Panduan Latihan di Rumah Mobile */}
-        <div className="bg-[#E4EFE9] border border-[#CBE0D4] rounded-[1.85rem] p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#CBE0D4]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-white text-[#486B5A] flex items-center justify-center flex-shrink-0 text-lg shadow-2xs">
-                <i className="mdi mdi-lightbulb-on-outline" />
-              </div>
-              <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                Panduan Latihan di Rumah
-              </h3>
-            </div>
-            <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-white text-[#486B5A] shadow-2xs">
-              Untuk Orang Tua
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            {homeStimulationList.slice(0, 4).map((stim, i) => (
-              <div
-                key={i}
-                className="p-3 bg-white rounded-2xl border border-[#CBE0D4] shadow-2xs flex items-start gap-2.5 text-xs text-[#22352B] leading-relaxed"
-              >
-                <span className="w-5 h-5 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center font-bold text-[10px] flex-shrink-0 mt-0.5">
-                  {i + 1}
-                </span>
-                <span className="font-medium text-[#22352B]">{stim}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Pengesahan Tanda Tangan Mobile */}
-        <div className="bg-white rounded-[1.85rem] p-5 border border-[#E8E2D8]/60 shadow-sm grid grid-cols-2 gap-4 text-center text-xs">
-          <div>
-            <p className="text-[#565C58] font-medium">Koordinator Asesmen</p>
-            <div className="h-14 flex items-end justify-center">
-              <span className="font-bold text-[#22352B] underline">( Tim Asesor PPDB )</span>
-            </div>
-          </div>
-          <div>
-            <p className="text-[#565C58] font-medium">Mengetahui Orang Tua / Wali</p>
-            <div className="h-14 flex items-end justify-center">
-              <span className="font-bold text-[#22352B] underline truncate max-w-[140px] inline-block">
-                ( {student.parent_name || "........................."} )
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═════════════════════════════════════════════════════════════════ */}
-      {/* ─── B. A4 PRINT PREVIEW (Specification C: 1-Page Exact Sheet) ── */}
-      {/* ═════════════════════════════════════════════════════════════════ */}
-      <div className="a4-print-sheet hidden md:block max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-8 print:p-0 print:border-none print:shadow-none text-[#22352B] leading-snug text-[11pt]">
-        {/* Kop Laporan A4 dengan Garis Hijau Tegas */}
-        <div className="flex items-center justify-between pb-3 mb-3.5 border-b-2 border-[#486B5A]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#D67443] text-white flex items-center justify-center text-xl flex-shrink-0 shadow-xs">
-              <i className="mdi mdi-leaf" />
-            </div>
+          {/* Kotak Putih Kemandirian di Kanan */}
+          <div className="bg-white border border-[#DFE7E2] rounded-xl px-4 py-2 flex items-center gap-2.5 flex-shrink-0 shadow-2xs self-start sm:self-auto">
+            <i className="mdi mdi-shield-check-outline text-xl text-[#2E6B4D]" />
             <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl font-extrabold text-[#22352B] tracking-tight leading-none">
-                  kalamula
-                </span>
-                <span className="text-xs font-bold text-[#565C58]">
-                  • {schoolProfile?.school_name || "SD Islam An Najah"} • Laporan Asesmen Diagnostik Kesiapan Belajar Siswa
-                </span>
-              </div>
-              <p className="text-[10px] text-[#787F7A] mt-0.5">
-                {schoolProfile?.foundation_name || "Yayasan Nurun Najah"} &bull; T.A. {schoolProfile?.academic_year || "2026/2027"}
-              </p>
-            </div>
-          </div>
-          <div className="text-right text-xs text-[#565C58]">
-            <span className="font-bold text-[#22352B]">{batchTitle}</span>
-            <span className="text-[#787F7A] ml-2">• {reportDate}</span>
-          </div>
-        </div>
-
-        {/* Banner Identitas Siswa Anti-Bertumpuk (bg-[#F2F7F4] border border-[#CBE0D4]) */}
-        <div className="bg-[#F2F7F4] border border-[#CBE0D4] rounded-2xl px-5 py-3.5 mb-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5 min-w-0 flex-1">
-            {/* Lingkaran Avatar Hijau #486B5A */}
-            <div className="w-12 h-12 rounded-full bg-[#486B5A] text-white font-extrabold text-sm flex items-center justify-center flex-shrink-0 shadow-xs">
-              {initials}
-            </div>
-
-            {/* Blok Teks Vertikal (space-y-1 agar nama tidak menabrak baris di bawahnya) */}
-            <div className="space-y-1 min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2 leading-snug">
-                <h2 className="text-sm font-extrabold text-[#22352B] truncate">
-                  {student.full_name}
-                </h2>
-                <span className="bg-white border border-[#CBE0D4] text-[#486B5A] text-xs font-bold px-2 py-0.5 rounded-full shadow-2xs">
-                  &ldquo;{student.nickname}&rdquo;
-                </span>
-                {student.observation_group && (
-                  <span className="bg-[#EFE7D6] text-[#7D5327] border border-[#DDD0B8] text-xs font-bold px-2 py-0.5 rounded-full">
-                    <i className="mdi mdi-account-group mr-1" />
-                    {student.observation_group}
-                  </span>
-                )}
-                {profile.has_any_red_flag && (
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#F9E6DC] text-[#8C3713] border border-[#F1CFC0]">
-                    Perhatian Khusus
-                  </span>
-                )}
-              </div>
-
-              <p className="text-xs text-[#565C58] leading-snug">
-                No. Reg: <span className="font-mono font-bold text-[#22352B]">{student.registration_no}</span> • JK:{" "}
-                <span className="font-bold text-[#22352B]">{student.gender === "L" ? "Laki-laki" : "Perempuan"}</span> • Usia:{" "}
-                <span className="font-bold text-[#22352B]">{ageString}</span> • Ortu:{" "}
-                <span className="font-bold text-[#22352B]">{student.parent_name || "-"}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Kotak Putih Status Kemandirian di Kanan */}
-          <div className="bg-white border border-[#486B5A]/40 rounded-xl px-3.5 py-2 flex items-center gap-2 flex-shrink-0 shadow-2xs">
-            <i className="mdi mdi-shield-check-outline text-lg text-[#486B5A]" />
-            <div className="text-left">
-              <span className="text-[9px] uppercase font-extrabold text-[#787F7A] block leading-none">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#787F7A] block leading-none">
                 KEMANDIRIAN
               </span>
-              <span className="text-xs font-extrabold text-[#486B5A] leading-tight mt-0.5 block">
-                {continuumText}
+              <span className="text-xs sm:text-sm font-black text-[#22352B] leading-tight mt-0.5 block">
+                {continuumText.includes("Mandiri")
+                  ? "Muncul Mandiri"
+                  : continuumText.includes("Berkembang")
+                  ? "Sedang Berkembang"
+                  : "Perlu Bimbingan"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* ─── Grid 2 Kolom Tengah (12 Kolom) ─── */}
-        <div className="grid grid-cols-12 gap-3 mb-3 items-stretch">
-          {/* Kolom Kiri (6 Kolom): Radar Kesiapan Belajar */}
-          <div className="col-span-6 bg-white border border-[#E8E2D8] rounded-xl p-3 flex flex-col justify-between shadow-2xs">
+        {/* ─── 3. GRID 2 KOLOM TENGAH (Radar & Rincian) ─── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-stretch">
+          {/* Kolom Kiri: RADAR KESIAPAN BELAJAR */}
+          <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 flex flex-col justify-between shadow-2xs space-y-2">
             <div>
-              <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-[#E8E2D8]">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#22352B] flex items-center gap-1.5">
-                  <i className="mdi mdi-hexagon-outline text-sm text-[#486B5A]" />
-                  <span>Radar Kesiapan Belajar</span>
-                </h3>
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#E4EAF2] text-[#36506C]">
-                  Profil 360° (6 Fondasi)
-                </span>
+              <div className="flex items-center justify-between pb-1.5 border-b border-[#E8E2D8]">
+                <div className="flex items-center gap-1.5">
+                  <i className="mdi mdi-hexagon-outline text-base text-[#22352B]" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                    RADAR KESIAPAN BELAJAR
+                  </h3>
+                </div>
+                <span className="text-xs font-bold text-[#787F7A]">Profil 360°</span>
               </div>
 
               {/* Grafik Hexagon 6 Fondasi */}
               <div className="flex justify-center items-center py-1">
                 <RadarChart
-                  scores={profile.pos_scores}
                   foundationScores={profile.foundation_scores}
-                  size={210}
+                  scores={profile.pos_scores}
+                  size={200}
                 />
               </div>
             </div>
 
-            {/* Keterangan Bawah */}
-            <div className="pt-1.5 border-t border-[#E8E2D8] flex items-center justify-between text-[10px] text-[#565C58] font-medium">
-              <span>Skala: 1 (PB) • 2 (BSH) • 3 (M)</span>
+            {/* Footer Radar Legend */}
+            <div className="pt-2 border-t border-[#E8E2D8] flex items-center justify-between text-[10.5px] text-[#787F7A]">
+              <span>Skala 1 (PB) • 2 (B) • 3 (M)</span>
               <span className="font-bold text-[#22352B]">
-                Target: ≥ 2.5 | Rata-rata: {averageScore !== null ? Math.min(3.0, averageScore).toFixed(1) : "2.6"} / 3.0
+                Rata-rata {averageScore !== null ? Math.min(3.0, averageScore).toFixed(1).replace(".", ",") : "2,8"} / 3,0
+              </span>
+              <span className="font-bold text-[#9B3F18] flex items-center gap-1">
+                <span className="tracking-tighter">---</span>
+                <span>Target 2,5</span>
               </span>
             </div>
           </div>
 
-          {/* Kolom Kanan (6 Kolom): Bertumpuk Vertikal */}
-          <div className="col-span-6 flex flex-col gap-2.5 justify-between">
-            {/* Atas: Tingkat Kemampuan Membaca */}
-            <div className="bg-white border border-[#E8E2D8] rounded-xl p-3 shadow-2xs space-y-1.5">
-              <div className="flex items-center justify-between pb-1 border-b border-[#E8E2D8]">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#22352B] flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded-md bg-[#EFE7D6] text-[#7D5327] flex items-center justify-center text-xs">
-                    <i className="mdi mdi-book-open-page-variant-outline" />
-                  </div>
-                  <span>Tingkat Kemampuan Membaca</span>
+          {/* Kolom Kanan: Dua Kartu Bertumpuk Vertikal */}
+          <div className="flex flex-col justify-between gap-3">
+            {/* Kartu Atas: TINGKAT KEMAMPUAN MEMBACA */}
+            <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs space-y-2">
+              <div className="flex items-center gap-2 pb-1 border-b border-[#E8E2D8]">
+                <i className="mdi mdi-book-open-outline text-base text-[#22352B]" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                  TINGKAT KEMAMPUAN MEMBACA
                 </h3>
-                <span className="w-5 h-5 rounded-full bg-[#486B5A] text-white text-[10px] font-extrabold flex items-center justify-center">
-                  {activeReadingLevel}
-                </span>
               </div>
 
-              <div className="bg-[#F2F7F4] border border-[#CBE0D4] rounded-lg p-2 text-xs space-y-0.5">
-                <p className="font-bold text-[#22352B] leading-tight">
-                  {readingLevelMap[activeReadingLevel]?.title || "Tingkat 3: Membaca Suku Kata"}
-                </p>
-                <p className="text-[11px] text-[#565C58] leading-snug">
-                  {readingLevelMap[activeReadingLevel]?.desc || "Membaca gabungan suku kata sederhana (bu-ku, bo-la)."}
-                </p>
+              <div className="bg-[#F4F7F5] border border-[#DFE7E2] rounded-xl p-3 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#2E5442] text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
+                  {activeReadingLevel}
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="font-black text-xs text-[#22352B] leading-tight">
+                    {readingLevelMap[activeReadingLevel]?.title || "Tingkat 3: Membaca Suku Kata"}
+                  </h4>
+                  <p className="text-[11px] text-[#565C58] leading-snug">
+                    {readingLevelMap[activeReadingLevel]?.desc || "Membaca gabungan suku kata sederhana (bu-ku, bo-la)."}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Bawah: Rincian Skor Capaian */}
-            <div className="bg-white border border-[#E8E2D8] rounded-xl p-3 shadow-2xs flex-1 flex flex-col justify-between space-y-1.5">
+            {/* Kartu Bawah: RINCIAN SKOR CAPAIAN */}
+            <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs flex-1 flex flex-col justify-between space-y-2">
               <div className="flex items-center justify-between pb-1 border-b border-[#E8E2D8]">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#22352B] flex items-center gap-1.5">
-                  <i className="mdi mdi-chart-box-outline text-sm text-[#36506C]" />
-                  <span>Rincian Skor Capaian</span>
-                </h4>
-                <span className="text-[10px] font-semibold text-[#565C58]">Fondasi Belajar &amp; Profil Lulusan</span>
+                <div className="flex items-center gap-2">
+                  <i className="mdi mdi-chart-bar text-base text-[#22352B]" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                    RINCIAN SKOR CAPAIAN
+                  </h3>
+                </div>
+                <span className="text-xs font-bold text-[#787F7A]">6 Fondasi</span>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5 py-0.5">
                 {aspectList.map((item) => {
                   const val = item.score !== null ? Math.min(3.0, Number(item.score.toFixed(1))) : 2.5;
                   const pct = Math.min(100, Math.round((val / 3) * 100));
 
                   return (
-                    <div
-                      key={item.num}
-                      className="bg-[#FAF8F5] rounded-lg px-2.5 py-1 border border-[#E8E2D8] flex items-center justify-between text-xs"
-                    >
-                      <span className="font-semibold text-[#22352B] truncate flex-1 min-w-0 pr-2">
+                    <div key={item.num} className="flex items-center gap-2 text-xs">
+                      <span className="font-bold text-[#565C58] w-5 flex-shrink-0 text-[11px]">
+                        {item.code}
+                      </span>
+                      <span className="font-semibold text-[#22352B] w-36 sm:w-40 truncate text-[11px]">
                         {item.name}
                       </span>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Progress Bar with Terracotta Target Marker (83%) */}
-                        <div className="relative w-20 h-2 bg-[#EFECE4] rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#486B5A] rounded-full"
-                            style={{ width: `${pct}%` }}
-                          />
-                          <div
-                            className="absolute top-0 bottom-0 w-[2px] bg-[#B85627] z-10"
-                            style={{ left: "83%" }}
-                          />
-                        </div>
-                        <span className="font-bold text-[#22352B] min-w-[32px] text-right font-mono text-[11px]">
-                          {val.toFixed(1)}/3
-                        </span>
+                      {/* Horizontal green bar with terracotta tick at 83.33% */}
+                      <div className="relative flex-1 h-2 bg-[#EFECE4] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#486B5A] rounded-full transition-all duration-300"
+                          style={{ width: `${pct}%` }}
+                        />
+                        <div
+                          className="absolute top-0 bottom-0 w-[2px] bg-[#9B3F18] z-10"
+                          style={{ left: "83.33%" }}
+                          title="Target: 2.5"
+                        />
                       </div>
+                      <span className="font-mono font-bold text-[#22352B] w-7 text-right text-xs">
+                        {val.toFixed(1)}
+                      </span>
                     </div>
                   );
                 })}
+              </div>
+
+              <div className="text-[10px] text-[#787F7A] pt-1 border-t border-[#FAF8F5]">
+                <span className="text-[#9B3F18] font-black mr-1">|</span> Garis terakota = target 2,5
               </div>
             </div>
           </div>
         </div>
 
-        {/* ─── Catatan Pengamatan Guru (Grid 2x2) ─── */}
-        <div className="bg-white border border-[#E8E2D8] rounded-xl p-3 mb-3 shadow-2xs space-y-2">
-          <div className="flex items-center justify-between pb-1 border-b border-[#E8E2D8]">
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#22352B] flex items-center gap-1.5">
-              <i className="mdi mdi-pencil-outline text-sm text-[#486B5A]" />
-              <span>Catatan Pengamatan Guru</span>
-            </h3>
-            <span className="text-[10px] font-semibold text-[#565C58]">
-              {posNarrativeList.length} Catatan
-            </span>
+        {/* ─── 4. CATATAN PENGAMATAN GURU (Grid 2x2) ─── */}
+        <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-1.5 border-b border-[#E8E2D8]">
+            <div className="flex items-center gap-2">
+              <i className="mdi mdi-pencil-outline text-base text-[#22352B]" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                CATATAN PENGAMATAN GURU
+              </h3>
+            </div>
+            <span className="text-xs font-bold text-[#787F7A]">4 Catatan</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {posNarrativeList.slice(0, 4).map((item) => (
               <div
-                key={item.pos}
-                className="bg-[#FDF7F4] border border-[#F1CFC0]/60 rounded-xl p-2.5 space-y-0.5"
+                key={item.num}
+                className="bg-[#FAF8F5] border border-[#F2D8C7] rounded-xl p-3 space-y-1"
               >
-                <div className="flex items-center gap-1.5">
-                  <span className="w-4.5 h-4.5 rounded-full bg-[#B85627] text-white flex items-center justify-center font-bold text-[9.5px] flex-shrink-0">
-                    {item.pos}
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-[#9B3F18] text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0">
+                    {item.num}
                   </span>
-                  <span className="font-bold text-xs text-[#22352B] truncate">{item.title}</span>
+                  <h4 className="font-black text-xs text-[#22352B] leading-tight">
+                    {item.title}
+                  </h4>
                 </div>
-                <p className="text-[11px] text-[#565C58] italic leading-snug line-clamp-2 pl-6">
+                <p className="text-[11px] text-[#565C58] italic leading-relaxed pl-7">
                   &ldquo;{item.text}&rdquo;
                 </p>
               </div>
@@ -802,48 +523,50 @@ export default function StudentReportPage() {
           </div>
         </div>
 
-        {/* ─── Panduan Latihan di Rumah (Grid 2 Kolom) ─── */}
-        <div className="bg-[#F2F7F4] border border-[#CBE0D4] rounded-2xl p-3 mb-3 shadow-2xs space-y-2">
-          <div className="flex items-center justify-between pb-1 border-b border-[#CBE0D4]">
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#22352B] flex items-center gap-1.5">
-              <i className="mdi mdi-lightbulb-on-outline text-sm text-[#486B5A]" />
-              <span>Panduan Latihan di Rumah</span>
-            </h3>
-            <span className="bg-white text-[#486B5A] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
-              Untuk Orang Tua
-            </span>
+        {/* ─── 5. PANDUAN LATIHAN DI RUMAH (Soft Sage #F4F7F5) ─── */}
+        <div className="bg-[#F4F7F5] border border-[#DFE7E2] rounded-2xl p-4 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-1.5 border-b border-[#DFE7E2]">
+            <div className="flex items-center gap-2">
+              <i className="mdi mdi-lightbulb-on-outline text-base text-[#22352B]" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                PANDUAN LATIHAN DI RUMAH
+              </h3>
+            </div>
+            <span className="text-xs font-bold text-[#486B5A]">Untuk Orang Tua</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {homeStimulationList.slice(0, 2).map((stim, i) => (
               <div
                 key={i}
-                className="bg-white border border-[#CBE0D4] rounded-xl p-2.5 flex items-start gap-2 text-[11px] text-[#22352B] leading-snug shadow-2xs"
+                className="bg-white border border-[#E8E2D8] rounded-xl p-3 flex items-start gap-2.5 shadow-2xs"
               >
-                <span className="w-4.5 h-4.5 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center font-bold text-[9.5px] flex-shrink-0 mt-0.5">
+                <span className="w-6 h-6 rounded-lg bg-[#E4EFE9] text-[#2E5442] font-black text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                   {i + 1}
                 </span>
-                <span className="font-medium text-[#22352B]">{stim}</span>
+                <p className="text-[11.5px] text-[#22352B] leading-relaxed">
+                  {stim}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ─── Pengesahan Tanda Tangan 2 Kolom ─── */}
-        <div className="pt-2 border-t border-[#E8E2D8] mt-2 grid grid-cols-2 text-center text-xs">
+        {/* ─── 6. PENGESAHAN TANDA TANGAN 2 KOLOM ─── */}
+        <div className="grid grid-cols-2 text-center text-xs pt-4 pb-2">
           <div>
-            <p className="text-[#565C58] font-medium text-xs">Koordinator Asesmen</p>
-            <div className="h-8 flex items-end justify-center">
-              <span className="font-bold text-[#22352B] underline text-xs">( Tim Asesor PPDB )</span>
-            </div>
+            <p className="text-xs font-semibold text-[#565C58]">Koordinator Asesmen</p>
+            <div className="h-12" />
+            <div className="w-48 border-b border-[#22352B] mx-auto mb-1.5" />
+            <p className="font-bold text-xs text-[#22352B]">Tim Asesor PPDB</p>
           </div>
           <div>
-            <p className="text-[#565C58] font-medium text-xs">Mengetahui Orang Tua / Wali</p>
-            <div className="h-8 flex items-end justify-center">
-              <span className="font-bold text-[#22352B] underline text-xs px-1 truncate max-w-[200px] inline-block">
-                ( {student.parent_name || "...................................."} )
-              </span>
-            </div>
+            <p className="text-xs font-semibold text-[#565C58]">Mengetahui Orang Tua / Wali</p>
+            <div className="h-12" />
+            <div className="w-48 border-b border-[#22352B] mx-auto mb-1.5" />
+            <p className="font-bold text-xs text-[#22352B] truncate max-w-[200px] mx-auto">
+              {student.parent_name || "Salman W."}
+            </p>
           </div>
         </div>
       </div>

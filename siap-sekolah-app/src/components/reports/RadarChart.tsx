@@ -16,22 +16,22 @@ export interface RadarChartProps {
 export function RadarChart({
   scores,
   foundationScores,
-  size = 240,
+  size = 220,
   className = "",
 }: RadarChartProps) {
   const center = size / 2;
-  const radius = 72; // Balanced radius for 6-axis hexagon with text margins
+  const radius = 66; // Balanced radius for 6-axis hexagon with label room
   const levels = [1, 2, 3]; // Scores 1 to 3
   const numAxes = 6;
 
-  // 6 Fondasi Transisi PAUD-SD Kemendikbudristek
-  const axes: { id: FoundationNumber; label: string; short: string }[] = [
-    { id: 1, label: "Agama & Budi Pekerti", short: "P1: Agama & Karakter" },
-    { id: 2, label: "Keterampilan Sosial & Bahasa", short: "P2: Sosial-Bahasa" },
-    { id: 3, label: "Kematangan Emosi", short: "P3: Emosi & Regulasi" },
-    { id: 4, label: "Kematangan Kognitif", short: "P4: Kognitif & Nalar" },
-    { id: 5, label: "Motorik & Perawatan Diri", short: "P5: Fisik & Mandiri" },
-    { id: 6, label: "Pemaknaan Belajar Positif", short: "P6: Refleksi & Ceria" },
+  // 6 Fondasi Transisi PAUD-SD Kemendikbudristek (Sesuai Gambar Referensi)
+  const axes: { id: FoundationNumber; code: string; title: string }[] = [
+    { id: 1, code: "P1", title: "Agama & Karakter" },
+    { id: 2, code: "P2", title: "Sosial-Bahasa" },
+    { id: 3, code: "P3", title: "Emosi & Regulasi" },
+    { id: 4, code: "P4", title: "Kognitif & Nalar" },
+    { id: 5, code: "P5", title: "Fisik & Mandiri" },
+    { id: 6, code: "P6", title: "Refleksi & Cerita" },
   ];
 
   // Helper to compute (x, y) coordinates for an axis angle and distance
@@ -73,9 +73,9 @@ export function RadarChart({
   return (
     <div className={`inline-flex flex-col items-center justify-center ${className}`}>
       <svg
-        width={size + 36}
-        height={size + 24}
-        viewBox={`-18 -12 ${size + 36} ${size + 24}`}
+        width={size + 70}
+        height={size + 40}
+        viewBox={`-35 -20 ${size + 70} ${size + 40}`}
         className="overflow-visible"
       >
         {/* Background Level Hexagons (Web) */}
@@ -87,7 +87,6 @@ export function RadarChart({
             })
             .join(" ");
 
-          const isTarget = level === 3;
           const isOuter = level === 3;
 
           return (
@@ -95,12 +94,31 @@ export function RadarChart({
               key={level}
               points={levelPoints}
               fill={isOuter ? "#FAF8F5" : "transparent"}
-              stroke={isTarget ? "#486B5A" : "#DDD7CE"}
-              strokeWidth={isTarget ? "1.5" : "1"}
-              strokeDasharray={isTarget ? "none" : "2,2"}
+              stroke="#DDD7CE"
+              strokeWidth="1"
+              strokeDasharray={isOuter ? "none" : "2,2"}
             />
           );
         })}
+
+        {/* Target 2.5 Hexagon (Terracotta Dashed Sesuai Gambar) */}
+        {(() => {
+          const targetPoints = axes
+            .map((_, i) => {
+              const { x, y } = getCoordinates(i, 2.5);
+              return `${x},${y}`;
+            })
+            .join(" ");
+          return (
+            <polygon
+              points={targetPoints}
+              fill="none"
+              stroke="#9B3F18"
+              strokeWidth="1.2"
+              strokeDasharray="3,3"
+            />
+          );
+        })()}
 
         {/* Axis Spokes */}
         {axes.map((_, i) => {
@@ -113,26 +131,8 @@ export function RadarChart({
               x2={x}
               y2={y}
               stroke="#CBD3CD"
-              strokeWidth="1.2"
+              strokeWidth="1"
             />
-          );
-        })}
-
-        {/* Level Scale Numbers Along Vertical Top Axis */}
-        {levels.map((level) => {
-          const { y } = getCoordinates(0, level);
-          return (
-            <text
-              key={level}
-              x={center + 5}
-              y={y + 3.5}
-              fontSize="9.5"
-              fill="#787F7A"
-              fontWeight="700"
-              className="font-mono select-none"
-            >
-              {level}
-            </text>
           );
         })}
 
@@ -141,7 +141,7 @@ export function RadarChart({
           points={polygonPath}
           fill="rgba(72, 107, 90, 0.22)"
           stroke="#486B5A"
-          strokeWidth="2.5"
+          strokeWidth="2.2"
           strokeLinejoin="round"
         />
 
@@ -151,55 +151,91 @@ export function RadarChart({
             key={i}
             cx={p.x}
             cy={p.y}
-            r={4.5}
+            r={4}
             fill="#486B5A"
             stroke="#FFFFFF"
-            strokeWidth="2"
+            strokeWidth="1.5"
           />
         ))}
 
-        {/* 6 Axis Labels & Scores */}
+        {/* 6 Axis Labels & Scores (3 Baris: Kode, Nama, Skor) */}
         {axes.map((item, i) => {
           const { angle } = getCoordinates(i, 3);
-          const labelDist = 18;
-          const lx = center + (radius + labelDist) * Math.cos(angle);
-          const ly = center + (radius + labelDist) * Math.sin(angle);
-
           const rawScore = getScoreForAxis(item.id);
           const scoreVal =
             rawScore !== null && rawScore !== undefined && !isNaN(rawScore)
               ? Math.min(3.0, Math.max(1.0, rawScore))
               : null;
-          const scoreText =
-            scoreVal !== null ? scoreVal.toFixed(1) : "-";
+          const scoreText = scoreVal !== null ? scoreVal.toFixed(1) : "-";
 
           let textAnchor: "start" | "end" | "middle" = "middle";
-          if (Math.cos(angle) > 0.3) textAnchor = "start";
-          if (Math.cos(angle) < -0.3) textAnchor = "end";
+          let lx = center + (radius + 16) * Math.cos(angle);
+          let ly = center + (radius + 16) * Math.sin(angle);
+
+          if (i === 0) {
+            // Top (P1)
+            textAnchor = "middle";
+            ly = center - radius - 12;
+          } else if (i === 1) {
+            // Top Right (P2)
+            textAnchor = "start";
+            lx += 4;
+            ly -= 4;
+          } else if (i === 2) {
+            // Bottom Right (P3)
+            textAnchor = "start";
+            lx += 4;
+            ly += 6;
+          } else if (i === 3) {
+            // Bottom (P4)
+            textAnchor = "middle";
+            ly = center + radius + 18;
+          } else if (i === 4) {
+            // Bottom Left (P5)
+            textAnchor = "end";
+            lx -= 4;
+            ly += 6;
+          } else if (i === 5) {
+            // Top Left (P6)
+            textAnchor = "end";
+            lx -= 4;
+            ly -= 4;
+          }
 
           return (
             <g key={i}>
               <text
                 x={lx}
-                y={ly - 2}
+                y={ly - 9}
                 textAnchor={textAnchor}
-                fontSize="10"
+                fontSize="9"
                 fontWeight="800"
                 fill="#22352B"
                 className="font-sans"
               >
-                {item.short}
+                {item.code}
               </text>
               <text
                 x={lx}
-                y={ly + 10}
+                y={ly}
                 textAnchor={textAnchor}
-                fontSize="9.5"
-                fontWeight="700"
-                fill="#486B5A"
+                fontSize="8.5"
+                fontWeight="600"
+                fill="#565C58"
                 className="font-sans"
               >
-                Skor: {scoreText} / 3.0
+                {item.title}
+              </text>
+              <text
+                x={lx}
+                y={ly + 9}
+                textAnchor={textAnchor}
+                fontSize="9"
+                fontWeight="800"
+                fill="#22352B"
+                className="font-mono"
+              >
+                {scoreText}
               </text>
             </g>
           );
