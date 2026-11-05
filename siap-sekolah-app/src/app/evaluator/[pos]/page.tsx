@@ -125,6 +125,78 @@ const POS2_STEPS: Record<number, TaskStepInfo> = {
   },
 };
 
+const POS3_STEPS: Record<number, TaskStepInfo> = {
+  1: {
+    step: 1,
+    totalSteps: 3,
+    targetGroup: "Kelompok 3",
+    timeRange: "08.00 - 08.24",
+    location: "Ruang Pos B (Kematangan Kognitif)",
+    title: "Asesmen Kematangan Kognitif Kelompok 3",
+    instruction:
+      "Sambut Kelompok 3 yang diantar SO 2. Uji pola bentuk/warna (AB-AB), klasifikasi objek konkret, konsep kuantitas 1-10, serta pemecahan masalah puzzle dan balok logika.",
+    icon: "mdi-puzzle-outline",
+  },
+  2: {
+    step: 2,
+    totalSteps: 3,
+    targetGroup: "Kelompok 1",
+    timeRange: "08.24 - 08.36",
+    location: "Ruang Pos B (Kematangan Kognitif)",
+    title: "Asesmen Kematangan Kognitif Kelompok 1",
+    instruction:
+      "Sambut Kelompok 1 yang diantar SO 1 dari Pos Motorik. Lakukan pengujian klasifikasi multi-atribut, pola deret berulang, perbandingan banyak-sedikit, dan susun balok.",
+    icon: "mdi-shape-outline",
+  },
+  3: {
+    step: 3,
+    totalSteps: 3,
+    targetGroup: "Kelompok 2",
+    timeRange: "08.36 - 08.48",
+    location: "Ruang Pos B (Kematangan Kognitif)",
+    title: "Asesmen Kematangan Kognitif Kelompok 2",
+    instruction:
+      "Sambut Kelompok 2 yang diantar SO 2 dari Pos Motorik. Selesaikan asesmen kognitif sebelum anak diarahkan menuju Titik Akhir (Area Bermain Bebas & Snack Break).",
+    icon: "mdi-lightbulb-on-outline",
+  },
+};
+
+const POS4_STEPS: Record<number, TaskStepInfo> = {
+  1: {
+    step: 1,
+    totalSteps: 3,
+    targetGroup: "Kelompok 2",
+    timeRange: "08.00 - 08.24",
+    location: "Ruang Pos C (Bahasa Lisan & Halus)",
+    title: "Asesmen Bahasa Lisan & Pra-Literasi Kelompok 2",
+    instruction:
+      "Sambut Kelompok 2 yang diantar SO 1 dari Titik Awal. Bacakan cerita lisan bergambar (read-aloud), amati daya simak, cek posisi genggaman pensil (tripod grasp), dan petakan tingkat membaca (L1-L4).",
+    icon: "mdi-book-open-page-variant-outline",
+  },
+  2: {
+    step: 2,
+    totalSteps: 3,
+    targetGroup: "Kelompok 3",
+    timeRange: "08.24 - 08.36",
+    location: "Ruang Pos C (Bahasa Lisan & Halus)",
+    title: "Asesmen Bahasa Lisan & Pra-Literasi Kelompok 3",
+    instruction:
+      "Sambut Kelompok 3 yang berpindah dari Pos Kognitif. Lakukan sesi menyimak cerita lisan, amati artikulasi verbal, pemahaman alur cerita, dan kontrol motorik halus jemari tangan.",
+    icon: "mdi-pencil-ruler",
+  },
+  3: {
+    step: 3,
+    totalSteps: 3,
+    targetGroup: "Kelompok 1",
+    timeRange: "08.36 - 08.48",
+    location: "Ruang Pos C (Bahasa Lisan & Halus)",
+    title: "Asesmen Bahasa Lisan & Pra-Literasi Kelompok 1",
+    instruction:
+      "Sambut Kelompok 1 yang berpindah dari Pos Kognitif. Tuntaskan observasi ekspresi lisan dan motorik pensil sebelum anak menuju Titik Akhir (Snack & Bermain).",
+    icon: "mdi-text-box-check-outline",
+  },
+};
+
 export default function EvaluatorStudentListPage() {
   const params = useParams();
   const router = useRouter();
@@ -349,6 +421,14 @@ export default function EvaluatorStudentListPage() {
       if (!groupStats["Kelompok 1"]?.isFinished) return 1;
       if (!groupStats["Kelompok 2"]?.isFinished) return 2;
       return 3;
+    } else if (posNumber === 3) {
+      if (!groupStats["Kelompok 3"]?.isFinished) return 1;
+      if (!groupStats["Kelompok 1"]?.isFinished) return 2;
+      return 3;
+    } else if (posNumber === 4) {
+      if (!groupStats["Kelompok 2"]?.isFinished) return 1;
+      if (!groupStats["Kelompok 3"]?.isFinished) return 2;
+      return 3;
     }
     return 1;
   }, [posNumber, currentSubrole, groupStats]);
@@ -361,16 +441,60 @@ export default function EvaluatorStudentListPage() {
       return steps[currentStep] || steps[1];
     } else if (posNumber === 2) {
       return POS2_STEPS[currentStep] || POS2_STEPS[1];
+    } else if (posNumber === 3) {
+      return POS3_STEPS[currentStep] || POS3_STEPS[1];
+    } else if (posNumber === 4) {
+      return POS4_STEPS[currentStep] || POS4_STEPS[1];
     }
     return null;
   }, [posNumber, currentSubrole, currentStep]);
 
   // Lock filter automatically to the active step's target group
   useEffect(() => {
-    if ((posNumber === 1 || posNumber === 2) && currentTaskInfo) {
+    if (currentTaskInfo?.targetGroup) {
       setSelectedGroup(currentTaskInfo.targetGroup);
     }
   }, [posNumber, currentSubrole, currentStep, currentTaskInfo]);
+
+  const displayStats = useMemo(() => {
+    if (selectedGroup !== "all" && groupStats[selectedGroup]) {
+      return groupStats[selectedGroup];
+    }
+    if (currentTaskInfo?.targetGroup && groupStats[currentTaskInfo.targetGroup]) {
+      return groupStats[currentTaskInfo.targetGroup];
+    }
+    return completionStats;
+  }, [selectedGroup, currentTaskInfo, groupStats, completionStats]);
+
+  const handleReset = () => {
+    setStepOverride(null);
+    setSearchQuery("");
+    setFilterTab("all");
+    const autoTarget =
+      posNumber === 1
+        ? (currentSubrole === "so1" ? SO1_STEPS[autoStep] : SO2_STEPS[autoStep])?.targetGroup
+        : posNumber === 2
+        ? POS2_STEPS[autoStep]?.targetGroup
+        : posNumber === 3
+        ? POS3_STEPS[autoStep]?.targetGroup
+        : POS4_STEPS[autoStep]?.targetGroup;
+    if (autoTarget) setSelectedGroup(autoTarget);
+    else setSelectedGroup("all");
+  };
+
+  const handleSimulate = () => {
+    const nextStep = (currentStep % 3) + 1;
+    setStepOverride(nextStep);
+    const stepTarget =
+      posNumber === 1
+        ? (currentSubrole === "so1" ? SO1_STEPS[nextStep] : SO2_STEPS[nextStep])?.targetGroup
+        : posNumber === 2
+        ? POS2_STEPS[nextStep]?.targetGroup
+        : posNumber === 3
+        ? POS3_STEPS[nextStep]?.targetGroup
+        : POS4_STEPS[nextStep]?.targetGroup;
+    if (stepTarget) setSelectedGroup(stepTarget);
+  };
 
   /** Calculate accurate age string */
   const calculateAge = (birthDateStr: string): string => {
@@ -418,408 +542,343 @@ export default function EvaluatorStudentListPage() {
   return (
     <div className="min-h-screen bg-[#F6F2E9] text-[#22352B] pb-24 font-sans">
       <div className="p-4 sm:p-6 max-w-xl md:max-w-4xl lg:max-w-5xl mx-auto space-y-4">
-        {/* Top Bar Navigation & Actions */}
+        {/* Top Bar Navigation & Actions (Sesuai Mockup Referensi) */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pb-1">
-          <Link
-            href="/evaluator"
-            className="bg-white border border-[#E8E2D8] text-[#22352B] px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"
-          >
-            <i className="mdi mdi-chevron-left text-base" />
-            <span>Ganti Pos</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/evaluator"
+              className="bg-white border border-[#E8E2D8] text-[#22352B] px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"
+            >
+              <i className="mdi mdi-chevron-left text-base" />
+              <span>Ganti Pos</span>
+            </Link>
 
-          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="bg-white border border-[#E8E2D8] text-[#22352B] px-3 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96] cursor-pointer"
+              title="Reset filter dan step ke alur otomatis"
+            >
+              <i className="mdi mdi-restore text-base text-[#787F7A]" />
+              <span>Reset</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSimulate}
+              className="bg-white border border-[#E8E2D8] text-[#22352B] px-3 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96] cursor-pointer"
+              title="Simulasi perputaran rotasi step"
+            >
+              <i className="mdi mdi-flask-outline text-base text-[#9B3F18]" />
+              <span>Simulasi</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
             <Link
               href="/reports/rubric/guide"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#FAF0E8] border border-[#F2D8C7] text-[#9C4322] hover:bg-[#F5E6DC] px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"
-              title="Buku Panduan & Rubrik Asesmen Lengkap Semua Pos (Cetak)"
+              className="hidden sm:inline-flex bg-[#FAF0E8] border border-[#F2D8C7] text-[#9B3F18] hover:bg-[#F5E6DC] px-3 py-1.5 rounded-full text-xs font-bold transition items-center gap-1 shadow-2xs"
+              title="Panduan & Rubrik Asesmen Lengkap"
             >
-              <i className="mdi mdi-book-open-page-variant text-base" />
-              <span className="hidden sm:inline">Buku Panduan Rubrik</span>
-              <span className="sm:hidden">Panduan</span>
+              <i className="mdi mdi-book-open-page-variant text-sm" />
+              <span>Panduan</span>
             </Link>
 
             <Link
-              href={`/reports/rubric/${posNumber}${activeBatchId ? `?batch_id=${activeBatchId}` : ""}`}
+              href={`/reports/rubric/${posNumber === 1 ? "so" : posNumber}${activeBatchId ? `?batch_id=${activeBatchId}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white border border-[#E8E2D8] text-[#B85627] hover:bg-[#FAF8F5] px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"
-              title="Cetak Lembar Observasi Fisik Pos"
+              className="hidden sm:inline-flex bg-white border border-[#E8E2D8] text-[#9B3F18] hover:bg-[#FAF8F5] px-3 py-1.5 rounded-full text-xs font-bold transition items-center gap-1 shadow-2xs"
+              title="Cetak Lembar Observasi Fisik"
             >
-              <i className="mdi mdi-printer-outline text-base" />
-              <span className="hidden sm:inline">Cetak Lembar</span>
-              <span className="sm:hidden">Cetak</span>
+              <i className="mdi mdi-printer-outline text-sm" />
+              <span>Cetak Lembar</span>
             </Link>
 
-            {posNumber === 1 && (
-              <Link
-                href={`/reports/rubric/so${activeBatchId ? `?batch_id=${activeBatchId}` : ""}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#E4EFE9] border border-[#CBE0D4] text-[#486B5A] hover:bg-[#D6E6DC] px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"
-                title="Cetak Lembar Super Observer Terpadu"
-              >
-                <i className="mdi mdi-eye-check-outline text-base" />
-                <span className="hidden sm:inline">Lembar SO</span>
-                <span className="sm:hidden">SO</span>
-              </Link>
-            )}
-
-            <div className="bg-[#E4EFE9] text-[#22352B] px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-[#486B5A] animate-pulse" />
+            <div className="bg-[#E4EFE9] text-[#22352B] border border-[#CBE0D4] px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-[#2E6B4D] animate-pulse" />
               <span>
                 {posNumber === 1
-                  ? currentSubrole === "so1"
-                    ? "SO 1: Ahmad Furqoni, S. Pd"
-                    : "SO 2: Novia Permatasari, S. Pd"
+                  ? "SO Aktif"
                   : posNumber === 2
-                  ? "Evaluator: Rifky Delsandi Rifai, S. Pd"
+                  ? "Pos A Aktif"
                   : posNumber === 3
-                  ? "Evaluator: Shalma Ruhail Maldova, S. Pd"
-                  : posNumber === 4
-                  ? "Evaluator: Susmurtiningsih, S. Pd"
-                  : "Evaluator Aktif"}
+                  ? "Pos B Aktif"
+                  : "Pos C Aktif"}
               </span>
             </div>
           </div>
         </div>
 
         {/* ─── SIGNATURE TERRACOTTA HERO BANNER CARD (Persis Gambar Referensi) ─── */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#9C4322] via-[#943E1E] to-[#84371B] rounded-3xl p-5 sm:p-6 text-white shadow-md space-y-4">
-          {/* Top Tag & Batch Selector */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-3 py-1 rounded-full shadow-2xs backdrop-blur-xs">
-                {posNumber === 1 ? "POS 1 • SUPER OBSERVER" : `POS ${posNumber} • ${POS_METADATA[posNumber]?.role || "ASESMEN"}`}
-              </span>
-              <span className="text-[11px] text-white/80 font-medium">
-                T.A. 2026/2027 &bull; SD Islam An Najah
-              </span>
-            </div>
+        <div className="relative overflow-hidden bg-[#9B3F18] rounded-[32px] p-6 text-white shadow-md space-y-4">
+          {/* Top Tag & Percent Badge */}
+          <div className="flex items-center justify-between gap-3">
+            <span className="bg-white/15 border border-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-3.5 py-1 rounded-full backdrop-blur-xs">
+              {posNumber === 1
+                ? "LINTAS KELOMPOK"
+                : posNumber === 2
+                ? "POS A • MOTORIK"
+                : posNumber === 3
+                ? "POS B • KOGNITIF"
+                : "POS C • BAHASA"}
+            </span>
 
-            {/* Inline Gelombang Selector */}
-            {batches.length > 0 && (
-              <div className="inline-flex items-center gap-1.5">
-                <label htmlFor="batch-select-pos" className="sr-only">
-                  Pilih Gelombang
-                </label>
-                <select
-                  id="batch-select-pos"
-                  value={activeBatchId || ""}
-                  onChange={(e) => handleBatchChange(e.target.value)}
-                  className="bg-black/25 hover:bg-black/35 border border-white/25 text-white font-bold text-xs rounded-xl px-2.5 py-1 focus:outline-none cursor-pointer transition shadow-2xs"
-                >
-                  {batches.map((b) => (
-                    <option key={b.id} value={b.id} className="text-[#22352B] bg-white">
-                      {b.batch_name} ({b.student_count ?? 0} Siswa){b.status === "active" ? " • Aktif" : ""}
-                    </option>
-                  ))}
-                </select>
+            <div className="bg-white text-[#22352B] rounded-2xl px-3.5 py-1.5 text-center shadow-xs min-w-[70px]">
+              <div className="text-sm font-black font-mono leading-tight">
+                {displayStats.percent}%
               </div>
-            )}
+              <div className="text-[9px] font-bold text-[#787F7A] uppercase tracking-wider leading-none">
+                Selesai
+              </div>
+            </div>
           </div>
 
           {/* Pos Title & Focus Description */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
+            <p className="text-xs text-white/80 font-medium">
+              {posNumber === 1
+                ? "Super Observer (Kel. 1, 2 & 3)"
+                : posNumber === 2
+                ? "Pos A (Motorik Kasar & Koordinasi)"
+                : posNumber === 3
+                ? "Pos B (Kematangan Kognitif & Logika)"
+                : "Pos C (Bahasa Lisan & Motorik Halus)"}
+            </p>
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-              {config?.pos_name || POS_METADATA[posNumber]?.name || "Pos Observasi"}
+              {posNumber === 1
+                ? "Karakter, Emosi, Kemandirian & Dinamika Sosial"
+                : posNumber === 2
+                ? "Motorik Kasar & Koordinasi Fisik"
+                : posNumber === 3
+                ? "Kematangan Kognitif & Logika Berhitung"
+                : "Bahasa Lisan, Pra-Literasi & Motorik Halus"}
             </h1>
-            <p className="text-xs text-white/90 font-normal leading-relaxed max-w-2xl">
-              {POS_METADATA[posNumber]?.focus || "Lakukan pencatatan jurnal lapangan, amati capaian perkembangan, dan catat indikator perilaku siswa secara teliti."}
+            <p className="text-xs text-white/90 font-normal leading-relaxed max-w-xl pt-0.5">
+              {posNumber === 1
+                ? "Kemandirian berpisah, adab antrean, kelenturan transisi, & bermain bebas antar pos."
+                : posNumber === 2
+                ? "Keseimbangan meniti titian, tangkap bola, koordinasi fisik & rotasi pendamping."
+                : posNumber === 3
+                ? "Klasifikasi objek, logika pola berulang, perbandingan kuantitas & problem solving balok."
+                : "Menyimak cerita lisan (read-aloud), komunikasi verbal, & kontrol genggaman pensil (tripod grasp)."}
             </p>
           </div>
 
-          {/* Evaluator Duty Bar */}
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <div className="bg-black/25 text-white/95 rounded-full px-3.5 py-1.5 text-xs font-semibold inline-flex items-center gap-2 shadow-2xs">
-              <i className="mdi mdi-account-check text-sm text-[#E4EFE9]" />
+          {/* Gelombang / Batch Selector Pill */}
+          <div className="relative inline-flex items-center">
+            <div className="bg-black/25 border border-white/20 text-white rounded-full px-4 py-1.5 text-xs font-semibold inline-flex items-center gap-2 shadow-2xs pointer-events-none">
+              <i className="mdi mdi-calendar-month-outline text-sm text-[#F9E6DC]" />
               <span>
-                {posNumber === 1
-                  ? currentSubrole === "so1"
-                    ? "Petugas: Ahmad Furqoni, S. Pd (SO 1)"
-                    : "Petugas: Novia Permatasari, S. Pd (SO 2)"
-                  : posNumber === 2
-                  ? "Petugas: Rifky Delsandi Rifai, S. Pd (Pos A)"
-                  : posNumber === 3
-                  ? "Petugas: Shalma Ruhail Maldova, S. Pd (Pos B)"
-                  : posNumber === 4
-                  ? "Petugas: Susmurtiningsih, S. Pd (Pos C)"
-                  : "Petugas Evaluator Aktif"}
+                {batch?.batch_name || "Gelombang 1 - TP 2027/2028"} ({completionStats.total} Siswa) • Aktif
               </span>
+              <i className="mdi mdi-chevron-down text-sm text-white/80" />
             </div>
-
-            <span className="bg-white/15 text-white/90 rounded-full px-3 py-1.5 text-[11px] font-semibold inline-flex items-center gap-1.5">
-              <i className="mdi mdi-calendar-clock text-xs text-[#F9E6DC]" />
-              <span>{batch?.batch_name || "Gelombang Aktif"}</span>
-            </span>
+            <select
+              value={activeBatchId || ""}
+              onChange={(e) => handleBatchChange(e.target.value)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-xs"
+              title="Ganti Gelombang"
+            >
+              {batches.map((b) => (
+                <option key={b.id} value={b.id} className="text-[#22352B] bg-white">
+                  {b.batch_name} ({b.student_count ?? 0} Siswa){b.status === "active" ? " • Aktif" : ""}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* ─── KARTU METRIK KEMBAR (TOTAL & SELESAI - Persis Gambar) ─── */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <div className="bg-white rounded-2xl p-3 sm:p-4 text-center shadow-xs">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
+          {/* ─── 3 STAT BOXES (TOTAL, SELESAI, MENUNGGU - Persis Gambar) ─── */}
+          <div className="grid grid-cols-3 gap-2.5 pt-1">
+            <div className="bg-white/15 rounded-2xl p-3 text-center border border-white/10 backdrop-blur-xs">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/80 block">
                 TOTAL
               </span>
-              <span className="text-2xl sm:text-3xl font-black text-[#9C4322] font-mono tabular-nums block mt-0.5">
-                {completionStats.total}
+              <span className="text-2xl sm:text-3xl font-black text-white font-mono tabular-nums block mt-0.5">
+                {displayStats.total}
               </span>
             </div>
-            <div className="bg-white rounded-2xl p-3 sm:p-4 text-center shadow-xs">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
+            <div className="bg-white rounded-2xl p-3 text-center shadow-xs">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#486B5A] block">
                 SELESAI
               </span>
               <span className="text-2xl sm:text-3xl font-black text-[#2E6B4D] font-mono tabular-nums block mt-0.5">
-                {completionStats.completed}
+                {displayStats.completed}
               </span>
             </div>
-          </div>
-
-          {/* Progress Bar Kelengkapan */}
-          <div className="space-y-1.5 pt-1">
-            <div className="flex items-center justify-between text-[11px] text-white/90">
-              <span className="font-semibold">Progres Observasi:</span>
-              <span className="font-mono font-bold tabular-nums">
-                {completionStats.percent}% ({completionStats.completed} dari {completionStats.total} Siswa)
+            <div className="bg-white/15 rounded-2xl p-3 text-center border border-white/10 backdrop-blur-xs">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/80 block">
+                MENUNGGU
               </span>
-            </div>
-            <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden" role="progressbar" aria-valuenow={completionStats.percent} aria-valuemin={0} aria-valuemax={100}>
-              <div
-                className="h-full bg-white rounded-full transition-all duration-300"
-                style={{ width: `${completionStats.percent}%` }}
-              />
+              <span className="text-2xl sm:text-3xl font-black text-white font-mono tabular-nums block mt-0.5">
+                {Math.max(0, displayStats.total - displayStats.completed)}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* ─── PANDUAN INDIKATOR OBSERVASI POS (Card Informasional) ─── */}
-        {parsedIndicators.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E2D8] shadow-xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#FAF8F5]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#F9E6DC] text-[#9C4322] flex items-center justify-center flex-shrink-0 text-base font-bold shadow-2xs">
-                  <i className="mdi mdi-clipboard-text-outline" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-[#22352B]">
-                    Panduan Indikator Observasi ({parsedIndicators.length} Indikator)
-                  </h3>
-                  <p className="text-[11px] text-[#565C58]">
-                    Acuan rubrik capaian perkembangan siswa untuk pos ini
-                  </p>
-                </div>
-              </div>
-
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#FAF8F5] border border-[#E8E2D8] text-[#787F7A]">
-                Skala 1 (PB) – 3 (M)
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {parsedIndicators.map((ind: { id: string; label: string; description: string; foundation?: string }, idx: number) => (
-                <div
-                  key={ind.id || idx}
-                  className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8E2D8] space-y-1 shadow-2xs"
-                >
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="font-mono font-extrabold text-[#9C4322] text-[11px] px-1.5 py-0.2 bg-[#F9E6DC] rounded">
-                      {ind.id || `IND-${idx + 1}`}
-                    </span>
-                    {ind.foundation && (
-                      <span className="text-[9px] font-bold text-[#486B5A]">
-                        Pondasi {ind.foundation}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs font-bold text-[#22352B] leading-tight">
-                    {ind.label}
-                  </p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug line-clamp-2">
-                    {ind.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* ─── KARTU TUGAS AKTIF TUNGGAL (SINGLE DYNAMIC TASK CARD) ─────────── */}
+        {/* ─── KARTU TUGAS AKTIF TUNGGAL (DYNAMIC TASK CARD - Persis Gambar) ── */}
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        {(posNumber === 1 || posNumber === 2) && currentTaskInfo && (() => {
-          const isPos1 = posNumber === 1;
-          const targetStats = groupStats[currentTaskInfo.targetGroup] || { total: 0, completed: 0, percent: 0, isFinished: false };
-          const isFilterLocked = selectedGroup === currentTaskInfo.targetGroup;
+        {currentTaskInfo && (() => {
+          const targetStats = groupStats[currentTaskInfo.targetGroup] || {
+            total: 0,
+            completed: 0,
+            percent: 0,
+            isFinished: false,
+          };
 
           return (
-            <div
-              className={`rounded-3xl p-5 sm:p-6 border-2 shadow-sm space-y-4 transition-all duration-300 ${
-                isPos1
-                  ? "bg-gradient-to-br from-[#FAF0E8] via-[#FFF8F5] to-[#F5ECE1] border-[#E8D0C0]"
-                  : "bg-gradient-to-br from-[#E4EFE9] via-[#F0F6F2] to-[#E1EDE5] border-[#CBE0D4]"
-              }`}
-            >
-              {/* Top Row: Task Step Pill, Target Group Badge, Time & Subrole Toggle */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/5">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span
-                    className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full text-white shadow-2xs ${
-                      isPos1 ? "bg-[#9C4322]" : "bg-[#486B5A]"
-                    }`}
-                  >
-                    TUGAS AKTIF • STEP {currentTaskInfo.step} DARI {currentTaskInfo.totalSteps}
-                  </span>
+            <div className="bg-[#FAF8F5] rounded-[32px] p-5 sm:p-6 border border-[#E8E2D8] shadow-xs space-y-4">
+              {/* Top Badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="bg-[#9B3F18] text-white font-black text-[10px] tracking-wider uppercase px-3.5 py-1.5 rounded-full shadow-2xs">
+                  TUGAS AKTIF • STEP {currentStep} DARI {currentTaskInfo.totalSteps}
+                </span>
 
-                  <span
-                    className={`text-[11px] font-extrabold px-3 py-0.5 rounded-full border shadow-2xs flex items-center gap-1.5 ${
-                      isPos1
-                        ? "bg-[#FAF0E8] text-[#9C4322] border-[#F2D8C7]"
-                        : "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
-                    }`}
-                  >
-                    <i className="mdi mdi-account-group text-xs" />
+                <span className="bg-white border border-[#E8E2D8] text-[#22352B] font-bold text-xs px-3.5 py-1.5 rounded-full shadow-2xs inline-flex items-center gap-2">
+                  <span className="flex items-center gap-1">
+                    <i className="mdi mdi-account-group text-sm text-[#787F7A]" />
                     <span>TARGET: {currentTaskInfo.targetGroup}</span>
                   </span>
-
-                  <span className="text-[11px] font-bold text-[#787F7A] bg-white/80 border border-[#E8E2D8] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 font-mono">
+                  <span className="text-[#C5BCB2]">•</span>
+                  <span className="font-mono text-[#787F7A] flex items-center gap-1">
                     <i className="mdi mdi-clock-outline text-xs" />
                     <span>{currentTaskInfo.timeRange}</span>
                   </span>
-                </div>
-
-                {/* Subrole selector for Pos 1, or Officer Badge for Pos 2 */}
-                {isPos1 ? (
-                  <div className="flex items-center gap-1 bg-white/90 p-1 rounded-2xl border border-[#DDD0B8] shadow-2xs self-start sm:self-auto">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCurrentSubrole("so1");
-                        setStepOverride(null);
-                        if (typeof window !== "undefined") {
-                          localStorage.setItem("kalamula_evaluator_subrole", "so1");
-                        }
-                      }}
-                      className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer ${
-                        currentSubrole === "so1"
-                          ? "bg-[#9C4322] text-white shadow-2xs"
-                          : "text-[#7D5327] hover:bg-[#FAF8F5]"
-                      }`}
-                    >
-                      SO 1 (Ahmad Furqoni)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCurrentSubrole("so2");
-                        setStepOverride(null);
-                        if (typeof window !== "undefined") {
-                          localStorage.setItem("kalamula_evaluator_subrole", "so2");
-                        }
-                      }}
-                      className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer ${
-                        currentSubrole === "so2"
-                          ? "bg-[#9C4322] text-white shadow-2xs"
-                          : "text-[#7D5327] hover:bg-[#FAF8F5]"
-                      }`}
-                    >
-                      SO 2 (Novia Permatasari)
-                    </button>
-                  </div>
-                ) : (
-                  <span className="text-[11px] font-bold text-[#486B5A] bg-white/80 border border-[#CBE0D4] px-3 py-1 rounded-full shadow-2xs self-start sm:self-auto">
-                    Petugas: Rifky Delsandi Rifai, S. Pd (Pos A + Escort)
-                  </span>
-                )}
+                </span>
               </div>
 
-              {/* Main Task Description */}
-              <div className="flex items-start gap-3.5">
-                <div
-                  className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl shadow-xs text-white ${
-                    isPos1 ? "bg-[#9C4322]" : "bg-[#486B5A]"
-                  }`}
-                >
-                  <i className={`mdi ${currentTaskInfo.icon}`} />
+              {/* Subrole Switcher (Pos 1) or Officer Badge (Pos 2, 3, 4) */}
+              {posNumber === 1 ? (
+                <div className="grid grid-cols-2 gap-2 bg-[#F0EDE6] p-1.5 rounded-2xl border border-[#E8E2D8]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentSubrole("so1");
+                      setStepOverride(null);
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("kalamula_evaluator_subrole", "so1");
+                      }
+                    }}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer text-center ${
+                      currentSubrole === "so1"
+                        ? "bg-[#9B3F18] text-white shadow-xs"
+                        : "bg-white/80 text-[#787F7A] hover:bg-white"
+                    }`}
+                  >
+                    SO 1 (Ahmad Furqoni)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentSubrole("so2");
+                      setStepOverride(null);
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("kalamula_evaluator_subrole", "so2");
+                      }
+                    }}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer text-center ${
+                      currentSubrole === "so2"
+                        ? "bg-[#9B3F18] text-white shadow-xs"
+                        : "bg-white/80 text-[#787F7A] hover:bg-white"
+                    }`}
+                  >
+                    SO 2 (Novia Permatasari)
+                  </button>
                 </div>
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base sm:text-lg font-black text-[#22352B] leading-snug">
+              ) : (
+                <div className="bg-white border border-[#E8E2D8] rounded-2xl py-2 px-3.5 text-xs font-bold text-[#22352B] flex items-center justify-between shadow-2xs">
+                  <span className="flex items-center gap-1.5">
+                    <i className="mdi mdi-account-tie text-sm text-[#486B5A]" />
+                    <span>
+                      Petugas:{" "}
+                      {posNumber === 2
+                        ? "Rifky Delsandi Rifai, S. Pd"
+                        : posNumber === 3
+                        ? "Shalma Ruhail Maldova, S. Pd"
+                        : "Susmurtiningsih, S. Pd"}
+                    </span>
+                  </span>
+                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#E4EFE9] text-[#486B5A]">
+                    {posNumber === 2 ? "Mobile Escort" : "Stasioner Ruangan"}
+                  </span>
+                </div>
+              )}
+
+              {/* Main Task Description Card (White) */}
+              <div className="bg-white rounded-[24px] p-5 border border-[#E8E2D8] shadow-xs space-y-3.5">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-10 h-10 rounded-2xl bg-[#9B3F18] text-white flex items-center justify-center flex-shrink-0 text-xl shadow-xs">
+                    <i className="mdi mdi-cached" />
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <h2 className="text-base sm:text-lg font-black text-[#22352B] leading-tight">
                       {currentTaskInfo.title}
                     </h2>
+                    <div className="text-xs font-bold text-[#486B5A] flex items-center gap-1.5">
+                      <i className="mdi mdi-map-marker-radius text-sm" />
+                      <span>Lokasi Alur: {currentTaskInfo.location}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#486B5A]">
-                    <i className="mdi mdi-map-marker-radius text-sm" />
-                    <span>Lokasi Alur: {currentTaskInfo.location}</span>
-                  </div>
-                  <p className="text-xs text-[#565C58] leading-relaxed pt-1">
-                    {currentTaskInfo.instruction}
-                  </p>
                 </div>
-              </div>
 
-              {/* Progress Box for Target Group */}
-              <div className="bg-white/95 rounded-2xl p-3.5 sm:p-4 border border-black/5 shadow-2xs space-y-2.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                <p className="text-xs sm:text-[13px] text-[#565C58] leading-relaxed font-normal">
+                  {currentTaskInfo.instruction}
+                </p>
+
+                {/* Progress Subcard */}
+                <div className="bg-[#FAF8F5] rounded-2xl p-4 border border-[#E8E2D8] space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <span className="text-xs font-extrabold text-[#22352B]">
-                      Progres Asesmen {currentTaskInfo.targetGroup}:
+                      Proses Asesmen {currentTaskInfo.targetGroup}:
                     </span>
-                    <span
-                      className={`text-xs font-black font-mono tabular-nums ${
-                        isPos1 ? "text-[#9C4322]" : "text-[#486B5A]"
-                      }`}
-                    >
+                    <span className="text-xs font-black font-mono tabular-nums text-[#9B3F18]">
                       {targetStats.completed} dari {targetStats.total} Siswa ({targetStats.percent}%)
                     </span>
                   </div>
 
-                  <div>
+                  <div className="flex items-center gap-2">
                     {targetStats.isFinished ? (
-                      <span className="px-2.5 py-1 rounded-full text-[10.5px] font-extrabold bg-[#E4EFE9] text-[#2E6B4D] border border-[#CBE0D4] flex items-center gap-1 shadow-2xs">
-                        <i className="mdi mdi-check-decagram text-sm" />
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E4EFE9] text-[#2E6B4D] border border-[#CBE0D4] inline-flex items-center gap-1 shadow-2xs">
+                        <i className="mdi mdi-check-decagram text-xs" />
                         <span>Selesai! Otomatis Beralih</span>
                       </span>
                     ) : (
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[10.5px] font-extrabold border flex items-center gap-1 shadow-2xs ${
-                          isPos1
-                            ? "bg-[#FAF0E8] text-[#9C4322] border-[#F2D8C7]"
-                            : "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
-                        }`}
-                      >
-                        <i className="mdi mdi-clock-fast text-xs" />
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-[#787F7A] border border-[#E8E2D8] inline-flex items-center gap-1 shadow-2xs">
+                        <i className="mdi mdi-timer-sand text-xs text-[#9B3F18]" />
                         <span>Sedang Berjalan</span>
                       </span>
                     )}
                   </div>
-                </div>
 
-                {/* Progress Track */}
-                <div className="w-full h-2.5 bg-black/5 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      targetStats.isFinished
-                        ? "bg-[#2E6B4D]"
-                        : isPos1
-                        ? "bg-[#9C4322]"
-                        : "bg-[#486B5A]"
-                    }`}
-                    style={{ width: `${Math.max(5, targetStats.percent)}%` }}
-                  />
+                  {/* Progress track */}
+                  <div className="w-full h-2 bg-[#E8E2D8] rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        targetStats.isFinished ? "bg-[#2E6B4D]" : "bg-[#9B3F18]"
+                      }`}
+                      style={{ width: `${Math.max(5, targetStats.percent)}%` }}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Bottom Navigation & Filter Controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                {/* Stepper Dots (Manual Switch) */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] font-bold text-[#787F7A] mr-1">Langkah:</span>
+              {/* Steps Navigation */}
+              <div className="flex items-center justify-between flex-wrap gap-2 pt-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[#787F7A]">Langkah:</span>
                   {[1, 2, 3].map((stepNum) => {
                     const stepGroup =
-                      isPos1
+                      posNumber === 1
                         ? (currentSubrole === "so1" ? SO1_STEPS[stepNum] : SO2_STEPS[stepNum])?.targetGroup
-                        : POS2_STEPS[stepNum]?.targetGroup;
+                        : posNumber === 2
+                        ? POS2_STEPS[stepNum]?.targetGroup
+                        : posNumber === 3
+                        ? POS3_STEPS[stepNum]?.targetGroup
+                        : POS4_STEPS[stepNum]?.targetGroup;
                     const isStepDone = Boolean(stepGroup && groupStats[stepGroup]?.isFinished);
                     const isCurrent = currentStep === stepNum;
 
@@ -831,14 +890,10 @@ export default function EvaluatorStudentListPage() {
                           setStepOverride(stepNum);
                           if (stepGroup) setSelectedGroup(stepGroup);
                         }}
-                        className={`px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1 cursor-pointer active:scale-95 ${
                           isCurrent
-                            ? isPos1
-                              ? "bg-[#9C4322] text-white shadow-2xs font-extrabold"
-                              : "bg-[#486B5A] text-white shadow-2xs font-extrabold"
-                            : isStepDone
-                            ? "bg-white text-[#2E6B4D] border border-[#CBE0D4] hover:bg-[#F0F6F2]"
-                            : "bg-white/80 text-[#565C58] border border-[#E8E2D8] hover:bg-white"
+                            ? "bg-[#9B3F18] text-white shadow-2xs font-extrabold"
+                            : "bg-white border border-[#E8E2D8] text-[#565C58] hover:bg-[#FAF8F5]"
                         }`}
                       >
                         <span>Step {stepNum}</span>
@@ -846,70 +901,42 @@ export default function EvaluatorStudentListPage() {
                       </button>
                     );
                   })}
-
-                  {stepOverride !== null && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStepOverride(null);
-                        const autoTarget =
-                          isPos1
-                            ? (currentSubrole === "so1" ? SO1_STEPS[autoStep] : SO2_STEPS[autoStep])?.targetGroup
-                            : POS2_STEPS[autoStep]?.targetGroup;
-                        if (autoTarget) setSelectedGroup(autoTarget);
-                      }}
-                      className="text-[11px] text-[#787F7A] hover:text-[#22352B] underline ml-1 cursor-pointer"
-                    >
-                      Kembali ke Alur Otomatis
-                    </button>
-                  )}
                 </div>
 
-                {/* Filter Status & Lock State */}
-                <div className="flex items-center gap-2">
-                  {isFilterLocked ? (
-                    <span className="bg-white/90 text-[#2E6B4D] border border-[#CBE0D4] px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs">
-                      <i className="mdi mdi-lock text-xs text-[#2E6B4D]" />
-                      <span>Daftar Siswa: {currentTaskInfo.targetGroup} (Terkunci)</span>
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedGroup(currentTaskInfo.targetGroup)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold text-white transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 ${
-                        isPos1 ? "bg-[#9C4322] hover:bg-[#85371B]" : "bg-[#486B5A] hover:bg-[#3B5749]"
-                      }`}
-                    >
-                      <i className="mdi mdi-filter-variant text-xs" />
-                      <span>Kunci Kembali ke {currentTaskInfo.targetGroup}</span>
-                    </button>
-                  )}
-                </div>
+                {stepOverride !== null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStepOverride(null);
+                      const autoTarget =
+                        posNumber === 1
+                          ? (currentSubrole === "so1" ? SO1_STEPS[autoStep] : SO2_STEPS[autoStep])?.targetGroup
+                          : posNumber === 2
+                          ? POS2_STEPS[autoStep]?.targetGroup
+                          : posNumber === 3
+                          ? POS3_STEPS[autoStep]?.targetGroup
+                          : POS4_STEPS[autoStep]?.targetGroup;
+                      if (autoTarget) setSelectedGroup(autoTarget);
+                    }}
+                    className="text-xs text-[#787F7A] hover:text-[#22352B] underline cursor-pointer"
+                  >
+                    Kembali ke Alur Otomatis
+                  </button>
+                )}
               </div>
+
+              {/* Filter Button: Full-width light sage green pill (Persis Gambar) */}
+              <button
+                type="button"
+                onClick={() => setSelectedGroup(currentTaskInfo.targetGroup)}
+                className="w-full bg-[#E4EFE9] hover:bg-[#D6E6DC] text-[#486B5A] border border-[#CBE0D4] font-black text-xs sm:text-sm py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 shadow-2xs cursor-pointer active:scale-[0.99]"
+              >
+                <i className="mdi mdi-filter-variant text-base" />
+                <span>Tampilkan Daftar Siswa: {currentTaskInfo.targetGroup}</span>
+              </button>
             </div>
           );
         })()}
-
-        {(posNumber === 3 || posNumber === 4) && (
-          <div className="bg-[#E4EAF2] rounded-2xl p-4 border border-[#CBD8E5] shadow-xs flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#36506C] text-white flex items-center justify-center flex-shrink-0 text-xl shadow-xs">
-                <i className="mdi mdi-door-closed" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-[#22352B]">
-                  Peran Anda: Penguji Stasioner Ruangan
-                </h3>
-                <p className="text-[#36506C] font-semibold leading-relaxed">
-                  Fokus menguji di dalam ruangan. Seluruh anak akan diantar dan dijemput langsung oleh SO 1, SO 2, atau Evaluator Motorik Kasar. Anda tidak perlu keluar ruangan.
-                </p>
-              </div>
-            </div>
-            <span className="hidden sm:inline-block text-[10px] font-extrabold px-3 py-1 rounded-full bg-[#36506C] text-white shadow-2xs flex-shrink-0">
-              Stasioner Di Ruangan
-            </span>
-          </div>
-        )}
 
         {/* Responsive Toolbar: Pencarian, Kelompok, dan Filter Status (Gaya Chips Sesuai Gambar) */}
         <div className="bg-white p-3 rounded-2xl border border-[#E8E2D8] shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
