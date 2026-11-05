@@ -1,791 +1,1291 @@
 "use client";
 export const runtime = 'edge';
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import Link from "next/link";
-import { DEFAULT_SCHOOL_PROFILE, DEFAULT_TEACHERS } from "@/lib/school-store";
-import type { SchoolProfile, TeacherStaff, FoundationNumber } from "@/types";
-import { FOUNDATION_LABELS } from "@/types";
-
-interface RubricIndicator {
-  id: string;
-  label: string;
-  description: string;
-  foundation?: FoundationNumber;
-  score_descriptors: Record<string, string>;
-}
-
-interface PosGuideData {
-  pos_number: number;
-  pos_name: string;
-  pos_code: string;
-  evaluators: string;
-  role_type: string;
-  duration: string;
-  focus: string;
-  instructions: string[];
-  indicators: RubricIndicator[];
-  red_flags: { id: string; label: string; severity?: string }[];
-  reading_levels?: { level: string; name: string; desc: string }[];
-}
-
-const COMPLETE_POS_GUIDE: Record<number, PosGuideData> = {
-  1: {
-    pos_number: 1,
-    pos_name: "Pos Kemandirian, Regulasi Emosi & Kepatuhan Instruksi",
-    pos_code: "SO (SUPER OBSERVER)",
-    evaluators: "Ahmad Furqoni, S. Pd (SO 1) & Novia Permatasari, S. Pd (SO 2)",
-    role_type: "Pengamat Longitudinal (Mengikuti Rotasi Siswa)",
-    duration: "Sepanjang Sesi Observasi (08.00 - 09.00)",
-    focus: "Kemandirian berpisah dari orang tua, adab sepatu/tas, ketertiban transisi antar-pos, regulasi diri saat kesulitan, berbagi alat main, dan interaksi sosial saat snack & bermain bebas.",
-    instructions: [
-      "SO 1 mendampingi Kelompok 2 dari Titik Awal (kedatangan, adab sepatu) menuju Pos Bahasa. Pada pukul 08.24, berpindah ke pintu Pos Motorik Kasar untuk menyambut Kelompok 1 dan mendampingi hingga Pos Kognitif, Bahasa, dan Titik Akhir.",
-      "SO 2 mendampingi Kelompok 3 dari Titik Awal menuju Pos Kognitif. Pada pukul 08.36, berpindah ke pintu Pos Motorik Kasar untuk menyambut Kelompok 2 dan mendampingi hingga Titik Akhir.",
-      "Observasi dilakukan secara wajar tanpa mengintervensi berlebihan. Catat kejadian spesifik pada catatan anekdot.",
-      "Jika anak mengalami kecemasan perpisahan, berikan waktu adaptasi maksimal 5-10 menit sebelum mencatat skor final."
-    ],
-    indicators: [
-      {
-        id: "SO-01",
-        label: "Berpisah dari Orang Tua",
-        description: "Berpisah dari orang tua dengan tenang tanpa kecemasan berlebihan saat memasuki gerbang/titik awal observasi.",
-        foundation: 3,
-        score_descriptors: {
-          "1": "Menangis histeris / menolak keras ditinggal / harus didampingi orang tua masuk ruangan.",
-          "2": "Sempat cemas/menangis sesaat, namun mau berpisah dan masuk setelah dibujuk pengamat.",
-          "3": "Berpisah dengan tenang, ceria, mandiri, dan langsung antusias menyapa guru pendamping.",
-        },
-      },
-      {
-        id: "SO-02",
-        label: "Kemandirian Menaruh Barang Pribadi",
-        description: "Mandiri melepaskan dan merapikan sepatu di rak serta menggantung tas pada loker/tempat yang disediakan.",
-        foundation: 5,
-        score_descriptors: {
-          "1": "Barang pribadi ditinggal berserakan di lantai / butuh bantuan fisik penuh dari guru.",
-          "2": "Merapikan sepatu di rak dan menggantung tas dengan sedikit arahan verbal/pengingat.",
-          "3": "Spontan dan tertib membuka serta meletakkan sepatu di rak dan menaruh tas secara mandiri.",
-        },
-      },
-      {
-        id: "SO-03",
-        label: "Kepatuhan Mengikuti Instruksi saat Transisi",
-        description: "Mengikuti instruksi pendamping dengan tertib saat berpindah antar ruang pos observasi.",
-        foundation: 2,
-        score_descriptors: {
-          "1": "Mengabaikan instruksi, berlarian keluar barisan, atau menolak berpindah pos.",
-          "2": "Mengikuti transisi kelompok, sesekali perlu diingatkan untuk tetap tertib di barisan.",
-          "3": "Sangat tertib, fokus, berjalan tenang bersama kelompok, dan tanggap terhadap aba-aba pendamping.",
-        },
-      },
-      {
-        id: "SO-04",
-        label: "Kesantunan dan Budaya Antre",
-        description: "Menggunakan kata santun (tolong, maaf, terima kasih) dan memiliki kesabaran menunggu giliran antrean.",
-        foundation: 1,
-        score_descriptors: {
-          "1": "Menyerobot antrean teman / tidak sabar menunggu giliran / bersikap agresif saat menunggu.",
-          "2": "Mau mengantre tertib dan berucap santun jika diingatkan atau dicontohkan guru.",
-          "3": "Konsisten sabar menunggu giliran dan spontan berucap tolong, maaf, serta terima kasih.",
-        },
-      },
-      {
-        id: "SO-05",
-        label: "Regulasi Diri & Adaptasi Kesulitan",
-        description: "Kemampuan menenangkan diri, mengendalikan emosi, dan bangkit kembali saat menghadapi kesulitan atau tantangan.",
-        foundation: 3,
-        score_descriptors: {
-          "1": "Tantrum / menangis keras / melempar benda / mogok saat mengalami kesulitan kecil.",
-          "2": "Sempat merasa kesal atau frustrasi, namun mampu tenang kembali setelah ditenangkan guru.",
-          "3": "Tenang, sabar, gigih mencoba kembali, dan mampu meregulasi emosi diri secara mandiri.",
-        },
-      },
-      {
-        id: "SO-06",
-        label: "Bermain Kooperatif & Berbagi",
-        description: "Interaksi saat bermain bersama teman, kesediaan berbagi alat mainan/snack, dan dinamika sosial kelompok.",
-        foundation: 2,
-        score_descriptors: {
-          "1": "Menolak interaksi sama sekali / merebut alat main teman secara paksa / memukul/mendorong.",
-          "2": "Bermain paralel di samping teman atau mau bergantian mainan jika difasilitasi oleh guru.",
-          "3": "Aktif berinteraksi positif, kooperatif, berinisiatif mengajak teman bermain, dan senang berbagi.",
-        },
-      },
-      {
-        id: "SO-07",
-        label: "Antusiasme & Refleksi Belajar",
-        description: "Menunjukkan rasa ingin tahu positif, keceriaan belajar, dan mampu merefleksikan pengalaman belajarnya.",
-        foundation: 6,
-        score_descriptors: {
-          "1": "Sangat tertekan, pasif total, tidak menunjukkan minat, atau menolak seluruh aktivitas.",
-          "2": "Mengikuti alur kegiatan dengan baik jika diberikan dorongan semangat sesekali.",
-          "3": "Sangat antusias, ceria, aktif bertanya, dan bangga menceritakan kembali pengalamannya.",
-        },
-      },
-    ],
-    red_flags: [
-      { id: "rf-so-1", label: "Tantrum histeris melantai (>10 menit) tanpa respon bujukan" },
-      { id: "rf-so-2", label: "Agresi fisik membahayakan (memukul, menggigit, atau menendang teman/guru)" },
-      { id: "rf-so-3", label: "Perilaku impulsif berbahaya (berlari mendadak keluar area aman sekolah)" },
-      { id: "rf-so-4", label: "Penolakan sosial ekstrem (menolak disapa sama sekali / kontak mata absen total)" },
-    ],
-  },
-  2: {
-    pos_number: 2,
-    pos_name: "Pos Motorik Kasar & Koordinasi Fisik",
-    pos_code: "POS A (MOTORIK KASAR + ESCORT)",
-    evaluators: "Rifky Delsandi Rifai, S. Pd",
-    role_type: "Penguji Ruangan + Penjemput Rotasi Kelompok",
-    duration: "12 Menit per Rotasi Kelompok",
-    focus: "Keseimbangan statis & dinamis, kontrol tubuh saat meniti papan titian, lompat 2 kaki bersamaan, ketangkasan tangkap-lempar bola, dan mobilitas fisik.",
-    instructions: [
-      "Pukul 08.00: Hadir di titik awal kedatangan saat pembagian name tag. Jemput Kelompok 1 dan bawa ke Pos Motorik Kasar.",
-      "Pukul 08.12 - 08.24: Lakukan pengujian motorik Kelompok 1 di ruang Pos Motorik.",
-      "Pukul 08.24: Di pintu Pos A, serahkan Kelompok 1 ke SO 1 (Ahmad Furqoni), lalu sambut & terima Kelompok 2 dari SO 1 untuk diuji di Pos Motorik.",
-      "Pukul 08.36: Di pintu Pos A, serahkan Kelompok 2 ke SO 2 (Novia Permatasari). Segera menuju Pos Bahasa untuk menjemput Kelompok 3 dan membawanya ke Pos Motorik.",
-      "Pukul 08.48: Selesai menguji Kelompok 3, antar langsung Kelompok 3 ke Area Bermain & Snack di Titik Akhir."
-    ],
-    indicators: [
-      {
-        id: "MK-01",
-        label: "Keseimbangan & Kontrol Tubuh",
-        description: "Berjalan lurus pada garis, meniti papan titian kayu, dan melompat 2 kaki bersamaan secara seimbang.",
-        foundation: 5,
-        score_descriptors: {
-          "1": "Menolak melangkah di titian / hilang keseimbangan total (harus dipegangi erat sepanjang titian).",
-          "2": "Mampu meniti titian atau melompat dengan bantuan minimal (sentuhan 1 jari / sesekali goyah).",
-          "3": "Lincah, seimbang sempurna di titian, dan melompat 2 kaki mandiri dengan percaya diri dan mendarat stabil.",
-        },
-      },
-      {
-        id: "MK-02",
-        label: "Koordinasi Mata-Tangan & Respons Gerak",
-        description: "Merespons instruksi gerak verbal pemandu dan ketangkasan koordinasi tangkap-lempar bola dari jarak 1,5 meter.",
-        foundation: 5,
-        score_descriptors: {
-          "1": "Tidak merespons instruksi gerak / luput total menangkap bola (bola selalu jatuh ke lantai).",
-          "2": "Respons gerakan agak lambat, berhasil menangkap/melempar bola setelah 1–2 kali percobaan dibimbing.",
-          "3": "Respons tanggap dan gesit, menangkap bola 2 tangan secara akurat dan melempar kembali dengan presisi.",
-        },
-      },
-    ],
-    red_flags: [
-      { id: "rf-mk-1", label: "Tonus otot kaku ekstrem (hipertonia) atau sangat lemas tanpa daya (hipotonia)" },
-      { id: "rf-mk-2", label: "Sering terjatuh tanpa hambatan fisik jelas / kehilangan keseimbangan vestibular berat" },
-      { id: "rf-mk-3", label: "Ketidakmampuan melompat 2 kaki lepas dari permukaan lantai pada usia > 6 tahun" },
-    ],
-  },
-  3: {
-    pos_number: 3,
-    pos_name: "Pos Kematangan Kognitif & Berhitung",
-    pos_code: "POS B (KEMATANGAN KOGNITIF)",
-    evaluators: "Shalma Ruhail Maldova, S. Pd",
-    role_type: "Penguji Stasioner (Tetap di Dalam Ruangan)",
-    duration: "12 Menit per Rotasi Kelompok",
-    focus: "Kemampuan berpikir logis, klasifikasi objek berdasarkan atribut warna/bentuk/ukuran, kelanjutan pola deret berulang (AB-AB / ABC-ABC), konsep kuantitas konkrit (banyak-sedikit, membilang 1-10), dan pemecahan masalah puzzle/balok.",
-    instructions: [
-      "Evaluator tetap berada di dalam ruangan Pos Kognitif. Siswa akan diantar dan dijemput oleh pemandu rotasi.",
-      "Siapkan media konkrit: balok warna-warni, kancing/kartu klasifikasi, puzzle 9-12 keping, dan alat peraga pola deret.",
-      "Mulai dengan apersepsi ramah dan suasana bermain yang santai.",
-      "Beri waktu 2-3 menit per anak untuk mengeksplorasi alat permainan sebelum meminta menyelesaikan pola/tugas kognitif."
-    ],
-    indicators: [
-      {
-        id: "KG-01",
-        label: "Klasifikasi Objek & Pola Berulang",
-        description: "Mengelompokkan benda berdasarkan atribut tertentu (warna/bentuk/fungsi) dan melengkapi pola deret yang teratur.",
-        foundation: 4,
-        score_descriptors: {
-          "1": "Belum mampu memilah benda atau melanjutkan pola deret sederhana walaupun telah dicontohkan.",
-          "2": "Mampu mengelompokkan 1 atribut atau melengkapi pola deret sederhana (AB-AB) setelah dipandu contoh.",
-          "3": "Mandiri dan tepat memilah multi-atribut serta melanjutkan pola deret kompleks (ABC-ABC / AABB).",
-        },
-      },
-      {
-        id: "KG-02",
-        label: "Konsep Kuantitas & Problem Solving",
-        description: "Memahami perbandingan banyak vs sedikit, membilang benda konkret 1-10, dan menyelesaikan tantangan puzzle/balok.",
-        foundation: 4,
-        score_descriptors: {
-          "1": "Belum memahami konsep banyak-sedikit / bingung membilang konkret (1–5) / puzzle dibiarkan acak.",
-          "2": "Mampu membandingkan kuantitas & menyelesaikan puzzle dasar dengan sedikit petunjuk arahan.",
-          "3": "Pemahaman kuantitas kuat, membilang tepat satu-ke-satu, dan solutif merangkai balok/puzzle secara tuntas.",
-        },
-      },
-    ],
-    red_flags: [
-      { id: "rf-kg-1", label: "Disorientasi spasial berat / tidak mengenal konsep bentuk dan arah dasar sama sekali" },
-      { id: "rf-kg-2", label: "Tidak memahami hubungan kausalitas (sebab-akibat) sederhana dalam percakapan sehari-hari" },
-      { id: "rf-kg-3", label: "Ketidakmampuan membedakan ukuran kontras (besar vs kecil sekali) secara visual" },
-    ],
-  },
-  4: {
-    pos_number: 4,
-    pos_name: "Pos Bahasa Lisan, Pra-Literasi & Motorik Halus",
-    pos_code: "POS C (BAHASA & PRA-LITERASI)",
-    evaluators: "Susmurtiningsih, S. Pd",
-    role_type: "Penguji Stasioner (Tetap di Dalam Ruangan)",
-    duration: "12 Menit per Rotasi Kelompok",
-    focus: "Kemampuan menyimak cerita lisan (read-aloud), menjawab pertanyaan pemahaman alur, keberanian komunikasi verbal mengutarakan ide, kontrol pensil dan genggaman jemari (tripod grasp), serta pemetaan 4 tingkat literasi membaca.",
-    instructions: [
-      "Evaluator tetap berada di dalam ruangan Pos Bahasa & Halus. Siswa akan diantar dan dijemput oleh pemandu rotasi.",
-      "Sesi dimulai dengan membacakan buku cerita bergambar pendek (read-aloud) selama 3-4 menit dengan intonasi menarik.",
-      "Ajukan 2-3 pertanyaan terbuka mengenai karakter dan alur cerita untuk menguji pemahaman menyimak.",
-      "Berikan lembar gambar dan pensil segitiga untuk mengamati posisi genggaman pensil (dynamic tripod grasp vs palmar grasp).",
-      "Petakan level membaca anak ke salah satu dari 4 Tingkat Literasi (L1, L2, L3, L4)."
-    ],
-    indicators: [
-      {
-        id: "BL-01",
-        label: "Menyimak Cerita Lisan (Read-Aloud)",
-        description: "Menyimak cerita lisan yang dibacakan guru dan memahami pesan moral serta alur kejadian sederhana.",
-        foundation: 2,
-        score_descriptors: {
-          "1": "Tidak memperhatikan cerita, mudah terdistraksi total / tidak mampu menjawab pertanyaan tentang isi cerita.",
-          "2": "Menyimak cerita sebagian, mampu menjawab pertanyaan jika dibantu dengan pertanyaan pemancing.",
-          "3": "Menyimak dengan fokus penuh, memahami alur cerita, dan mampu menceritakan kembali intisarinya dengan runtut.",
-        },
-      },
-      {
-        id: "BL-02",
-        label: "Komunikasi Gagasan Lisan",
-        description: "Mengomunikasikan gagasan lisan tentang ide, gambar, atau karyanya dengan kalimat sederhana yang terstruktur.",
-        foundation: 2,
-        score_descriptors: {
-          "1": "Menolak berbicara sama sekali / suara sangat lirih tak terdengar / berbicara dengan kata tanpa makna.",
-          "2": "Menjawab hanya dengan frasa pendek 1–2 kata, masih butuh dorongan untuk berbicara lebih lanjut.",
-          "3": "Berani, lancar, dan percaya diri mengutarakan gagasan dengan struktur kalimat sederhana yang jelas.",
-        },
-      },
-      {
-        id: "BL-03",
-        label: "Kontrol Motorik Halus & Tripod Grasp",
-        description: "Kontrol jemari tangan dan posisi genggaman pensil fungsional (tripod grasp) saat menulis, menarik garis, atau menggambar.",
-        foundation: 5,
-        score_descriptors: {
-          "1": "Genggaman tinju penuh (palmar grasp) kaku tanpa kontrol jemari / tidak dapat memegang alat tulis.",
-          "2": "Genggaman peralihan (pincer / 4 jari), goresan garis pada kertas masih agak kaku dan bergetar.",
-          "3": "Dynamic tripod grasp fungsional mantap (ibu jari, telunjuk, jari tengah), goresan luwes dan terkontrol.",
-        },
-      },
-    ],
-    reading_levels: [
-      { level: "L1", name: "Tingkat 1: Gambar & Simbol Visual", desc: "Mampu memaknai gambar konkret dan simbol visual benda sehari-hari, belum mengenal bunyi huruf fonik." },
-      { level: "L2", name: "Tingkat 2: Huruf & Bunyi Fonik", desc: "Mengenal bentuk huruf kapital/kecil serta bunyi vokal dan konsonan dasar (a-i-u-e-o, b, m, p, s)." },
-      { level: "L3", name: "Tingkat 3: Membaca Suku Kata", desc: "Mampu menggabungkan huruf menjadi suku kata terbuka sederhana (ba-ba, bu-ku, bo-la, ma-ma)." },
-      { level: "L4", name: "Tingkat 4: Membaca Kalimat Lancar", desc: "Mampu membaca kalimat pendek secara lancar dan memahami maksud bacaan tanpa mengeja per huruf." },
-    ],
-    red_flags: [
-      { id: "rf-bl-1", label: "Bicara tidak dapat dipahami sama sekali oleh orang dewasa (speech delay berat)" },
-      { id: "rf-bl-2", label: "Ekolalia — hanya mengulang kata yang diucapkan guru tanpa makna kontekstual" },
-      { id: "rf-bl-3", label: "Tremor jemari tangan ekstrem / otot tangan sangat lemah sehingga pensil selalu terjatuh" },
-    ],
-  },
-};
 
 export default function CompleteAssessmentGuidePage() {
-  const [activePosTab, setActivePosTab] = useState<number | "all">("all");
-  const [schoolProfile, setSchoolProfile] = useState<SchoolProfile>(DEFAULT_SCHOOL_PROFILE);
-  const [teachers, setTeachers] = useState<TeacherStaff[]>(DEFAULT_TEACHERS);
-  const [currentDateStr, setCurrentDateStr] = useState<string>("");
-
-  useEffect(() => {
-    // Format Indonesian date for print footer
-    const now = new Date();
-    const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
-    setCurrentDateStr(now.toLocaleDateString("id-ID", options));
-
-    async function fetchMeta() {
-      try {
-        const [sRes, tRes] = await Promise.all([
-          fetch("/api/school"),
-          fetch("/api/teachers"),
-        ]);
-        if (sRes.ok) {
-          const sJson = await sRes.json();
-          if (sJson.data) setSchoolProfile(sJson.data);
-        }
-        if (tRes.ok) {
-          const tJson = await tRes.json();
-          if (tJson.data && tJson.data.length > 0) setTeachers(tJson.data);
-        }
-      } catch {
-        // Safe fallback to constants
-      }
-    }
-    fetchMeta();
-  }, []);
+  const [activePageFilter, setActivePageFilter] = useState<number | "all">("all");
 
   const handlePrint = useCallback(() => {
     window.print();
   }, []);
 
-  const displayedPosList = useMemo(() => {
-    if (activePosTab === "all") return [1, 2, 3, 4];
-    return [activePosTab];
-  }, [activePosTab]);
-
   return (
-    <div className="min-h-screen bg-[#F6F2E9] text-[#22352B] font-sans print:bg-white print:text-black">
+    <div className="min-h-screen bg-[#F6F2E9] text-[#22352B] font-sans print:bg-white print:text-black py-4 sm:py-6 px-2 sm:px-4">
+      {/* ─── EMBEDDED PRINT STYLESHEET (STRICT 7-PAGE A4 LAYOUT) ─── */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 8mm 10mm 8mm 10mm;
+          }
+          html, body {
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 9pt !important;
+            color: #22352B !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .print-hidden-toolbar {
+            display: none !important;
+          }
+          .guide-a4-page {
+            page-break-after: always !important;
+            break-after: page !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 100vh !important;
+            height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-sizing: border-box !important;
+          }
+          .guide-a4-page:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+          }
+        }
+      `}</style>
+
       {/* ─── FLOATING ACTION TOOLBAR (SCREEN ONLY) ─── */}
-      <aside aria-label="Aksi Panduan Cetak" className="print:hidden sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E8E2D8] shadow-xs px-4 py-3">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Link
-              href="/evaluator"
-              className="bg-[#FAF8F5] border border-[#DDD7CE] text-[#22352B] hover:bg-[#EFECE4] px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95"
-            >
-              <i className="mdi mdi-arrow-left text-base" />
-              <span>Kembali ke Portal</span>
-            </Link>
-
-            <span className="hidden sm:inline-block w-px h-5 bg-[#E8E2D8]" />
-
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#385642]" />
-              <span className="text-xs font-extrabold text-[#385642] uppercase tracking-wide">
-                Buku Panduan &amp; Rubrik Evaluator
-              </span>
-            </div>
+      <aside
+        aria-label="Aksi Panduan Cetak"
+        className="print-hidden-toolbar sticky top-2 z-50 max-w-4xl mx-auto bg-white/95 backdrop-blur-md border border-[#E8E2D8] rounded-2xl shadow-md p-3 mb-6 flex flex-wrap items-center justify-between gap-3"
+      >
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/evaluator"
+            className="bg-[#FAF8F5] border border-[#DDD7CE] text-[#22352B] hover:bg-[#EFECE4] px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95"
+          >
+            <i className="mdi mdi-arrow-left text-base" />
+            <span>Portal Evaluator</span>
+          </Link>
+          <span className="hidden sm:inline-block w-px h-5 bg-[#E8E2D8]" />
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#2E5442]" />
+            <span className="text-xs font-extrabold text-[#22352B]">
+              Buku Panduan &amp; Rubrik Resmi (7 Halaman)
+            </span>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Filter Pos Tampilan */}
-            <div className="flex items-center bg-[#FAF8F5] border border-[#DDD0B8] p-1 rounded-xl text-xs">
-              <button
-                type="button"
-                onClick={() => setActivePosTab("all")}
-                className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
-                  activePosTab === "all"
-                    ? "bg-[#9C4322] text-white shadow-2xs"
-                    : "text-[#565C58] hover:text-[#22352B]"
-                }`}
-              >
-                Semua Pos (Lengkap)
-              </button>
-              <button
-                type="button"
-                onClick={() => setActivePosTab(1)}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
-                  activePosTab === 1
-                    ? "bg-[#9C4322] text-white shadow-2xs"
-                    : "text-[#565C58] hover:text-[#22352B]"
-                }`}
-              >
-                Pos 1 (SO)
-              </button>
-              <button
-                type="button"
-                onClick={() => setActivePosTab(2)}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
-                  activePosTab === 2
-                    ? "bg-[#9C4322] text-white shadow-2xs"
-                    : "text-[#565C58] hover:text-[#22352B]"
-                }`}
-              >
-                Pos 2 (Motorik)
-              </button>
-              <button
-                type="button"
-                onClick={() => setActivePosTab(3)}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
-                  activePosTab === 3
-                    ? "bg-[#9C4322] text-white shadow-2xs"
-                    : "text-[#565C58] hover:text-[#22352B]"
-                }`}
-              >
-                Pos 3 (Kognitif)
-              </button>
-              <button
-                type="button"
-                onClick={() => setActivePosTab(4)}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
-                  activePosTab === 4
-                    ? "bg-[#9C4322] text-white shadow-2xs"
-                    : "text-[#565C58] hover:text-[#22352B]"
-                }`}
-              >
-                Pos 4 (Bahasa)
-              </button>
-            </div>
-
-            {/* Tombol Cetak / Simpan PDF */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filter Halaman untuk View Layar */}
+          <div className="flex items-center bg-[#FAF8F5] border border-[#E8E2D8] p-1 rounded-xl text-xs gap-1">
             <button
               type="button"
-              onClick={handlePrint}
-              className="bg-[#2E6B4D] hover:bg-[#24543D] text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm transition flex items-center gap-2 cursor-pointer active:scale-95"
+              onClick={() => setActivePageFilter("all")}
+              className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                activePageFilter === "all"
+                  ? "bg-[#9B3F18] text-white shadow-2xs"
+                  : "text-[#565C58] hover:text-[#22352B]"
+              }`}
             >
-              <i className="mdi mdi-printer text-base" />
-              <span>Cetak Dokumen (A4)</span>
+              Semua
             </button>
+            {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+              <button
+                key={num}
+                type="button"
+                onClick={() => setActivePageFilter(num)}
+                className={`px-2 py-1 rounded-lg font-bold transition cursor-pointer ${
+                  activePageFilter === num
+                    ? "bg-[#9B3F18] text-white shadow-2xs"
+                    : "text-[#565C58] hover:text-[#22352B]"
+                }`}
+              >
+                H.{num}
+              </button>
+            ))}
           </div>
+
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="bg-[#2E6B4D] hover:bg-[#24543D] text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm transition flex items-center gap-2 cursor-pointer active:scale-95"
+          >
+            <i className="mdi mdi-printer text-base" />
+            <span>Cetak A4 (7 Halaman)</span>
+          </button>
         </div>
       </aside>
 
-      {/* ─── PRINTABLE DOCUMENT SHEET CONTAINER ─── */}
-      <main className="max-w-4xl mx-auto p-4 sm:p-8 my-4 sm:my-8 bg-white border border-[#E8E2D8] rounded-3xl shadow-md print:shadow-none print:border-none print:m-0 print:p-0 print:rounded-none print:max-w-none">
-        
-        {/* ─── KOP SURAT RESMI LEMBAGA ─── */}
-        <header className="pb-4 border-b-2 border-[#22352B] space-y-2">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#385642] text-white flex items-center justify-center text-3xl font-black flex-shrink-0 shadow-sm print:border print:border-black">
-              <i className="mdi mdi-school" />
-            </div>
-            <div className="min-w-0 flex-1 text-center sm:text-left">
-              <p className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-[#787F7A] print:text-black">
-                {schoolProfile.foundation_name || "YAYASAN NURUN NAJAH"}
-              </p>
-              <h1 className="text-xl sm:text-2xl font-black text-[#22352B] print:text-black tracking-tight leading-tight">
-                {schoolProfile.school_name || "SD ISLAM AN NAJAH"}
-              </h1>
-              <p className="text-[11px] sm:text-xs text-[#565C58] print:text-black mt-0.5 leading-snug">
-                NPSN: <strong className="font-mono">{schoolProfile.npsn || "20109914"}</strong> &bull; {schoolProfile.address}, {schoolProfile.subdistrict}, {schoolProfile.city}, {schoolProfile.province} {schoolProfile.postal_code}
-              </p>
-              <p className="text-[10.5px] text-[#787F7A] print:text-black mt-0.5 font-mono">
-                Telp: {schoolProfile.phone} &bull; Email: {schoolProfile.email} &bull; Web: {schoolProfile.website}
-              </p>
-            </div>
-          </div>
-          {/* Garis Ganda Standar Dokumen Dinas */}
-          <div className="pt-2">
-            <div className="w-full border-t-2 border-[#22352B]" />
-            <div className="w-full border-t border-[#22352B] mt-0.5" />
-          </div>
-        </header>
-
-        {/* ─── JUDUL UTAMA PANDUAN ─── */}
-        <section className="text-center py-6 space-y-2 border-b border-[#E8E2D8] print:border-black">
-          <span className="bg-[#FAF0E8] text-[#9C4322] border border-[#F2D8C7] px-3.5 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider inline-block print:border-black print:text-black print:bg-transparent">
-            DOKUMEN RESMI SPMB • TAHUN AJARAN {schoolProfile.academic_year || "2026/2027"}
-          </span>
-          <h2 className="text-xl sm:text-2xl font-black text-[#22352B] print:text-black uppercase tracking-tight">
-            PANDUAN OPERASIONAL &amp; MATRIKS RUBRIK OBSERVASI
-          </h2>
-          <p className="text-xs sm:text-sm text-[#565C58] print:text-black max-w-2xl mx-auto leading-relaxed">
-            Pedoman Standar Evaluator SPMB SD Islam An Najah Berbasis Transisi PAUD-SD Menyenangkan (6 Fondasi Kemendikbudristek) dengan Skala Capaian 3 Tingkat
-          </p>
-        </section>
-
-        {/* ─── BAGIAN I: KETENTUAN UMUM & SISTEM SKALA NILAI ─── */}
-        <section className="py-6 space-y-4 border-b border-[#E8E2D8] print:border-black">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-[#385642] text-white flex items-center justify-center font-bold text-xs print:border print:border-black print:text-black print:bg-transparent">
-              I
-            </span>
-            <h3 className="text-sm sm:text-base font-black text-[#22352B] print:text-black uppercase tracking-wide">
-              KETENTUAN UMUM &amp; SKALA PENILAIAN 3 TINGKAT
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-            <div className="bg-[#FAF8F5] p-3.5 rounded-2xl border border-[#E8E2D8] print:border-black space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-[#B83A35] font-mono text-sm">SKOR 1</span>
-                <span className="bg-[#FCEEEF] text-[#B83A35] font-black px-2 py-0.5 rounded text-[10px] border border-[#F2D8C7] print:border-black print:text-black">
-                  PERLU BIMBINGAN (PB)
-                </span>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ─── HALAMAN 1 DARI 7: KETENTUAN UMUM, SKALA, & TIM EVALUATOR ───── */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(activePageFilter === "all" || activePageFilter === 1) && (
+        <section className="guide-a4-page max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8 my-6 print:m-0 print:p-0 print:rounded-none text-[#22352B] leading-snug flex flex-col justify-between">
+          <div className="space-y-4">
+            {/* Kop Surat Yayasan & Sekolah */}
+            <div className="flex items-start gap-4 pb-3 border-b-2 border-[#22352B]/80">
+              <div className="w-12 h-12 rounded-xl bg-[#9B3F18] text-white flex items-center justify-center text-2xl flex-shrink-0 shadow-xs">
+                <i className="mdi mdi-sprout" />
               </div>
-              <p className="text-[#565C58] print:text-black leading-snug text-[11px]">
-                Anak belum menunjukkan indikator yang diharapkan atau membutuhkan bantuan fisik/arahan penuh dari evaluator untuk melakukan aktivitas.
-              </p>
-            </div>
-
-            <div className="bg-[#FAF8F5] p-3.5 rounded-2xl border border-[#E8E2D8] print:border-black space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-[#7D5327] font-mono text-sm">SKOR 2</span>
-                <span className="bg-[#FAF0E8] text-[#7D5327] font-black px-2 py-0.5 rounded text-[10px] border border-[#DDD0B8] print:border-black print:text-black">
-                  BERKEMBANG SESUAI HARAPAN (BSH)
-                </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#787F7A]">
+                  YAYASAN NURUN NAJAH
+                </p>
+                <h1 className="text-2xl font-black text-[#22352B] tracking-tight leading-tight">
+                  SD Islam An Najah
+                </h1>
+                <p className="text-xs text-[#565C58] mt-0.5 leading-tight">
+                  NPSN: <span className="font-mono font-bold">20109914</span> &bull; Jl. SMA 64 RT 008 RW 02, Cipayung, Jakarta Timur, DKI Jakarta 13840
+                </p>
+                <p className="text-[11px] text-[#787F7A] mt-0.5 font-mono">
+                  Telp: 085864464420 &bull; Email: sdislamannajah.cpy@gmail.com &bull; Web: observasi.sdiannajah.ai.id
+                </p>
               </div>
-              <p className="text-[#565C58] print:text-black leading-snug text-[11px]">
-                Anak mampu menampilkan perilaku/tugas dengan bantuan minimal, petunjuk arahan verbal sesekali, atau pembiasaan bertahap.
+            </div>
+
+            {/* Dokumen Title */}
+            <div className="text-center py-1 space-y-1">
+              <span className="inline-block bg-[#E4EFE9] text-[#284034] text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-2xs">
+                DOKUMEN RESMI SPMB &bull; TAHUN AJARAN 2026/2027
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-[#22352B] tracking-tight leading-tight">
+                Panduan Operasional &amp; Matriks Rubrik Observasi
+              </h2>
+              <p className="text-xs text-[#565C58] font-normal leading-relaxed max-w-2xl mx-auto">
+                Pedoman Standar Evaluator SPMB SD Islam An Najah Berbasis Transisi PAUD–SD Menyenangkan (6 Fondasi Kemendikbudristek) dengan Skala Capaian 3 Tingkat
               </p>
             </div>
 
-            <div className="bg-[#FAF8F5] p-3.5 rounded-2xl border border-[#E8E2D8] print:border-black space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-[#2E6B4D] font-mono text-sm">SKOR 3</span>
-                <span className="bg-[#E4EFE9] text-[#2E6B4D] font-black px-2 py-0.5 rounded text-[10px] border border-[#CBE0D4] print:border-black print:text-black">
-                  MANDIRI (M)
+            {/* Section I: Ketentuan Umum & Skala Penilaian */}
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2 pb-1 border-b border-[#E8E2D8]">
+                <span className="w-5 h-5 rounded-md bg-[#284034] text-white font-black text-xs flex items-center justify-center">
+                  I
                 </span>
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                  KETENTUAN UMUM &amp; SKALA PENILAIAN 3 TINGKAT
+                </h3>
               </div>
-              <p className="text-[#565C58] print:text-black leading-snug text-[11px]">
-                Anak mampu menampilkan perilaku secara konsisten, spontan, percaya diri, dan mandiri tanpa memerlukan bantuan evaluator.
-              </p>
-            </div>
-          </div>
 
-          {/* Penjelasan Red Flag & Waktu Observasi */}
-          <div className="bg-[#FAF8F5] p-4 rounded-2xl border border-[#E8E2D8] print:border-black text-xs space-y-2">
-            <h4 className="font-extrabold text-[#22352B] print:text-black flex items-center gap-2">
-              <i className="mdi mdi-alert-circle text-sm text-[#B83A35]" />
-              <span>Pedoman Catatan Anekdot &amp; Indikator Peringatan Khusus (Red Flag)</span>
-            </h4>
-            <p className="text-[#565C58] print:text-black leading-relaxed text-[11px]">
-              <strong>Red Flag</strong> bukan vonis ketidaklulusan, melainkan tanda peringatan dini perilaku/fisik yang memerlukan penanganan khusus (individual education plan/IEP), konfirmasi orang tua, atau rujukan psikolog/terapis anak. Evaluator wajib mendokumentasikan konteks pemicu pada kolom Catatan Anekdot Lapangan.
-            </p>
-          </div>
-        </section>
-
-        {/* ─── BAGIAN II: TIM EVALUATOR RESMI & DISTRIBUSI PERAN ─── */}
-        <section className="py-6 space-y-4 border-b border-[#E8E2D8] print:border-black">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-[#385642] text-white flex items-center justify-center font-bold text-xs print:border print:border-black print:text-black print:bg-transparent">
-              II
-            </span>
-            <h3 className="text-sm sm:text-base font-black text-[#22352B] print:text-black uppercase tracking-wide">
-              TIM EVALUATOR SPMB RESMI &amp; STRUKTUR PENUGASAN
-            </h3>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border border-[#E8E2D8] print:border-black border-collapse">
-              <thead>
-                <tr className="bg-[#FAF8F5] print:bg-gray-100 text-[#22352B] print:text-black font-extrabold border-b border-[#E8E2D8] print:border-black">
-                  <th className="p-2.5 border-r border-[#E8E2D8] print:border-black w-12 text-center">Pos</th>
-                  <th className="p-2.5 border-r border-[#E8E2D8] print:border-black w-48">Ruang &amp; Domain Observasi</th>
-                  <th className="p-2.5 border-r border-[#E8E2D8] print:border-black w-56">Petugas Evaluator</th>
-                  <th className="p-2.5">Karakteristik &amp; Model Penugasan</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E8E2D8] print:divide-black">
-                <tr>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black font-mono font-bold text-center">1</td>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black font-bold">Kemandirian, Regulasi Emosi &amp; Kepatuhan</td>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black">
-                    <strong>Ahmad Furqoni, S. Pd</strong> (SO 1)<br />
-                    <strong>Novia Permatasari, S. Pd</strong> (SO 2)
-                  </td>
-                  <td className="p-2.5 text-[#565C58] print:text-black">
-                    Super Observer Longitudinal: mengawal kedatangan, transisi 3 pos, hingga snack &amp; bermain bebas.
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black font-mono font-bold text-center">2</td>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black font-bold">Pos A: Motorik Kasar &amp; Koordinasi Fisik</td>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black">
-                    <strong>Rifky Delsandi Rifai, S. Pd</strong>
-                  </td>
-                  <td className="p-2.5 text-[#565C58] print:text-black">
-                    Penguji Motorik Ruangan + Escort: jemput Kel. 1 di awal, serah-terima di pintu Pos A, dan antar Kel. 3 ke titik akhir.
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black font-mono font-bold text-center">3</td>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black font-bold">Pos B: Kematangan Kognitif &amp; Berhitung</td>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black">
-                    <strong>Shalma Ruhail Maldova, S. Pd</strong>
-                  </td>
-                  <td className="p-2.5 text-[#565C58] print:text-black">
-                    Stasioner Ruangan (12 menit/kelompok): pola, klasifikasi objek, kuantitas &amp; balok problem solving.
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black font-mono font-bold text-center">4</td>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black font-bold">Pos C: Bahasa Lisan &amp; Motorik Halus</td>
-                  <td className="p-2.5 border-r border-[#E8E2D8] print:border-black">
-                    <strong>Susmurtiningsih, S. Pd</strong>
-                  </td>
-                  <td className="p-2.5 text-[#565C58] print:text-black">
-                    Stasioner Ruangan (12 menit/kelompok): read-aloud menyimak cerita, ide verbal, tripod grasp, &amp; tingkat literasi L1–L4.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {/* ─── BAGIAN III: MATRIKS RUBRIK RINCI PER POS (DESKRIPTOR LENGKAP) ─── */}
-        <div className="py-6 space-y-8">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-[#385642] text-white flex items-center justify-center font-bold text-xs print:border print:border-black print:text-black print:bg-transparent">
-              III
-            </span>
-            <h3 className="text-sm sm:text-base font-black text-[#22352B] print:text-black uppercase tracking-wide">
-              MATRIKS RUBRIK DESKRIPTOR LENGKAP PER POS
-            </h3>
-          </div>
-
-          {displayedPosList.map((posNum) => {
-            const posData = COMPLETE_POS_GUIDE[posNum];
-            if (!posData) return null;
-
-            return (
-              <section
-                key={posNum}
-                className="space-y-4 pt-4 border-t border-[#E8E2D8] print:border-black print:break-inside-avoid print:page-break-after"
-              >
-                {/* Header Pos */}
-                <div className="bg-[#FAF8F5] print:bg-transparent p-4 rounded-2xl border border-[#E8E2D8] print:border-black space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="font-mono font-black text-xs px-2.5 py-0.5 rounded-full bg-[#9C4322] text-white print:bg-transparent print:text-black print:border print:border-black w-fit">
-                      {posData.pos_code}
+              {/* 3 Skala Capaian */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Skor 1 */}
+                <div className="bg-[#FAF5F0] border border-[#F1D8C9] rounded-xl p-3.5 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#9B3F18] text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0">
+                      1
                     </span>
-                    <span className="text-xs text-[#787F7A] print:text-black font-semibold">
-                      Durasi: {posData.duration}
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#9B3F18]">
+                      SKOR 1
                     </span>
                   </div>
-
-                  <h4 className="text-base sm:text-lg font-black text-[#22352B] print:text-black">
-                    {posData.pos_name}
+                  <h4 className="font-black text-xs text-[#9B3F18] leading-tight">
+                    PERLU BIMBINGAN (PB)
                   </h4>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
-                    <p className="text-[#565C58] print:text-black">
-                      <strong>Petugas:</strong> {posData.evaluators}
-                    </p>
-                    <p className="text-[#565C58] print:text-black">
-                      <strong>Model Tugas:</strong> {posData.role_type}
-                    </p>
-                  </div>
-
-                  <p className="text-xs text-[#565C58] print:text-black italic leading-relaxed pt-1">
-                    <strong>Fokus Domain:</strong> {posData.focus}
+                  <p className="text-[11px] text-[#565C58] leading-snug">
+                    Anak belum menunjukkan indikator yang diharapkan atau membutuhkan bantuan fisik/arahan penuh dari evaluator untuk melakukan aktivitas.
                   </p>
                 </div>
 
-                {/* Petunjuk Teknis Alur Lapangan */}
-                <div className="bg-white p-3.5 rounded-2xl border border-[#E8E2D8] print:border-black text-xs space-y-1.5">
-                  <h5 className="font-extrabold text-[#22352B] print:text-black uppercase tracking-wider text-[11px]">
-                    SOP &amp; Alur Teknis Evaluator di Lapangan:
-                  </h5>
-                  <ul className="list-disc list-inside space-y-1 text-[#565C58] print:text-black text-[11.5px] leading-relaxed">
-                    {posData.instructions.map((inst, idx) => (
-                      <li key={idx}>{inst}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Tabel Matriks Rubrik Indikator */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border border-[#E8E2D8] print:border-black border-collapse">
-                    <thead>
-                      <tr className="bg-[#FAF8F5] print:bg-gray-100 text-[#22352B] print:text-black font-extrabold border-b border-[#E8E2D8] print:border-black">
-                        <th className="p-2 border-r border-[#E8E2D8] print:border-black w-24">Kode &amp; Indikator</th>
-                        <th className="p-2 border-r border-[#E8E2D8] print:border-black w-32">Fondasi PAUD-SD</th>
-                        <th className="p-2 border-r border-[#E8E2D8] print:border-black w-1/4">Perlu Bimbingan (Skor 1)</th>
-                        <th className="p-2 border-r border-[#E8E2D8] print:border-black w-1/4">Berkembang Sesuai Harapan (Skor 2)</th>
-                        <th className="p-2 w-1/4">Mandiri (Skor 3)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E8E2D8] print:divide-black">
-                      {posData.indicators.map((ind) => (
-                        <tr key={ind.id} className="align-top">
-                          <td className="p-2 border-r border-[#E8E2D8] print:border-black">
-                            <span className="font-mono font-bold text-[#9C4322] print:text-black block text-[11px]">
-                              {ind.id}
-                            </span>
-                            <span className="font-bold text-[#22352B] print:text-black block mt-0.5 leading-snug">
-                              {ind.label}
-                            </span>
-                            <span className="text-[10px] text-[#787F7A] print:text-black block mt-1 leading-tight">
-                              {ind.description}
-                            </span>
-                          </td>
-                          <td className="p-2 border-r border-[#E8E2D8] print:border-black">
-                            {ind.foundation ? (
-                              <span className="inline-block bg-[#E4EFE9] text-[#2E6B4D] print:bg-transparent print:text-black print:border print:border-black px-2 py-0.5 rounded text-[10px] font-bold">
-                                Fondasi {ind.foundation}: {FOUNDATION_LABELS[ind.foundation]?.short || FOUNDATION_LABELS[ind.foundation]?.name}
-                              </span>
-                            ) : (
-                              <span className="text-[#787F7A] text-[10px]">-</span>
-                            )}
-                          </td>
-                          <td className="p-2 border-r border-[#E8E2D8] print:border-black text-[11px] text-[#565C58] print:text-black leading-snug bg-red-50/20 print:bg-transparent">
-                            {ind.score_descriptors["1"]}
-                          </td>
-                          <td className="p-2 border-r border-[#E8E2D8] print:border-black text-[11px] text-[#565C58] print:text-black leading-snug bg-amber-50/20 print:bg-transparent">
-                            {ind.score_descriptors["2"]}
-                          </td>
-                          <td className="p-2 text-[11px] text-[#565C58] print:text-black leading-snug bg-emerald-50/20 print:bg-transparent font-medium">
-                            {ind.score_descriptors["3"]}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Khusus Pos 4: Rubrik Tingkat Literasi Membaca */}
-                {posData.reading_levels && (
-                  <div className="bg-[#FAF8F5] print:bg-transparent p-3.5 rounded-2xl border border-[#E8E2D8] print:border-black space-y-2 text-xs">
-                    <h5 className="font-black text-[#22352B] print:text-black flex items-center gap-1.5 uppercase tracking-wide">
-                      <i className="mdi mdi-book-open-variant text-sm text-[#385642]" />
-                      <span>Rubrik 4 Tingkat Literasi Membaca Awal (Reading Level)</span>
-                    </h5>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      {posData.reading_levels.map((lvl) => (
-                        <div key={lvl.level} className="bg-white p-2.5 rounded-xl border border-[#E8E2D8] print:border-black space-y-0.5">
-                          <span className="font-mono font-bold text-[#385642] print:text-black text-[11px]">
-                            [{lvl.level}] {lvl.name}
-                          </span>
-                          <p className="text-[10.5px] text-[#565C58] print:text-black leading-snug">
-                            {lvl.desc}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+                {/* Skor 2 */}
+                <div className="bg-[#FAF8F2] border border-[#EDE3D0] rounded-xl p-3.5 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#8A641A] text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0">
+                      2
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#8A641A]">
+                      SKOR 2
+                    </span>
                   </div>
-                )}
-
-                {/* Indikator Red Flag Khusus Pos */}
-                <div className="bg-red-50/40 print:bg-transparent p-3 rounded-2xl border border-red-200 print:border-black text-xs space-y-1">
-                  <span className="font-bold text-[#B83A35] print:text-black block text-[11px]">
-                    Indikator Perhatian Khusus (Red Flag) Pos {posNum}:
-                  </span>
-                  <ul className="list-disc list-inside space-y-0.5 text-[#565C58] print:text-black text-[11px]">
-                    {posData.red_flags.map((rf) => (
-                      <li key={rf.id}>{rf.label}</li>
-                    ))}
-                  </ul>
+                  <h4 className="font-black text-xs text-[#8A641A] leading-tight">
+                    BERKEMBANG SESUAI HARAPAN (BSH)
+                  </h4>
+                  <p className="text-[11px] text-[#565C58] leading-snug">
+                    Anak mampu menampilkan perilaku/tugas dengan bantuan minimal, petunjuk arahan verbal sesekali, atau pembiasaan bertahap.
+                  </p>
                 </div>
-              </section>
-            );
-          })}
-        </div>
 
-        {/* ─── LEMBAR PENGESAHAN DOKUMEN ─── */}
-        <section className="pt-8 mt-8 border-t-2 border-[#22352B] print:break-inside-avoid text-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span className="text-[#787F7A] print:text-black font-mono text-[11px]">
-              Dicetak pada: {currentDateStr || "Hari Kegiatan SPMB"} &bull; Sistem Observasi Kalamula
-            </span>
-            <span className="text-[#22352B] print:text-black font-bold">
-              Jakarta Timur, {currentDateStr || "Maret 2026"}
-            </span>
+                {/* Skor 3 */}
+                <div className="bg-[#F4F8F5] border border-[#D5E5DB] rounded-xl p-3.5 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#2E6B4D] text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0">
+                      3
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#2E6B4D]">
+                      SKOR 3
+                    </span>
+                  </div>
+                  <h4 className="font-black text-xs text-[#2E6B4D] leading-tight">
+                    MANDIRI (M)
+                  </h4>
+                  <p className="text-[11px] text-[#565C58] leading-snug">
+                    Anak mampu menampilkan perilaku secara konsisten, spontan, percaya diri, dan mandiri tanpa memerlukan bantuan evaluator.
+                  </p>
+                </div>
+              </div>
+
+              {/* Box Red Flag */}
+              <div className="border border-[#F2C9B8] bg-[#FAF5F2] rounded-xl p-3 space-y-0.5">
+                <div className="flex items-center gap-1.5 text-[#9B3F18] font-black text-xs">
+                  <i className="mdi mdi-alert-outline text-base" />
+                  <span>Pedoman Catatan Anekdot &amp; Indikator Peringatan Khusus (Red Flag)</span>
+                </div>
+                <p className="text-[11px] text-[#565C58] leading-relaxed">
+                  Red Flag bukan vonis ketidaklulusan, melainkan tanda peringatan dini perilaku/fisik yang memerlukan penanganan khusus (individual education plan/IEP), konfirmasi orang tua, atau rujukan psikolog/terapis anak. Evaluator wajib mendokumentasikan konteks pemicu pada kolom Catatan Anekdot Lapangan.
+                </p>
+              </div>
+            </div>
+
+            {/* Section II: Tim Evaluator SPMB Resmi */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 pb-1 border-b border-[#E8E2D8]">
+                <span className="w-5 h-5 rounded-md bg-[#284034] text-white font-black text-xs flex items-center justify-center">
+                  II
+                </span>
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                  TIM EVALUATOR SPMB RESMI &amp; STRUKTUR PENUGASAN
+                </h3>
+              </div>
+
+              {/* Tabel Tim Evaluator */}
+              <div className="border border-[#E8E2D8] rounded-xl overflow-hidden shadow-2xs">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#2E5442] text-white font-black uppercase text-[10.5px]">
+                    <tr>
+                      <th className="py-2.5 px-3 w-12 text-center">Pos</th>
+                      <th className="py-2.5 px-3 w-1/4">Ruang &amp; Domain Observasi</th>
+                      <th className="py-2.5 px-3 w-1/3">Petugas Evaluator</th>
+                      <th className="py-2.5 px-3">Karakteristik &amp; Model Penugasan</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E8E2D8] text-[11px] leading-snug">
+                    <tr className="hover:bg-[#FAF8F5]">
+                      <td className="py-2.5 px-3 font-black text-center text-[#9B3F18]">1</td>
+                      <td className="py-2.5 px-3 font-bold text-[#22352B]">
+                        Kemandirian, Regulasi Emosi &amp; Kepatuhan
+                      </td>
+                      <td className="py-2.5 px-3 text-[#565C58]">
+                        Ahmad Furqoni, S. Pd (SO 1)<br />
+                        Novia Permatasari, S. Pd (SO 2)
+                      </td>
+                      <td className="py-2.5 px-3 text-[#565C58]">
+                        <strong className="text-[#22352B]">Super Observer Longitudinal:</strong> mengawal kedatangan, transisi 3 pos, hingga snack &amp; bermain bebas.
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-[#FAF8F5]">
+                      <td className="py-2.5 px-3 font-black text-center text-[#9B3F18]">2</td>
+                      <td className="py-2.5 px-3 font-bold text-[#22352B]">
+                        Pos A: Motorik Kasar &amp; Koordinasi Fisik
+                      </td>
+                      <td className="py-2.5 px-3 text-[#565C58]">
+                        Rifky Delsandi Rifai, S. Pd
+                      </td>
+                      <td className="py-2.5 px-3 text-[#565C58]">
+                        <strong className="text-[#22352B]">Penguji Motorik Ruangan + Escort:</strong> jemput Kel. 1 di awal, serah-terima di pintu Pos A, dan antar Kel. 3 ke titik akhir.
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-[#FAF8F5]">
+                      <td className="py-2.5 px-3 font-black text-center text-[#9B3F18]">3</td>
+                      <td className="py-2.5 px-3 font-bold text-[#22352B]">
+                        Pos B: Kematangan Kognitif &amp; Berhitung
+                      </td>
+                      <td className="py-2.5 px-3 text-[#565C58]">
+                        Shalma Ruhail Maldova, S. Pd
+                      </td>
+                      <td className="py-2.5 px-3 text-[#565C58]">
+                        <strong className="text-[#22352B]">Stasioner Ruangan (12 menit/kelompok):</strong> pola, klasifikasi objek, kuantitas &amp; balok problem solving.
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-[#FAF8F5]">
+                      <td className="py-2.5 px-3 font-black text-center text-[#9B3F18]">4</td>
+                      <td className="py-2.5 px-3 font-bold text-[#22352B]">
+                        Pos C: Bahasa Lisan &amp; Motorik Halus
+                      </td>
+                      <td className="py-2.5 px-3 text-[#565C58]">
+                        Susmurtiningsih, S. Pd
+                      </td>
+                      <td className="py-2.5 px-3 text-[#565C58]">
+                        <strong className="text-[#22352B]">Stasioner Ruangan (12 menit/kelompok):</strong> read-aloud menyimak cerita, ide verbal, tripod grasp, &amp; tingkat literasi L1–L4.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 text-center pt-2">
-            <div className="space-y-16">
-              <p className="font-bold text-[#22352B] print:text-black">
-                Koordinator Tim Evaluator SPMB,
-              </p>
-              <div>
-                <p className="font-bold underline text-[#22352B] print:text-black text-sm">
-                  Ahmad Furqoni, S. Pd
-                </p>
-                <p className="text-[#787F7A] print:text-black text-[11px]">
-                  Super Observer 1 &bull; SD Islam An Najah
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-16">
-              <p className="font-bold text-[#22352B] print:text-black">
-                Mengetahui,<br />Kepala SD Islam An Najah,
-              </p>
-              <div>
-                <p className="font-bold underline text-[#22352B] print:text-black text-sm">
-                  {schoolProfile.principal_name || "Wida Mawaddah, S. Pd., Gr."}
-                </p>
-                <p className="text-[#787F7A] print:text-black text-[11px]">
-                  NIP: {schoolProfile.principal_nip || "-"}
-                </p>
-              </div>
-            </div>
+          {/* Footer Halaman 1 */}
+          <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-between text-[10.5px] text-[#787F7A] mt-4">
+            <span>Dokumen Resmi SPMB &bull; T.A. 2026/2027 &bull; Dicetak 5 November 2026</span>
+            <span className="font-bold text-[#22352B]">Halaman 1 dari 7</span>
           </div>
         </section>
-      </main>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ─── HALAMAN 2 DARI 7: POS 1 (SUPER OBSERVER) - BAGIAN 1 ────────── */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(activePageFilter === "all" || activePageFilter === 2) && (
+        <section className="guide-a4-page max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8 my-6 print:m-0 print:p-0 print:rounded-none text-[#22352B] leading-snug flex flex-col justify-between">
+          <div className="space-y-3.5">
+            {/* Header Halaman Berulang */}
+            <div className="flex items-center justify-between pb-2 border-b border-[#E8E2D8]">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md bg-[#9B3F18] text-white flex items-center justify-center text-xs shadow-2xs">
+                  <i className="mdi mdi-sprout" />
+                </div>
+                <span className="font-bold text-xs text-[#22352B]">
+                  kalamula <span className="text-[#787F7A] font-normal">&bull; SD Islam An Najah</span>
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-[#787F7A]">
+                Panduan Operasional &amp; Matriks Rubrik Observasi
+              </span>
+            </div>
+
+            {/* Section III Header */}
+            <div className="flex items-center gap-2 pb-1 border-b border-[#E8E2D8]">
+              <span className="w-5 h-5 rounded-md bg-[#284034] text-white font-black text-xs flex items-center justify-center">
+                III
+              </span>
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                MATRIKS RUBRIK DESKRIPTOR LENGKAP PER POS
+              </h3>
+            </div>
+
+            {/* Subheader Box Pos 1 */}
+            <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-3.5 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[#E8E2D8]">
+                <span className="font-black text-xs text-[#9B3F18] uppercase tracking-wide">
+                  SO &bull; SUPER OBSERVER
+                </span>
+                <span className="text-[11px] font-bold text-[#486B5A]">
+                  Durasi: Sepanjang Sesi Observasi (08.00 – 09.00)
+                </span>
+              </div>
+              <h4 className="text-base font-black text-[#22352B] leading-tight">
+                Pos Kemandirian, Regulasi Emosi &amp; Kepatuhan Instruksi
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#565C58]">
+                <div>
+                  <span className="font-bold text-[#22352B] block text-[10.5px] uppercase text-[#787F7A]">PETUGAS</span>
+                  <span>Ahmad Furqoni, S. Pd (SO 1) &amp; Novia Permatasari, S. Pd (SO 2)</span>
+                </div>
+                <div>
+                  <span className="font-bold text-[#22352B] block text-[10.5px] uppercase text-[#787F7A]">MODEL TUGAS</span>
+                  <span>Pengamat Longitudinal (Mengikuti Rotasi Siswa)</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-[#565C58] pt-1 border-t border-[#E8E2D8]/60 leading-snug">
+                <strong>Fokus Domain:</strong> Kemandirian berpisah dari orang tua, adab sepatu/tas, ketertiban transisi antar-pos, regulasi diri saat kesulitan, berbagi alat main, dan interaksi sosial saat snack &amp; bermain bebas.
+              </p>
+            </div>
+
+            {/* SOP & Alur Teknis */}
+            <div className="bg-[#F4F8F5] border border-[#D5E5DB] rounded-xl p-3 space-y-1.5 text-xs text-[#22352B]">
+              <div className="flex items-center gap-1.5 font-black text-xs text-[#284034] uppercase tracking-wide">
+                <i className="mdi mdi-clipboard-text-outline text-sm" />
+                <span>SOP &amp; ALUR TEKNIS EVALUATOR DI LAPANGAN</span>
+              </div>
+              <div className="space-y-1 text-[11px] text-[#565C58] leading-snug">
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <p>SO 1 mendampingi Kelompok 2 dari Titik Awal (kedatangan, adab sepatu) menuju Pos Bahasa. Pada pukul 08.24, berpindah ke pintu Pos Motorik Kasar untuk menyambut Kelompok 1 dan mendampingi hingga Pos Kognitif, Bahasa, dan Titik Akhir.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <p>SO 2 mendampingi Kelompok 3 dari Titik Awal menuju Pos Kognitif. Pada pukul 08.36, berpindah ke pintu Pos Motorik Kasar untuk menyambut Kelompok 2 dan mendampingi hingga Titik Akhir.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <p>Observasi dilakukan secara wajar tanpa mengintervensi berlebihan. Catat kejadian spesifik pada catatan anekdot.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                  <p>Jika anak mengalami kecemasan perpisahan, berikan waktu adaptasi maksimal 5–10 menit sebelum mencatat skor final.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Rubrik Tabel: SO-01 & SO-02 */}
+            <div className="border border-[#E8E2D8] rounded-xl overflow-hidden shadow-2xs">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#E4EFE9] text-[#284034] font-black uppercase text-[10px]">
+                  <tr>
+                    <th className="py-2 px-3 w-[34%]">Kode &amp; Indikator dan Fondasi PAUD-SD</th>
+                    <th className="py-2 px-3 w-[22%]">Perlu Bimbingan<br /><span className="text-[#9B3F18]">Skor 1</span></th>
+                    <th className="py-2 px-3 w-[22%]">Berkembang Sesuai Harapan<br /><span className="text-[#8A641A]">Skor 2</span></th>
+                    <th className="py-2 px-3 w-[22%]">Mandiri<br /><span className="text-[#2E6B4D]">Skor 3</span></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E8E2D8] text-[11px] leading-snug">
+                  {/* SO-01 */}
+                  <tr>
+                    <td className="py-3 px-3 align-top space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">SO-01</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 3 &bull; Kematangan Emosi</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Berpisah dari Orang Tua</p>
+                      <p className="text-[10px] text-[#787F7A] leading-tight">
+                        Berpisah dari orang tua dengan tenang tanpa kecemasan berlebihan saat memasuki gerbang/titik awal observasi.
+                      </p>
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Menangis histeris / menolak keras ditinggal / harus didampingi orang tua masuk ruangan.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Sempat cemas/menangis sesaat, namun mau berpisah dan masuk setelah dibujuk pengamat.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Berpisah dengan tenang, ceria, mandiri, dan langsung antusias menyapa guru pendamping.
+                    </td>
+                  </tr>
+
+                  {/* SO-02 */}
+                  <tr>
+                    <td className="py-3 px-3 align-top space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">SO-02</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 5 &bull; Motorik &amp; Self-Care</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Kemandirian Menaruh Barang Pribadi</p>
+                      <p className="text-[10px] text-[#787F7A] leading-tight">
+                        Mandiri melepaskan dan merapikan sepatu di rak serta menggantung tas pada loker/tempat yang disediakan.
+                      </p>
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Barang pribadi ditinggal berserakan di lantai / butuh bantuan fisik penuh dari guru.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Merapikan sepatu di rak dan menggantung tas dengan sedikit arahan verbal/pengingat.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Spontan dan tertib membuka serta meletakkan sepatu di rak dan menaruh tas secara mandiri.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Footer Halaman 2 */}
+          <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-between text-[10.5px] text-[#787F7A] mt-4">
+            <span>Dokumen Resmi SPMB &bull; T.A. 2026/2027 &bull; Dicetak 5 November 2026</span>
+            <span className="font-bold text-[#22352B]">Halaman 2 dari 7</span>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ─── HALAMAN 3 DARI 7: POS 1 (SUPER OBSERVER) - BAGIAN 2 ────────── */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(activePageFilter === "all" || activePageFilter === 3) && (
+        <section className="guide-a4-page max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8 my-6 print:m-0 print:p-0 print:rounded-none text-[#22352B] leading-snug flex flex-col justify-between">
+          <div className="space-y-3">
+            {/* Header Halaman Berulang */}
+            <div className="flex items-center justify-between pb-2 border-b border-[#E8E2D8]">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md bg-[#9B3F18] text-white flex items-center justify-center text-xs shadow-2xs">
+                  <i className="mdi mdi-sprout" />
+                </div>
+                <span className="font-bold text-xs text-[#22352B]">
+                  kalamula <span className="text-[#787F7A] font-normal">&bull; SD Islam An Najah</span>
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-[#787F7A]">
+                Panduan Operasional &amp; Matriks Rubrik Observasi
+              </span>
+            </div>
+
+            {/* Rubrik Tabel: SO-03 s.d. SO-07 */}
+            <div className="border border-[#E8E2D8] rounded-xl overflow-hidden shadow-2xs">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#E4EFE9] text-[#284034] font-black uppercase text-[10px]">
+                  <tr>
+                    <th className="py-2 px-3 w-[34%]">Kode &amp; Indikator dan Fondasi PAUD-SD</th>
+                    <th className="py-2 px-3 w-[22%]">Perlu Bimbingan<br /><span className="text-[#9B3F18]">Skor 1</span></th>
+                    <th className="py-2 px-3 w-[22%]">Berkembang Sesuai Harapan<br /><span className="text-[#8A641A]">Skor 2</span></th>
+                    <th className="py-2 px-3 w-[22%]">Mandiri<br /><span className="text-[#2E6B4D]">Skor 3</span></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E8E2D8] text-[10.5px] leading-snug">
+                  {/* SO-03 */}
+                  <tr>
+                    <td className="py-2 px-3 align-top space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-03</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 2 &bull; Sosial &amp; Bahasa</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Kepatuhan Mengikuti Instruksi saat Transisi</p>
+                      <p className="text-[9.5px] text-[#787F7A] leading-tight">
+                        Mengikuti instruksi pendamping dengan tertib saat berpindah antar ruang pos observasi.
+                      </p>
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Mengabaikan instruksi, berlarian keluar barisan, atau menolak berpindah pos.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Mengikuti transisi kelompok, sesekali perlu diingatkan untuk tetap tertib di barisan.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Sangat tertib, fokus, berjalan tenang bersama kelompok, dan tanggap terhadap aba-aba pendamping.
+                    </td>
+                  </tr>
+
+                  {/* SO-04 */}
+                  <tr>
+                    <td className="py-2 px-3 align-top space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-04</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 1 &bull; Agama &amp; Budi Pekerti</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Kesantunan dan Budaya Antre</p>
+                      <p className="text-[9.5px] text-[#787F7A] leading-tight">
+                        Menggunakan kata santun (tolong, maaf, terima kasih) dan memiliki kesabaran menunggu giliran antrean.
+                      </p>
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Menyerobot antrean teman / tidak sabar menunggu giliran / bersikap agresif saat menunggu.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Mau mengantre tertib dan berucap santun jika diingatkan atau dicontohkan guru.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Konsisten sabar menunggu giliran dan spontan berucap tolong, maaf, serta terima kasih.
+                    </td>
+                  </tr>
+
+                  {/* SO-05 */}
+                  <tr>
+                    <td className="py-2 px-3 align-top space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-05</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 3 &bull; Kematangan Emosi</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Regulasi Diri &amp; Adaptasi Kesulitan</p>
+                      <p className="text-[9.5px] text-[#787F7A] leading-tight">
+                        Kemampuan menenangkan diri, mengendalikan emosi, dan bangkit kembali saat menghadapi kesulitan atau tantangan.
+                      </p>
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Tantrum / menangis keras / melempar benda / mogok saat mengalami kesulitan kecil.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Sempat merasa kesal atau frustrasi, namun mampu tenang kembali setelah ditenangkan guru.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Tenang, sabar, gigih mencoba kembali, dan mampu meregulasi emosi diri secara mandiri.
+                    </td>
+                  </tr>
+
+                  {/* SO-06 */}
+                  <tr>
+                    <td className="py-2 px-3 align-top space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-06</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 2 &bull; Sosial &amp; Bahasa</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Bermain Kooperatif &amp; Berbagi</p>
+                      <p className="text-[9.5px] text-[#787F7A] leading-tight">
+                        Interaksi saat bermain bersama teman, kesediaan berbagi alat mainan/snack, dan dinamika sosial kelompok.
+                      </p>
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Menolak interaksi sama sekali / merebut alat main teman secara paksa / memukul/mendorong.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Bermain paralel di samping teman atau mau bergantian mainan jika difasilitasi oleh guru.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Aktif berinteraksi positif, kooperatif, berinisiatif mengajak teman bermain, dan senang berbagi.
+                    </td>
+                  </tr>
+
+                  {/* SO-07 */}
+                  <tr>
+                    <td className="py-2 px-3 align-top space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-07</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 6 &bull; Pemaknaan Belajar</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Antusiasme &amp; Refleksi Belajar</p>
+                      <p className="text-[9.5px] text-[#787F7A] leading-tight">
+                        Menunjukkan rasa ingin tahu positif, keceriaan belajar, dan mampu merefleksikan pengalaman belajarnya.
+                      </p>
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Sangat tertekan, pasif total, tidak menunjukkan minat, atau menolak seluruh aktivitas.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Mengikuti alur kegiatan dengan baik jika diberikan dorongan semangat sesekali.
+                    </td>
+                    <td className="py-2 px-3 align-top text-[#565C58]">
+                      Sangat antusias, ceria, aktif bertanya, dan bangga menceritakan kembali pengalamannya.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Red Flag Pos 1 */}
+            <div className="border border-[#F2C9B8] bg-[#FAF5F2] rounded-xl p-3 space-y-1">
+              <div className="flex items-center gap-1.5 text-[#9B3F18] font-black text-xs uppercase tracking-wider">
+                <i className="mdi mdi-alert-outline text-base" />
+                <span>INDIKATOR PERHATIAN KHUSUS (RED FLAG) POS 1</span>
+              </div>
+              <ul className="space-y-0.5 text-[11px] text-[#565C58] pl-2">
+                <li>&bull; Tantrum histeris melantai (&gt;10 menit) tanpa respon bujukan</li>
+                <li>&bull; Agresi fisik membahayakan (memukul, menggigit, atau menendang teman/guru)</li>
+                <li>&bull; Perilaku impulsif berbahaya (berlari mendadak keluar area aman sekolah)</li>
+                <li>&bull; Penolakan sosial ekstrem (menolak disapa sama sekali / kontak mata absen total)</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Footer Halaman 3 */}
+          <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-between text-[10.5px] text-[#787F7A] mt-4">
+            <span>Dokumen Resmi SPMB &bull; T.A. 2026/2027 &bull; Dicetak 5 November 2026</span>
+            <span className="font-bold text-[#22352B]">Halaman 3 dari 7</span>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ─── HALAMAN 4 DARI 7: POS A (MOTORIK KASAR + ESCORT) ───────────── */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(activePageFilter === "all" || activePageFilter === 4) && (
+        <section className="guide-a4-page max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8 my-6 print:m-0 print:p-0 print:rounded-none text-[#22352B] leading-snug flex flex-col justify-between">
+          <div className="space-y-3.5">
+            {/* Header Halaman Berulang */}
+            <div className="flex items-center justify-between pb-2 border-b border-[#E8E2D8]">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md bg-[#9B3F18] text-white flex items-center justify-center text-xs shadow-2xs">
+                  <i className="mdi mdi-sprout" />
+                </div>
+                <span className="font-bold text-xs text-[#22352B]">
+                  kalamula <span className="text-[#787F7A] font-normal">&bull; SD Islam An Najah</span>
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-[#787F7A]">
+                Panduan Operasional &amp; Matriks Rubrik Observasi
+              </span>
+            </div>
+
+            {/* Subheader Box Pos 2 */}
+            <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-3.5 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[#E8E2D8]">
+                <span className="font-black text-xs text-[#9B3F18] uppercase tracking-wide">
+                  POS A &bull; MOTORIK KASAR + ESCORT
+                </span>
+                <span className="text-[11px] font-bold text-[#486B5A]">
+                  Durasi: 12 Menit per Rotasi Kelompok
+                </span>
+              </div>
+              <h4 className="text-base font-black text-[#22352B] leading-tight">
+                Pos Motorik Kasar &amp; Koordinasi Fisik
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#565C58]">
+                <div>
+                  <span className="font-bold text-[#22352B] block text-[10.5px] uppercase text-[#787F7A]">PETUGAS</span>
+                  <span>Rifky Delsandi Rifai, S. Pd</span>
+                </div>
+                <div>
+                  <span className="font-bold text-[#22352B] block text-[10.5px] uppercase text-[#787F7A]">MODEL TUGAS</span>
+                  <span>Penguji Ruangan + Penjemput Rotasi Kelompok</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-[#565C58] pt-1 border-t border-[#E8E2D8]/60 leading-snug">
+                <strong>Fokus Domain:</strong> Keseimbangan statis &amp; dinamis, kontrol tubuh saat meniti papan titian, lompat 2 kaki bersamaan, ketangkasan tangkap-lempar bola, dan mobilitas fisik.
+              </p>
+            </div>
+
+            {/* SOP & Alur Teknis Pos 2 */}
+            <div className="bg-[#F4F8F5] border border-[#D5E5DB] rounded-xl p-3 space-y-1.5 text-xs text-[#22352B]">
+              <div className="flex items-center gap-1.5 font-black text-xs text-[#284034] uppercase tracking-wide">
+                <i className="mdi mdi-clipboard-text-outline text-sm" />
+                <span>SOP &amp; ALUR TEKNIS EVALUATOR DI LAPANGAN</span>
+              </div>
+              <div className="space-y-1 text-[11px] text-[#565C58] leading-snug">
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <p><strong>Pukul 08.00:</strong> Hadir di titik awal kedatangan saat pembagian name tag. Jemput Kelompok 1 dan bawa ke Pos Motorik Kasar.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <p><strong>Pukul 08.12 – 08.24:</strong> Lakukan pengujian motorik Kelompok 1 di ruang Pos Motorik.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <p><strong>Pukul 08.24:</strong> Di pintu Pos A, serahkan Kelompok 1 ke SO 1 (Ahmad Furqoni), lalu sambut &amp; terima Kelompok 2 dari SO 1 untuk diuji di Pos Motorik.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                  <p><strong>Pukul 08.36:</strong> Di pintu Pos A, serahkan Kelompok 2 ke SO 2 (Novia Permatasari). Segera menuju Pos Bahasa untuk menjemput Kelompok 3 dan membawanya ke Pos Motorik.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">5</span>
+                  <p><strong>Pukul 08.48:</strong> Selesai menguji Kelompok 3, antar langsung Kelompok 3 ke Area Bermain &amp; Snack di Titik Akhir.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Rubrik Tabel: MK-01 & MK-02 */}
+            <div className="border border-[#E8E2D8] rounded-xl overflow-hidden shadow-2xs">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#E4EFE9] text-[#284034] font-black uppercase text-[10px]">
+                  <tr>
+                    <th className="py-2 px-3 w-[34%]">Kode &amp; Indikator dan Fondasi PAUD-SD</th>
+                    <th className="py-2 px-3 w-[22%]">Perlu Bimbingan<br /><span className="text-[#9B3F18]">Skor 1</span></th>
+                    <th className="py-2 px-3 w-[22%]">Berkembang Sesuai Harapan<br /><span className="text-[#8A641A]">Skor 2</span></th>
+                    <th className="py-2 px-3 w-[22%]">Mandiri<br /><span className="text-[#2E6B4D]">Skor 3</span></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E8E2D8] text-[11px] leading-snug">
+                  {/* MK-01 */}
+                  <tr>
+                    <td className="py-3 px-3 align-top space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">MK-01</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 5 &bull; Motorik &amp; Self-Care</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Keseimbangan &amp; Kontrol Tubuh</p>
+                      <p className="text-[10px] text-[#787F7A] leading-tight">
+                        Berjalan lurus pada garis, meniti papan titian kayu, dan melompat 2 kaki bersamaan secara seimbang.
+                      </p>
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Menolak melangkah di titian / hilang keseimbangan total (harus dipegangi erat sepanjang titian).
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Mampu meniti titian atau melompat dengan bantuan minimal (sentuhan 1 jari / sesekali goyah).
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Lincah, seimbang sempurna di titian, dan melompat 2 kaki mandiri dengan percaya diri dan mendarat stabil.
+                    </td>
+                  </tr>
+
+                  {/* MK-02 */}
+                  <tr>
+                    <td className="py-3 px-3 align-top space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">MK-02</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 5 &bull; Motorik &amp; Self-Care</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Koordinasi Mata-Tangan &amp; Respons Gerak</p>
+                      <p className="text-[10px] text-[#787F7A] leading-tight">
+                        Merespons instruksi gerak verbal pemandu dan ketangkasan koordinasi tangkap-lempar bola dari jarak 1,5 meter.
+                      </p>
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Tidak merespons instruksi gerak / luput total menangkap bola (bola selalu jatuh ke lantai).
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Respons gerakan agak lambat, berhasil menangkap/melempar bola setelah 1–2 kali percobaan dibimbing.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Respons tanggap dan gesit, menangkap bola 2 tangan secara akurat dan melempar kembali dengan presisi.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Red Flag Pos 2 */}
+            <div className="border border-[#F2C9B8] bg-[#FAF5F2] rounded-xl p-3 space-y-1">
+              <div className="flex items-center gap-1.5 text-[#9B3F18] font-black text-xs uppercase tracking-wider">
+                <i className="mdi mdi-alert-outline text-base" />
+                <span>INDIKATOR PERHATIAN KHUSUS (RED FLAG) POS 2</span>
+              </div>
+              <ul className="space-y-0.5 text-[11px] text-[#565C58] pl-2">
+                <li>&bull; Tonus otot kaku ekstrem (hipertonia) atau sangat lemas tanpa daya (hipotonia)</li>
+                <li>&bull; Sering terjatuh tanpa hambatan fisik jelas / kehilangan keseimbangan vestibular berat</li>
+                <li>&bull; Ketidakmampuan melompat 2 kaki lepas dari permukaan lantai pada usia &gt; 6 tahun</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Footer Halaman 4 */}
+          <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-between text-[10.5px] text-[#787F7A] mt-4">
+            <span>Dokumen Resmi SPMB &bull; T.A. 2026/2027 &bull; Dicetak 5 November 2026</span>
+            <span className="font-bold text-[#22352B]">Halaman 4 dari 7</span>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ─── HALAMAN 5 DARI 7: POS B (KEMATANGAN KOGNITIF) ───────────────── */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(activePageFilter === "all" || activePageFilter === 5) && (
+        <section className="guide-a4-page max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8 my-6 print:m-0 print:p-0 print:rounded-none text-[#22352B] leading-snug flex flex-col justify-between">
+          <div className="space-y-3.5">
+            {/* Header Halaman Berulang */}
+            <div className="flex items-center justify-between pb-2 border-b border-[#E8E2D8]">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md bg-[#9B3F18] text-white flex items-center justify-center text-xs shadow-2xs">
+                  <i className="mdi mdi-sprout" />
+                </div>
+                <span className="font-bold text-xs text-[#22352B]">
+                  kalamula <span className="text-[#787F7A] font-normal">&bull; SD Islam An Najah</span>
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-[#787F7A]">
+                Panduan Operasional &amp; Matriks Rubrik Observasi
+              </span>
+            </div>
+
+            {/* Subheader Box Pos 3 */}
+            <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-3.5 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[#E8E2D8]">
+                <span className="font-black text-xs text-[#9B3F18] uppercase tracking-wide">
+                  POS B &bull; KEMATANGAN KOGNITIF
+                </span>
+                <span className="text-[11px] font-bold text-[#486B5A]">
+                  Durasi: 12 Menit per Rotasi Kelompok
+                </span>
+              </div>
+              <h4 className="text-base font-black text-[#22352B] leading-tight">
+                Pos Kematangan Kognitif &amp; Berhitung
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#565C58]">
+                <div>
+                  <span className="font-bold text-[#22352B] block text-[10.5px] uppercase text-[#787F7A]">PETUGAS</span>
+                  <span>Shalma Ruhail Maldova, S. Pd</span>
+                </div>
+                <div>
+                  <span className="font-bold text-[#22352B] block text-[10.5px] uppercase text-[#787F7A]">MODEL TUGAS</span>
+                  <span>Penguji Stasioner (Tetap di Dalam Ruangan)</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-[#565C58] pt-1 border-t border-[#E8E2D8]/60 leading-snug">
+                <strong>Fokus Domain:</strong> Kemampuan berpikir logis, klasifikasi objek berdasarkan atribut warna/bentuk/ukuran, kelanjutan pola deret berulang (AB-AB / ABC-ABC), konsep kuantitas konkrit (banyak-sedikit, membilang 1–10), dan pemecahan masalah puzzle/balok.
+              </p>
+            </div>
+
+            {/* SOP & Alur Teknis Pos 3 */}
+            <div className="bg-[#F4F8F5] border border-[#D5E5DB] rounded-xl p-3 space-y-1.5 text-xs text-[#22352B]">
+              <div className="flex items-center gap-1.5 font-black text-xs text-[#284034] uppercase tracking-wide">
+                <i className="mdi mdi-clipboard-text-outline text-sm" />
+                <span>SOP &amp; ALUR TEKNIS EVALUATOR DI LAPANGAN</span>
+              </div>
+              <div className="space-y-1 text-[11px] text-[#565C58] leading-snug">
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <p>Evaluator tetap berada di dalam ruangan Pos Kognitif. Siswa akan diantar dan dijemput oleh pemandu rotasi.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <p>Siapkan media konkrit: balok warna-warni, kancing/kartu klasifikasi, puzzle 9–12 keping, dan alat peraga pola deret.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <p>Mulai dengan apersepsi ramah dan suasana bermain yang santai.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                  <p>Beri waktu 2–3 menit per anak untuk mengeksplorasi alat permainan sebelum meminta menyelesaikan pola/tugas kognitif.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Rubrik Tabel: KG-01 & KG-02 */}
+            <div className="border border-[#E8E2D8] rounded-xl overflow-hidden shadow-2xs">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#E4EFE9] text-[#284034] font-black uppercase text-[10px]">
+                  <tr>
+                    <th className="py-2 px-3 w-[34%]">Kode &amp; Indikator dan Fondasi PAUD-SD</th>
+                    <th className="py-2 px-3 w-[22%]">Perlu Bimbingan<br /><span className="text-[#9B3F18]">Skor 1</span></th>
+                    <th className="py-2 px-3 w-[22%]">Berkembang Sesuai Harapan<br /><span className="text-[#8A641A]">Skor 2</span></th>
+                    <th className="py-2 px-3 w-[22%]">Mandiri<br /><span className="text-[#2E6B4D]">Skor 3</span></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E8E2D8] text-[11px] leading-snug">
+                  {/* KG-01 */}
+                  <tr>
+                    <td className="py-3 px-3 align-top space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">KG-01</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 4 &bull; Kognitif &amp; Literasi</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Klasifikasi Objek &amp; Pola Berulang</p>
+                      <p className="text-[10px] text-[#787F7A] leading-tight">
+                        Mengelompokkan benda berdasarkan atribut tertentu (warna/bentuk/fungsi) dan melengkapi pola deret yang teratur.
+                      </p>
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Belum mampu memilah benda atau melanjutkan pola deret sederhana walaupun telah dicontohkan.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Mampu mengelompokkan 1 atribut atau melengkapi pola deret sederhana (AB-AB) setelah dipandu contoh.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Mandiri dan tepat memilah multi-atribut serta melanjutkan pola deret kompleks (ABC-ABC / AABB).
+                    </td>
+                  </tr>
+
+                  {/* KG-02 */}
+                  <tr>
+                    <td className="py-3 px-3 align-top space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">KG-02</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 4 &bull; Kognitif &amp; Literasi</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Konsep Kuantitas &amp; Problem Solving</p>
+                      <p className="text-[10px] text-[#787F7A] leading-tight">
+                        Memahami perbandingan banyak vs sedikit, membilang benda konkret 1–10, dan menyelesaikan tantangan puzzle/balok.
+                      </p>
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Belum memahami konsep banyak-sedikit / bingung membilang konkret (1–5) / puzzle dibiarkan acak.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Mampu membandingkan kuantitas &amp; menyelesaikan puzzle dasar dengan sedikit petunjuk arahan.
+                    </td>
+                    <td className="py-3 px-3 align-top text-[#565C58]">
+                      Pemahaman kuantitas kuat, membilang tepat satu-ke-satu, dan solutif merangkai balok/puzzle secara tuntas.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Red Flag Pos 3 */}
+            <div className="border border-[#F2C9B8] bg-[#FAF5F2] rounded-xl p-3 space-y-1">
+              <div className="flex items-center gap-1.5 text-[#9B3F18] font-black text-xs uppercase tracking-wider">
+                <i className="mdi mdi-alert-outline text-base" />
+                <span>INDIKATOR PERHATIAN KHUSUS (RED FLAG) POS 3</span>
+              </div>
+              <ul className="space-y-0.5 text-[11px] text-[#565C58] pl-2">
+                <li>&bull; Disorientasi spasial berat / tidak mengenal konsep bentuk dan arah dasar sama sekali</li>
+                <li>&bull; Tidak memahami hubungan kausalitas (sebab-akibat) sederhana dalam percakapan sehari-hari</li>
+                <li>&bull; Ketidakmampuan membedakan ukuran kontras (besar vs kecil sekali) secara visual</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Footer Halaman 5 */}
+          <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-between text-[10.5px] text-[#787F7A] mt-4">
+            <span>Dokumen Resmi SPMB &bull; T.A. 2026/2027 &bull; Dicetak 5 November 2026</span>
+            <span className="font-bold text-[#22352B]">Halaman 5 dari 7</span>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ─── HALAMAN 6 DARI 7: POS C (BAHASA & PRA-LITERASI) ─────────────── */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(activePageFilter === "all" || activePageFilter === 6) && (
+        <section className="guide-a4-page max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8 my-6 print:m-0 print:p-0 print:rounded-none text-[#22352B] leading-snug flex flex-col justify-between">
+          <div className="space-y-3.5">
+            {/* Header Halaman Berulang */}
+            <div className="flex items-center justify-between pb-2 border-b border-[#E8E2D8]">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md bg-[#9B3F18] text-white flex items-center justify-center text-xs shadow-2xs">
+                  <i className="mdi mdi-sprout" />
+                </div>
+                <span className="font-bold text-xs text-[#22352B]">
+                  kalamula <span className="text-[#787F7A] font-normal">&bull; SD Islam An Najah</span>
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-[#787F7A]">
+                Panduan Operasional &amp; Matriks Rubrik Observasi
+              </span>
+            </div>
+
+            {/* Subheader Box Pos 4 */}
+            <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-3.5 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[#E8E2D8]">
+                <span className="font-black text-xs text-[#9B3F18] uppercase tracking-wide">
+                  POS C &bull; BAHASA &amp; PRA-LITERASI
+                </span>
+                <span className="text-[11px] font-bold text-[#486B5A]">
+                  Durasi: 12 Menit per Rotasi Kelompok
+                </span>
+              </div>
+              <h4 className="text-base font-black text-[#22352B] leading-tight">
+                Pos Bahasa Lisan, Pra-Literasi &amp; Motorik Halus
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#565C58]">
+                <div>
+                  <span className="font-bold text-[#22352B] block text-[10.5px] uppercase text-[#787F7A]">PETUGAS</span>
+                  <span>Susmurtiningsih, S. Pd</span>
+                </div>
+                <div>
+                  <span className="font-bold text-[#22352B] block text-[10.5px] uppercase text-[#787F7A]">MODEL TUGAS</span>
+                  <span>Penguji Stasioner (Tetap di Dalam Ruangan)</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-[#565C58] pt-1 border-t border-[#E8E2D8]/60 leading-snug">
+                <strong>Fokus Domain:</strong> Kemampuan menyimak cerita lisan (read-aloud), menjawab pertanyaan pemahaman alur, keberanian komunikasi verbal mengutarakan ide, kontrol pensil dan genggaman jemari (tripod grasp), serta pemetaan 4 tingkat literasi membaca.
+              </p>
+            </div>
+
+            {/* SOP & Alur Teknis Pos 4 */}
+            <div className="bg-[#F4F8F5] border border-[#D5E5DB] rounded-xl p-3 space-y-1.5 text-xs text-[#22352B]">
+              <div className="flex items-center gap-1.5 font-black text-xs text-[#284034] uppercase tracking-wide">
+                <i className="mdi mdi-clipboard-text-outline text-sm" />
+                <span>SOP &amp; ALUR TEKNIS EVALUATOR DI LAPANGAN</span>
+              </div>
+              <div className="space-y-1 text-[11px] text-[#565C58] leading-snug">
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <p>Evaluator tetap berada di dalam ruangan Pos Bahasa &amp; Halus. Siswa akan diantar dan dijemput oleh pemandu rotasi.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <p>Sesi dimulai dengan membacakan buku cerita bergambar pendek (read-aloud) selama 3–4 menit dengan intonasi menarik.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <p>Ajukan 2–3 pertanyaan terbuka mengenai karakter dan alur cerita untuk menguji pemahaman menyimak.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                  <p>Berikan lembar gambar dan pensil segitiga untuk mengamati posisi genggaman pensil (dynamic tripod grasp vs palmar grasp).</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#2E5442] text-white font-bold text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5">5</span>
+                  <p>Petakan level membaca anak ke salah satu dari 4 Tingkat Literasi (L1, L2, L3, L4).</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Rubrik Tabel: BL-01, BL-02, BL-03 */}
+            <div className="border border-[#E8E2D8] rounded-xl overflow-hidden shadow-2xs">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#E4EFE9] text-[#284034] font-black uppercase text-[10px]">
+                  <tr>
+                    <th className="py-2 px-3 w-[34%]">Kode &amp; Indikator dan Fondasi PAUD-SD</th>
+                    <th className="py-2 px-3 w-[22%]">Perlu Bimbingan<br /><span className="text-[#9B3F18]">Skor 1</span></th>
+                    <th className="py-2 px-3 w-[22%]">Berkembang Sesuai Harapan<br /><span className="text-[#8A641A]">Skor 2</span></th>
+                    <th className="py-2 px-3 w-[22%]">Mandiri<br /><span className="text-[#2E6B4D]">Skor 3</span></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E8E2D8] text-[10.5px] leading-snug">
+                  {/* BL-01 */}
+                  <tr>
+                    <td className="py-2.5 px-3 align-top space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10px]">BL-01</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 2 &bull; Sosial &amp; Bahasa</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Menyimak Cerita Lisan (Read-Aloud)</p>
+                      <p className="text-[9.5px] text-[#787F7A] leading-tight">
+                        Menyimak cerita lisan yang dibacakan guru dan memahami pesan moral serta alur kejadian sederhana.
+                      </p>
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Tidak memperhatikan cerita, mudah terdistraksi total / tidak mampu menjawab pertanyaan tentang isi cerita.
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Menyimak cerita sebagian, mampu menjawab pertanyaan jika dibantu dengan pertanyaan pemancing.
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Menyimak dengan fokus penuh, memahami alur cerita, dan mampu menceritakan kembali intisarinya dengan runtut.
+                    </td>
+                  </tr>
+
+                  {/* BL-02 */}
+                  <tr>
+                    <td className="py-2.5 px-3 align-top space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10px]">BL-02</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 2 &bull; Sosial &amp; Bahasa</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Komunikasi Gagasan Lisan</p>
+                      <p className="text-[9.5px] text-[#787F7A] leading-tight">
+                        Mengomunikasikan gagasan lisan tentang ide, gambar, atau karyanya dengan kalimat sederhana yang terstruktur.
+                      </p>
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Menolak berbicara sama sekali / suara sangat lirih tak terdengar / berbicara dengan kata tanpa makna.
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Menjawab hanya dengan frasa pendek 1–2 kata, masih butuh dorongan untuk berbicara lebih lanjut.
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Berani, lancar, dan percaya diri mengutarakan gagasan dengan struktur kalimat sederhana yang jelas.
+                    </td>
+                  </tr>
+
+                  {/* BL-03 */}
+                  <tr>
+                    <td className="py-2.5 px-3 align-top space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-[#9B3F18] text-[10px]">BL-03</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 5 &bull; Motorik &amp; Self-Care</span>
+                      </div>
+                      <p className="font-bold text-[#22352B]">Kontrol Motorik Halus &amp; Tripod Grasp</p>
+                      <p className="text-[9.5px] text-[#787F7A] leading-tight">
+                        Kontrol jemari tangan dan posisi genggaman pensil fungsional (tripod grasp) saat menulis, menarik garis, atau menggambar.
+                      </p>
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Genggaman tinju penuh (palmar grasp) kaku tanpa kontrol jemari / tidak dapat memegang alat tulis.
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Genggaman peralihan (pincer / 4 jari), goresan garis pada kertas masih agak kaku dan bergetar.
+                    </td>
+                    <td className="py-2.5 px-3 align-top text-[#565C58]">
+                      Dynamic tripod grasp fungsional mantap (ibu jari, telunjuk, jari tengah), goresan luwes dan terkontrol.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Footer Halaman 6 */}
+          <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-between text-[10.5px] text-[#787F7A] mt-4">
+            <span>Dokumen Resmi SPMB &bull; T.A. 2026/2027 &bull; Dicetak 5 November 2026</span>
+            <span className="font-bold text-[#22352B]">Halaman 6 dari 7</span>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ─── HALAMAN 7 DARI 7: 4 TINGKAT LITERASI, RED FLAG, & PENGESAHAN ── */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(activePageFilter === "all" || activePageFilter === 7) && (
+        <section className="guide-a4-page max-w-[820px] mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8 my-6 print:m-0 print:p-0 print:rounded-none text-[#22352B] leading-snug flex flex-col justify-between">
+          <div className="space-y-4">
+            {/* Header Halaman Berulang */}
+            <div className="flex items-center justify-between pb-2 border-b border-[#E8E2D8]">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md bg-[#9B3F18] text-white flex items-center justify-center text-xs shadow-2xs">
+                  <i className="mdi mdi-sprout" />
+                </div>
+                <span className="font-bold text-xs text-[#22352B]">
+                  kalamula <span className="text-[#787F7A] font-normal">&bull; SD Islam An Najah</span>
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-[#787F7A]">
+                Panduan Operasional &amp; Matriks Rubrik Observasi
+              </span>
+            </div>
+
+            {/* Rubrik 4 Tingkat Literasi Membaca Awal */}
+            <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2 pb-1.5 border-b border-[#E8E2D8]">
+                <i className="mdi mdi-book-open-outline text-base text-[#22352B]" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
+                  RUBRIK 4 TINGKAT LITERASI MEMBACA AWAL (READING LEVEL)
+                </h3>
+              </div>
+
+              {/* Grid 2x2 Literasi */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* L1 */}
+                <div className="bg-white border border-[#E8E2D8] rounded-xl p-3 flex items-start gap-3 shadow-2xs">
+                  <div className="w-7 h-7 rounded-full bg-[#2E5442] text-white font-black text-xs flex items-center justify-center flex-shrink-0">
+                    L1
+                  </div>
+                  <div className="space-y-0.5">
+                    <h4 className="font-black text-xs text-[#22352B] leading-tight">
+                      Tingkat 1: Gambar &amp; Simbol Visual
+                    </h4>
+                    <p className="text-[11px] text-[#565C58] leading-snug">
+                      Mampu memaknai gambar konkret dan simbol visual benda sehari-hari, belum mengenal bunyi huruf fonik.
+                    </p>
+                  </div>
+                </div>
+
+                {/* L2 */}
+                <div className="bg-white border border-[#E8E2D8] rounded-xl p-3 flex items-start gap-3 shadow-2xs">
+                  <div className="w-7 h-7 rounded-full bg-[#2E5442] text-white font-black text-xs flex items-center justify-center flex-shrink-0">
+                    L2
+                  </div>
+                  <div className="space-y-0.5">
+                    <h4 className="font-black text-xs text-[#22352B] leading-tight">
+                      Tingkat 2: Huruf &amp; Bunyi Fonik
+                    </h4>
+                    <p className="text-[11px] text-[#565C58] leading-snug">
+                      Mengenal bentuk huruf kapital/kecil serta bunyi vokal dan konsonan dasar (a-i-u-e-o, b, m, p, s).
+                    </p>
+                  </div>
+                </div>
+
+                {/* L3 */}
+                <div className="bg-white border border-[#E8E2D8] rounded-xl p-3 flex items-start gap-3 shadow-2xs">
+                  <div className="w-7 h-7 rounded-full bg-[#2E5442] text-white font-black text-xs flex items-center justify-center flex-shrink-0">
+                    L3
+                  </div>
+                  <div className="space-y-0.5">
+                    <h4 className="font-black text-xs text-[#22352B] leading-tight">
+                      Tingkat 3: Membaca Suku Kata
+                    </h4>
+                    <p className="text-[11px] text-[#565C58] leading-snug">
+                      Mampu menggabungkan huruf menjadi suku kata terbuka sederhana (ba-ba, bu-ku, bo-la, ma-ma).
+                    </p>
+                  </div>
+                </div>
+
+                {/* L4 */}
+                <div className="bg-white border border-[#E8E2D8] rounded-xl p-3 flex items-start gap-3 shadow-2xs">
+                  <div className="w-7 h-7 rounded-full bg-[#2E5442] text-white font-black text-xs flex items-center justify-center flex-shrink-0">
+                    L4
+                  </div>
+                  <div className="space-y-0.5">
+                    <h4 className="font-black text-xs text-[#22352B] leading-tight">
+                      Tingkat 4: Membaca Kalimat Lancar
+                    </h4>
+                    <p className="text-[11px] text-[#565C58] leading-snug">
+                      Mampu membaca kalimat pendek secara lancar dan memahami maksud bacaan tanpa mengeja per huruf.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Red Flag Pos 4 */}
+            <div className="border border-[#F2C9B8] bg-[#FAF5F2] rounded-xl p-3 space-y-1">
+              <div className="flex items-center gap-1.5 text-[#9B3F18] font-black text-xs uppercase tracking-wider">
+                <i className="mdi mdi-alert-outline text-base" />
+                <span>INDIKATOR PERHATIAN KHUSUS (RED FLAG) POS 4</span>
+              </div>
+              <ul className="space-y-0.5 text-[11px] text-[#565C58] pl-2">
+                <li>&bull; Bicara tidak dapat dipahami sama sekali oleh orang dewasa (speech delay berat)</li>
+                <li>&bull; Ekolalia &mdash; hanya mengulang kata yang diucapkan guru tanpa makna kontekstual</li>
+                <li>&bull; Tremor jemari tangan ekstrem / otot tangan sangat lemah sehingga pensil selalu terjatuh</li>
+              </ul>
+            </div>
+
+            {/* Pengesahan Tanda Tangan */}
+            <div className="pt-2 space-y-2">
+              <p className="text-right text-xs text-[#565C58] font-medium pr-4">
+                Jakarta Timur, 5 November 2026
+              </p>
+              <div className="grid grid-cols-2 text-center text-xs pt-2">
+                <div>
+                  <p className="text-xs font-semibold text-[#565C58]">Koordinator Tim Evaluator SPMB,</p>
+                  <div className="h-14" />
+                  <div className="w-56 border-b border-[#22352B] mx-auto mb-1.5" />
+                  <p className="font-bold text-xs text-[#22352B]">Ahmad Furqoni, S. Pd</p>
+                  <p className="text-[11px] text-[#787F7A]">Super Observer 1 &bull; SD Islam An Najah</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-[#565C58]">
+                    Mengetahui,<br />Kepala SD Islam An Najah,
+                  </p>
+                  <div className="h-10" />
+                  <div className="w-56 border-b border-[#22352B] mx-auto mb-1.5" />
+                  <p className="font-bold text-xs text-[#22352B]">Wida Mawaddah, S. Pd., Gr.</p>
+                  <p className="text-[11px] text-[#787F7A]">NIP: -</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Halaman 7 */}
+          <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-between text-[10.5px] text-[#787F7A] mt-4">
+            <span>Dokumen Resmi SPMB &bull; T.A. 2026/2027 &bull; Dicetak 5 November 2026</span>
+            <span className="font-bold text-[#22352B]">Halaman 7 dari 7</span>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
