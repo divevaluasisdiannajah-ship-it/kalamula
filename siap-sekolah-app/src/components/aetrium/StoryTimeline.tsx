@@ -96,13 +96,11 @@ export function StoryTimeline({ evaluations, className = "" }: StoryTimelineProp
                     )}
                     {ev.total_score !== null && (
                       <span className="text-xs font-bold text-[#486B5A] bg-[#E4EFE9] px-2.5 py-0.5 rounded-lg border border-[#CBE0D4]">
-                        {ev.total_score >= 3.3
-                          ? "Mandiri & Konsisten"
-                          : ev.total_score >= 2.5
-                          ? "Muncul Mandiri"
+                        {ev.total_score >= 2.6
+                          ? "Mandiri (M)"
                           : ev.total_score >= 1.8
-                          ? "Dengan Bimbingan"
-                          : "Perlu Stimulasi"}
+                          ? "Berkembang (BSH)"
+                          : "Perlu Bimbingan (PB)"}
                       </span>
                     )}
                   </div>

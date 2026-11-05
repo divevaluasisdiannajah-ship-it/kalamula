@@ -165,8 +165,12 @@ export async function buildStudentProfile(
 
   evaluations.forEach((ev) => {
     if (ev.total_score !== null && !isNaN(ev.total_score)) {
-      pos_scores[ev.pos_number] = Number(ev.total_score.toFixed(2));
-      totalScoreSum += ev.total_score;
+      // Normalize legacy 4-point scale score if > 3.0
+      const normalizedScore = ev.total_score > 3.0
+        ? Math.min(3.0, Number(((ev.total_score / 4.0) * 3.0).toFixed(2)))
+        : Math.min(3.0, ev.total_score);
+      pos_scores[ev.pos_number] = Number(normalizedScore.toFixed(2));
+      totalScoreSum += normalizedScore;
       scoredPosCount++;
     }
     if (ev.has_red_flag) has_any_red_flag = true;
@@ -174,7 +178,7 @@ export async function buildStudentProfile(
   });
 
   const overall_score =
-    scoredPosCount > 0 ? Number((totalScoreSum / scoredPosCount).toFixed(2)) : null;
+    scoredPosCount > 0 ? Number(Math.min(3.0, totalScoreSum / scoredPosCount).toFixed(2)) : null;
 
   const completedPosCount = evaluations.filter((e) => e.is_complete).length;
   // Denominator is 4 active functional domain positions
@@ -194,8 +198,12 @@ export async function buildStudentProfile(
   evaluations.forEach((ev) => {
     if (ev.scores && typeof ev.scores === "object") {
       Object.entries(ev.scores).forEach(([indId, val]) => {
-        const numVal = Number(val);
-        if (!isNaN(numVal) && numVal >= 1 && numVal <= 4) {
+        let numVal = Number(val);
+        if (!isNaN(numVal) && numVal >= 1) {
+          // Normalize legacy 4-point indicator scores (> 3) to 3-point scale
+          if (numVal > 3) {
+            numVal = Math.min(3, Math.round((numVal / 4) * 3));
+          }
           const foundation = INDICATOR_FOUNDATION_MAP[indId];
           if (foundation) {
             foundationSums[foundation].sum += numVal;
@@ -206,13 +214,18 @@ export async function buildStudentProfile(
     }
   });
 
+  const clampFoundation = (val: number | null): number | null => {
+    if (val === null || val === undefined || isNaN(val)) return null;
+    return Number(Math.min(3.0, Math.max(1.0, val)).toFixed(2));
+  };
+
   const foundation_scores: Record<FoundationNumber, number | null> = {
-    1: foundationSums[1].count > 0 ? Number((foundationSums[1].sum / foundationSums[1].count).toFixed(2)) : (pos_scores[1] ?? null),
-    2: foundationSums[2].count > 0 ? Number((foundationSums[2].sum / foundationSums[2].count).toFixed(2)) : (pos_scores[4] ?? null),
-    3: foundationSums[3].count > 0 ? Number((foundationSums[3].sum / foundationSums[3].count).toFixed(2)) : (pos_scores[1] ?? null),
-    4: foundationSums[4].count > 0 ? Number((foundationSums[4].sum / foundationSums[4].count).toFixed(2)) : (pos_scores[3] ?? null),
-    5: foundationSums[5].count > 0 ? Number((foundationSums[5].sum / foundationSums[5].count).toFixed(2)) : (pos_scores[2] ?? null),
-    6: foundationSums[6].count > 0 ? Number((foundationSums[6].sum / foundationSums[6].count).toFixed(2)) : (pos_scores[5] ?? null),
+    1: foundationSums[1].count > 0 ? clampFoundation(foundationSums[1].sum / foundationSums[1].count) : clampFoundation(pos_scores[1] ?? null),
+    2: foundationSums[2].count > 0 ? clampFoundation(foundationSums[2].sum / foundationSums[2].count) : clampFoundation(pos_scores[4] ?? null),
+    3: foundationSums[3].count > 0 ? clampFoundation(foundationSums[3].sum / foundationSums[3].count) : clampFoundation(pos_scores[1] ?? null),
+    4: foundationSums[4].count > 0 ? clampFoundation(foundationSums[4].sum / foundationSums[4].count) : clampFoundation(pos_scores[3] ?? null),
+    5: foundationSums[5].count > 0 ? clampFoundation(foundationSums[5].sum / foundationSums[5].count) : clampFoundation(pos_scores[2] ?? null),
+    6: foundationSums[6].count > 0 ? clampFoundation(foundationSums[6].sum / foundationSums[6].count) : clampFoundation(pos_scores[5] ?? null),
   };
 
   return {
@@ -256,10 +269,10 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   // Pos 1: Emosi & Kemandirian
   const p1 = profile.pos_scores[1];
   if (p1 !== null) {
-    if (p1 >= 3.5) {
+    if (p1 >= 2.6) {
       narratives[1] =
         "Menunjukkan kematangan emosi yang sangat baik. Cepat beradaptasi di lingkungan baru, mandiri mengelola barang pribadi, dan konsisten mempraktikkan budaya santun serta antre.";
-    } else if (p1 >= 2.5) {
+    } else if (p1 >= 1.8) {
       narratives[1] =
         "Mampu berpisah dari orang tua dengan pendampingan wajar. Mulai mandiri dalam merapikan barang dan memahami aturan antre sederhana di kelas.";
       stimulations.push(
@@ -277,10 +290,10 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   // Pos 2: Motorik Kasar
   const p2 = profile.pos_scores[2];
   if (p2 !== null) {
-    if (p2 >= 3.5) {
+    if (p2 >= 2.6) {
       narratives[2] =
         "Koordinasi fisik dan keseimbangan tubuh sangat prima. Cekatan merespons instruksi gerak berurutan dan tangkas menangkap bola.";
-    } else if (p2 >= 2.5) {
+    } else if (p2 >= 1.8) {
       narratives[2] =
         "Koordinasi fisik dasar telah berkembang sesuai usia. Mampu meniti dan melompat dengan kendali tubuh yang cukup stabil.";
       stimulations.push(
@@ -298,10 +311,10 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   // Pos 3: Kognitif & Numerasi
   const p3 = profile.pos_scores[3];
   if (p3 !== null) {
-    if (p3 >= 3.5) {
+    if (p3 >= 2.6) {
       narratives[3] =
         "Penalaran logis sangat kuat. Sangat cepat menemukan pola berulang, membandingkan kuantitas objek konkret, serta tekun memecahkan masalah teka-teki balok.";
-    } else if (p3 >= 2.5) {
+    } else if (p3 >= 1.8) {
       narratives[3] =
         "Memahami konsep banyak-sedikit dan klasifikasi benda berdasarkan warna/bentuk secara konkret.";
       stimulations.push(
@@ -329,7 +342,7 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
       ? readingMap[profile.reading_level]
       : "Belum dievaluasi";
     narratives[4] = `Kesiapan membaca berada pada ${readingStatus}. `;
-    if (p4 >= 3.0) {
+    if (p4 >= 2.5) {
       narratives[4] +=
         "Daya simak cerita lisan sangat fokus, artikulasi gagasan jelas, dan kontrol jari saat memegang pensil sudah stabil.";
     } else {
@@ -344,10 +357,10 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   // Pos 5: Sosial & Interaksi
   const p5 = profile.pos_scores[5];
   if (p5 !== null) {
-    if (p5 >= 3.5) {
+    if (p5 >= 2.6) {
       narratives[5] =
         "Kemampuan sosialisasi sangat hangat. Suka berbagi mainan, mampu berkolaborasi dalam kelompok kecil, dan memiliki regulasi emosi yang baik saat bermain.";
-    } else if (p5 >= 2.5) {
+    } else if (p5 >= 1.8) {
       narratives[5] =
         "Mampu bermain berdampingan dan mulai menunjukkan inisiatif berbagi dengan dorongan pembimbing.";
       stimulations.push("Berikan kesempatan bermain bergantian dengan saudara atau teman sebaya.");

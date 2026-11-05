@@ -75,11 +75,10 @@ export default function StudentReportPage() {
   };
 
   const getContinuumLabel = (score: number | null) => {
-    if (score === null || score === undefined) return "Muncul Mandiri";
-    if (score >= 3.3) return "Mandiri & Konsisten";
-    if (score >= 2.5) return "Muncul Mandiri";
-    if (score >= 1.8) return "Dengan Bimbingan";
-    return "Tahap Eksplorasi";
+    if (score === null || score === undefined) return "Berkembang (BSH)";
+    if (score >= 2.6) return "Mandiri (M)";
+    if (score >= 1.8) return "Berkembang (BSH)";
+    return "Perlu Bimbingan (PB)";
   };
 
   const readingLevelMap: Record<ReadingLevel, { title: string; desc: string }> = {
@@ -161,13 +160,21 @@ export default function StudentReportPage() {
   const currentLevelNum = readingLevelIndex[activeReadingLevel] || 3;
 
   const fScores: Record<number, number | null> = profile.foundation_scores || {};
+  // Helper to ensure scores are strictly within 1.0 - 3.0 scale and never exceed 3.0
+  const clampScore = (val: number | null | undefined, fallback: number = 2.5) => {
+    if (val !== null && val !== undefined && !isNaN(val)) {
+      return Math.min(3.0, Math.max(1.0, val));
+    }
+    return fallback;
+  };
+
   const aspectList = [
-    { num: 1, name: "P1: Agama & Budi Pekerti", score: fScores[1] ?? profile.pos_scores[1] ?? 3.3 },
-    { num: 2, name: "P2: Keterampilan Sosial & Bahasa", score: fScores[2] ?? profile.pos_scores[4] ?? 3.3 },
-    { num: 3, name: "P3: Kematangan Emosi", score: fScores[3] ?? profile.pos_scores[1] ?? 3.2 },
-    { num: 4, name: "P4: Kematangan Kognitif", score: fScores[4] ?? profile.pos_scores[3] ?? 3.1 },
-    { num: 5, name: "P5: Motorik & Perawatan Diri", score: fScores[5] ?? profile.pos_scores[2] ?? 3.5 },
-    { num: 6, name: "P6: Pemaknaan Belajar Positif", score: fScores[6] ?? profile.pos_scores[5] ?? 3.6 },
+    { num: 1, name: "P1: Agama & Budi Pekerti", score: clampScore(fScores[1] ?? profile.pos_scores[1], 2.6) },
+    { num: 2, name: "P2: Keterampilan Sosial & Bahasa", score: clampScore(fScores[2] ?? profile.pos_scores[4], 2.6) },
+    { num: 3, name: "P3: Kematangan Emosi", score: clampScore(fScores[3] ?? profile.pos_scores[1], 2.5) },
+    { num: 4, name: "P4: Kematangan Kognitif", score: clampScore(fScores[4] ?? profile.pos_scores[3], 2.5) },
+    { num: 5, name: "P5: Motorik & Perawatan Diri", score: clampScore(fScores[5] ?? profile.pos_scores[2], 2.7) },
+    { num: 6, name: "P6: Pemaknaan Belajar Positif", score: clampScore(fScores[6] ?? profile.pos_scores[5], 2.8) },
   ];
 
   const posNarrativeList = [
@@ -359,7 +366,7 @@ export default function StudentReportPage() {
           <div className="flex items-center gap-3">
             <div className="text-center px-3.5 py-2 bg-[#F6F3EC] rounded-2xl border border-[#E8E2D8]">
               <span className="text-2xl font-black text-[#22352B] block leading-none">
-                {averageScore !== null ? averageScore.toFixed(1) : "2.8"}
+                {averageScore !== null ? Math.min(3.0, averageScore).toFixed(1) : "2.6"}
               </span>
               <span className="text-[10px] font-bold text-[#787F7A] block mt-0.5">/ 3.0</span>
             </div>
@@ -378,8 +385,8 @@ export default function StudentReportPage() {
           </div>
 
           <div className="pt-2 border-t border-[#EFECE4] flex items-center justify-between text-[11px] text-[#787F7A] font-medium">
-            <span>Skala: 1 (BM) • 2 (MB) • 3 (MM) • 4 (MK)</span>
-            <span className="font-bold text-[#B85627]">Target: ≥ 3.0</span>
+            <span>Skala: 1 (PB) • 2 (BSH) • 3 (M)</span>
+            <span className="font-bold text-[#B85627]">Target: ≥ 2.5</span>
           </div>
         </div>
 
@@ -447,8 +454,8 @@ export default function StudentReportPage() {
 
           <div className="space-y-2.5">
             {aspectList.map((item) => {
-              const val = item.score !== null ? Number(item.score.toFixed(1)) : 2.5;
-              const pct = Math.round((val / 3) * 100);
+              const val = item.score !== null ? Math.min(3.0, Number(item.score.toFixed(1))) : 2.5;
+              const pct = Math.min(100, Math.round((val / 3) * 100));
 
               return (
                 <div key={item.num} className="bg-[#FAF8F5] rounded-2xl p-3 border border-[#E8E2D8] space-y-1.5">
@@ -683,9 +690,9 @@ export default function StudentReportPage() {
 
             {/* Keterangan Bawah */}
             <div className="pt-1.5 border-t border-[#E8E2D8] flex items-center justify-between text-[10px] text-[#565C58] font-medium">
-              <span>Skala: 1 (PB) • 2 (B) • 3 (M)</span>
+              <span>Skala: 1 (PB) • 2 (BSH) • 3 (M)</span>
               <span className="font-bold text-[#22352B]">
-                Target: ≥ 2.5 | Rata-rata: {averageScore !== null ? averageScore.toFixed(1) : "2.8"} / 3.0
+                Target: ≥ 2.5 | Rata-rata: {averageScore !== null ? Math.min(3.0, averageScore).toFixed(1) : "2.6"} / 3.0
               </span>
             </div>
           </div>
@@ -728,8 +735,8 @@ export default function StudentReportPage() {
 
               <div className="space-y-1">
                 {aspectList.map((item) => {
-                  const val = item.score !== null ? Number(item.score.toFixed(1)) : 2.5;
-                  const pct = Math.round((val / 3) * 100);
+                  const val = item.score !== null ? Math.min(3.0, Number(item.score.toFixed(1))) : 2.5;
+                  const pct = Math.min(100, Math.round((val / 3) * 100));
 
                   return (
                     <div

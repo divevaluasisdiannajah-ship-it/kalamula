@@ -137,12 +137,12 @@ export async function POST() {
       createdStudents.push(student);
 
       const baseScore =
-        item.reading === 'L4' ? 3.7 : item.reading === 'L3' ? 3.2 : item.reading === 'L2' ? 2.8 : 2.2;
+        item.reading === 'L4' ? 2.8 : item.reading === 'L3' ? 2.5 : item.reading === 'L2' ? 2.2 : 1.8;
 
       for (let pos = 1; pos <= 5; pos++) {
         const variance = ((i + pos) % 3) * 0.2 - 0.1;
-        const targetPosAvg = Math.max(1.5, Math.min(4.0, baseScore + variance));
-        const roundScore = (targetPosAvg > 3.4 ? 4 : targetPosAvg > 2.6 ? 3 : targetPosAvg > 1.8 ? 2 : 1) as ScoreValue;
+        const targetPosAvg = Math.max(1.0, Math.min(3.0, baseScore + variance));
+        const roundScore = (targetPosAvg > 2.5 ? 3 : targetPosAvg > 1.8 ? 2 : 1) as ScoreValue;
 
         const scoresMap: Record<string, ScoreValue> = {};
         if (pos === 1) { scoresMap['1.1'] = roundScore; scoresMap['1.2'] = roundScore; scoresMap['1.3'] = roundScore; }

@@ -366,7 +366,7 @@ export default function BatchReportPDFPage() {
             <div className="flex items-center gap-2">
               <ChartBar weight="light" size={18} className="text-stone-700" />
               <span className="text-xs font-bold text-stone-900 uppercase tracking-wide">
-                Rerata Skor Capaian Gelombang (Skala 1.0 s.d. 4.0):
+                Rerata Skor Capaian Gelombang (Skala 1.0 s.d. 3.0):
               </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 print:grid-cols-5 gap-2 text-center text-xs">

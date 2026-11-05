@@ -88,23 +88,23 @@ export function RadarChart({
             .join(" ");
 
           const isTarget = level === 3;
-          const isOuter = level === 4;
+          const isOuter = level === 3;
 
           return (
             <polygon
               key={level}
               points={levelPoints}
               fill={isOuter ? "#FAF8F5" : "transparent"}
-              stroke={isTarget ? "#B85627" : "#DDD7CE"}
+              stroke={isTarget ? "#486B5A" : "#DDD7CE"}
               strokeWidth={isTarget ? "1.5" : "1"}
-              strokeDasharray={isTarget ? "3,3" : isOuter ? "none" : "2,2"}
+              strokeDasharray={isTarget ? "none" : "2,2"}
             />
           );
         })}
 
         {/* Axis Spokes */}
         {axes.map((_, i) => {
-          const { x, y } = getCoordinates(i, 4);
+          const { x, y } = getCoordinates(i, 3);
           return (
             <line
               key={i}
@@ -160,14 +160,18 @@ export function RadarChart({
 
         {/* 6 Axis Labels & Scores */}
         {axes.map((item, i) => {
-          const { angle } = getCoordinates(i, 4);
+          const { angle } = getCoordinates(i, 3);
           const labelDist = 18;
           const lx = center + (radius + labelDist) * Math.cos(angle);
           const ly = center + (radius + labelDist) * Math.sin(angle);
 
-          const scoreVal = getScoreForAxis(item.id);
+          const rawScore = getScoreForAxis(item.id);
+          const scoreVal =
+            rawScore !== null && rawScore !== undefined && !isNaN(rawScore)
+              ? Math.min(3.0, Math.max(1.0, rawScore))
+              : null;
           const scoreText =
-            scoreVal !== null && scoreVal !== undefined ? scoreVal.toFixed(1) : "-";
+            scoreVal !== null ? scoreVal.toFixed(1) : "-";
 
           let textAnchor: "start" | "end" | "middle" = "middle";
           if (Math.cos(angle) > 0.3) textAnchor = "start";

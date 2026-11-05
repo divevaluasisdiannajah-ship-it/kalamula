@@ -56,11 +56,10 @@ export function StudentHeroCard({
   };
 
   const getContinuumLabel = (score: number | null) => {
-    if (score === null || score === undefined) return { text: "Muncul Mandiri", color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
-    if (score >= 3.3) return { text: "Mandiri & Konsisten", color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
-    if (score >= 2.5) return { text: "Muncul Mandiri", color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
-    if (score >= 1.8) return { text: "Dengan Bimbingan", color: "text-[#8C3713] bg-[#F9E6DC] border border-[#F1CFC0]" };
-    return { text: "Tahap Eksplorasi", color: "text-[#787F7A] bg-[#EFECE4] border border-[#DDD7CE]" };
+    if (score === null || score === undefined) return { text: "Berkembang (BSH)", color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
+    if (score >= 2.6) return { text: "Mandiri (M)", color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
+    if (score >= 1.8) return { text: "Berkembang (BSH)", color: "text-[#486B5A] bg-[#E4EFE9] border border-[#CBE0D4]" };
+    return { text: "Perlu Bimbingan (PB)", color: "text-[#8C3713] bg-[#F9E6DC] border border-[#F1CFC0]" };
   };
 
   const getInitials = (name: string, nickname?: string) => {
