@@ -6,6 +6,125 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Student, Evaluation, AssessmentConfig, Batch } from "@/types";
 
+interface TaskStepInfo {
+  step: number;
+  totalSteps: number;
+  targetGroup: string;
+  timeRange: string;
+  location: string;
+  title: string;
+  instruction: string;
+  icon: string;
+}
+
+const SO1_STEPS: Record<number, TaskStepInfo> = {
+  1: {
+    step: 1,
+    totalSteps: 3,
+    targetGroup: "Kelompok 2",
+    timeRange: "08.00 - 08.24",
+    location: "Titik Awal ➔ Pos Bahasa",
+    title: "Asesmen Kelompok 2 dari Start sampai Pos Bahasa",
+    instruction:
+      "Dampingi kedatangan di titik awal, amati kemandirian berpisah dari orang tua, adab menaruh sepatu di rak, dan baris-berbaris. Lalu kawal ke Pos Bahasa dan amati ketertiban serta regulasi diri saat kegiatan bahasa berlangsung.",
+    icon: "mdi-account-arrow-right",
+  },
+  2: {
+    step: 2,
+    totalSteps: 3,
+    targetGroup: "Kelompok 1",
+    timeRange: "08.24 - 08.48",
+    location: "Pintu Pos Motorik ➔ Pos Kognitif & Bahasa",
+    title: "Switch ke Kelompok 1 di Pintu Pos A & Kawal ke Pos Kognitif/Bahasa",
+    instruction:
+      "Standby di depan pintu Pos Motorik Kasar (08.24). Terima serah-terima Kelompok 1 dari Pak Rifky. Bawa dan dampingi Kelompok 1 ke Pos Kognitif hingga Pos Bahasa. Amati kepatuhan instruksi, fokus, dan interaksi sosial.",
+    icon: "mdi-account-switch",
+  },
+  3: {
+    step: 3,
+    totalSteps: 3,
+    targetGroup: "Kelompok 1",
+    timeRange: "08.48 - Selesai",
+    location: "Titik Akhir (Area Bermain & Snack)",
+    title: "Observasi Titik Akhir: Snack Break & Bermain Bebas (Kelompok 1)",
+    instruction:
+      "Dampingi Kelompok 1 menuju Titik Akhir. Amati adab makan/snack bersama, toleransi berbagi mainan, regulasi emosi saat bermain bebas, dan evaluasi catatan khusus sebelum penjemputan orang tua.",
+    icon: "mdi-cookie-outline",
+  },
+};
+
+const SO2_STEPS: Record<number, TaskStepInfo> = {
+  1: {
+    step: 1,
+    totalSteps: 3,
+    targetGroup: "Kelompok 3",
+    timeRange: "08.00 - 08.36",
+    location: "Titik Awal ➔ Pos Kognitif & Bahasa",
+    title: "Asesmen Kelompok 3 dari Start sampai Pos Kognitif & Bahasa",
+    instruction:
+      "Dampingi kedatangan di titik awal, amati kemandirian berpisah dari orang tua, adab sepatu, dan baris. Lalu kawal ke Pos Kematangan Kognitif dan amati fokus, kepatuhan instruksi, dan transisi ke Pos Bahasa.",
+    icon: "mdi-account-arrow-right",
+  },
+  2: {
+    step: 2,
+    totalSteps: 3,
+    targetGroup: "Kelompok 2",
+    timeRange: "08.36 - 08.48",
+    location: "Pintu Pos Motorik ➔ Pos Kognitif",
+    title: "Switch ke Kelompok 2 di Pintu Pos A & Kawal ke Pos Kognitif",
+    instruction:
+      "Standby di depan pintu Pos Motorik Kasar (08.36). Terima serah-terima Kelompok 2 dari Pak Rifky yang baru keluar dari Pos Motorik. Bawa ke Pos Kognitif dan amati adaptasi transisi serta regulasi diri.",
+    icon: "mdi-account-switch",
+  },
+  3: {
+    step: 3,
+    totalSteps: 3,
+    targetGroup: "Kelompok 2",
+    timeRange: "08.48 - Selesai",
+    location: "Titik Akhir (Area Bermain & Snack)",
+    title: "Observasi Titik Akhir: Snack Break & Bermain Bebas (Kelompok 2)",
+    instruction:
+      "Dampingi Kelompok 2 menuju Titik Akhir. Amati adab makan/snack bersama, interaksi sosial, berbagi mainan, dan regulasi emosi saat bermain bebas.",
+    icon: "mdi-cookie-outline",
+  },
+};
+
+const POS2_STEPS: Record<number, TaskStepInfo> = {
+  1: {
+    step: 1,
+    totalSteps: 3,
+    targetGroup: "Kelompok 1",
+    timeRange: "08.00 - 08.24",
+    location: "Titik Awal ➔ Pos Motorik Kasar",
+    title: "Jemput Kelompok 1 di Titik Awal & Uji Motorik Kasar",
+    instruction:
+      "Hadir di titik awal kedatangan saat pembagian name tag (08.00). Jemput Kelompok 1 dan bawa ke Pos Motorik Kasar. Lakukan pengujian keseimbangan meniti titian, lompat 2 kaki, dan koordinasi tangkap bola.",
+    icon: "mdi-run-fast",
+  },
+  2: {
+    step: 2,
+    totalSteps: 3,
+    targetGroup: "Kelompok 2",
+    timeRange: "08.24 - 08.36",
+    location: "Pintu Pos A (Handover 1)",
+    title: "Handover di Pintu Pos A: Terima & Uji Kelompok 2",
+    instruction:
+      "Di depan pintu Pos A (08.24), serahkan Kelompok 1 ke SO 1 (Ahmad Furqoni). Langsung sambut & terima Kelompok 2 dari SO 1 untuk diuji motorik kasarnya di dalam ruangan Pos Motorik.",
+    icon: "mdi-account-switch",
+  },
+  3: {
+    step: 3,
+    totalSteps: 3,
+    targetGroup: "Kelompok 3",
+    timeRange: "08.36 - 08.48 (Hingga Titik Akhir)",
+    location: "Pos Bahasa ➔ Pos Motorik ➔ Titik Akhir",
+    title: "Jemput Kelompok 3 di Pos Bahasa & Antar ke Titik Akhir (Snack/Bermain)",
+    instruction:
+      "Serahkan Kelompok 2 ke SO 2 (08.36). Segera jalan ke Pos Bahasa untuk menjemput Kelompok 3 bawa ke Pos Motorik. Uji motorik Kelompok 3, lalu setelah selesai (08.48), antar langsung Kelompok 3 ke Area Bermain & Snack di Titik Akhir.",
+    icon: "mdi-flag-checkered",
+  },
+};
+
 export default function EvaluatorStudentListPage() {
   const params = useParams();
   const router = useRouter();
@@ -24,6 +143,7 @@ export default function EvaluatorStudentListPage() {
   const [filterTab, setFilterTab] = useState<"all" | "mandiri" | "bimbingan">("all");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [currentSubrole, setCurrentSubrole] = useState<"so1" | "so2">("so1");
+  const [stepOverride, setStepOverride] = useState<number | null>(null);
 
   useEffect(() => {
     const urlSubrole = searchParams.get("subrole") as "so1" | "so2" | null;
@@ -193,6 +313,64 @@ export default function EvaluatorStudentListPage() {
       role: "Station Evaluator",
     },
   };
+
+  const groupStats = useMemo(() => {
+    const groups = ["Kelompok 1", "Kelompok 2", "Kelompok 3"] as const;
+    const res: Record<string, { total: number; completed: number; percent: number; isFinished: boolean }> = {};
+    for (const grp of groups) {
+      const grpStudents = students.filter((s) => s.observation_group === grp);
+      const completed = grpStudents.filter((s) => {
+        const ev = getStudentEvaluation(s.id);
+        return Boolean(ev?.is_complete);
+      }).length;
+      const total = grpStudents.length;
+      res[grp] = {
+        total,
+        completed,
+        percent: total > 0 ? Math.round((completed / total) * 100) : 0,
+        isFinished: total > 0 && completed >= total,
+      };
+    }
+    return res;
+  }, [students, getStudentEvaluation]);
+
+  const autoStep = useMemo(() => {
+    if (posNumber === 1) {
+      if (currentSubrole === "so1") {
+        if (!groupStats["Kelompok 2"]?.isFinished) return 1;
+        if (!groupStats["Kelompok 1"]?.isFinished) return 2;
+        return 3;
+      } else {
+        if (!groupStats["Kelompok 3"]?.isFinished) return 1;
+        if (!groupStats["Kelompok 2"]?.isFinished) return 2;
+        return 3;
+      }
+    } else if (posNumber === 2) {
+      if (!groupStats["Kelompok 1"]?.isFinished) return 1;
+      if (!groupStats["Kelompok 2"]?.isFinished) return 2;
+      return 3;
+    }
+    return 1;
+  }, [posNumber, currentSubrole, groupStats]);
+
+  const currentStep = stepOverride ?? autoStep;
+
+  const currentTaskInfo = useMemo<TaskStepInfo | null>(() => {
+    if (posNumber === 1) {
+      const steps = currentSubrole === "so1" ? SO1_STEPS : SO2_STEPS;
+      return steps[currentStep] || steps[1];
+    } else if (posNumber === 2) {
+      return POS2_STEPS[currentStep] || POS2_STEPS[1];
+    }
+    return null;
+  }, [posNumber, currentSubrole, currentStep]);
+
+  // Lock filter automatically to the active step's target group
+  useEffect(() => {
+    if ((posNumber === 1 || posNumber === 2) && currentTaskInfo) {
+      setSelectedGroup(currentTaskInfo.targetGroup);
+    }
+  }, [posNumber, currentSubrole, currentStep, currentTaskInfo]);
 
   /** Calculate accurate age string */
   const calculateAge = (birthDateStr: string): string => {
@@ -455,265 +633,250 @@ export default function EvaluatorStudentListPage() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* ─── KARTU PANDUAN PRIBADI (PERSONALIZED FIELD TASK CARD) ─────────── */}
+        {/* ─── KARTU TUGAS AKTIF TUNGGAL (SINGLE DYNAMIC TASK CARD) ─────────── */}
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        {posNumber === 2 && (
-          <div className="bg-[#E4EFE9] rounded-2xl p-4 sm:p-5 border border-[#CBE0D4] shadow-xs space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#CBE0D4]/80">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#486B5A] text-white flex items-center justify-center flex-shrink-0 text-xl shadow-xs">
-                  <i className="mdi mdi-run-fast" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                    Tugas Lapangan: Penguji Motorik Kasar &amp; Penjemput Rotasi
-                  </h3>
-                  <p className="text-[11px] text-[#486B5A] font-bold">
-                    Petugas: Rifky Delsandi Rifai, S. Pd &bull; Ikuti alur waktu jemput &amp; serah-terima berikut:
-                  </p>
-                </div>
-              </div>
-              <span className="self-start sm:self-auto text-[10px] font-extrabold px-3 py-1 rounded-full bg-[#486B5A] text-white shadow-2xs">
-                Peran: Pos A (Motorik) + Escort
-              </span>
-            </div>
+        {(posNumber === 1 || posNumber === 2) && currentTaskInfo && (() => {
+          const isPos1 = posNumber === 1;
+          const targetStats = groupStats[currentTaskInfo.targetGroup] || { total: 0, completed: 0, percent: 0, isFinished: false };
+          const isFilterLocked = selectedGroup === currentTaskInfo.targetGroup;
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1 text-xs">
-              <div className="bg-white/95 p-3 rounded-xl border border-[#CBE0D4] space-y-1 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-[#486B5A] text-[11px]">08.00 (Titik Awal)</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#486B5A]" />
-                </div>
-                <p className="text-[11px] text-[#22352B] font-bold">Jemput Kelompok 1</p>
-                <p className="text-[10.5px] text-[#565C58] leading-snug">
-                  Hadir di titik awal kedatangan saat pembagian name tag. <strong className="text-[#486B5A]">Jemput Kelompok 1</strong> bawa ke Pos Motorik Kasar.
-                </p>
-              </div>
+          return (
+            <div
+              className={`rounded-3xl p-5 sm:p-6 border-2 shadow-sm space-y-4 transition-all duration-300 ${
+                isPos1
+                  ? "bg-gradient-to-br from-[#FAF0E8] via-[#FFF8F5] to-[#F5ECE1] border-[#E8D0C0]"
+                  : "bg-gradient-to-br from-[#E4EFE9] via-[#F0F6F2] to-[#E1EDE5] border-[#CBE0D4]"
+              }`}
+            >
+              {/* Top Row: Task Step Pill, Target Group Badge, Time & Subrole Toggle */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/5">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span
+                    className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full text-white shadow-2xs ${
+                      isPos1 ? "bg-[#9C4322]" : "bg-[#486B5A]"
+                    }`}
+                  >
+                    TUGAS AKTIF • STEP {currentTaskInfo.step} DARI {currentTaskInfo.totalSteps}
+                  </span>
 
-              <div className="bg-white/95 p-3 rounded-xl border border-[#CBE0D4] space-y-1 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-[#486B5A] text-[11px]">08.12 - 08.24</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#486B5A]" />
-                </div>
-                <p className="text-[11px] text-[#22352B] font-bold">Uji Kelompok 1</p>
-                <p className="text-[10.5px] text-[#565C58] leading-snug">
-                  Uji keseimbangan titian, lompat 2 kaki, dan koordinasi tangkap bola Kelompok 1 di ruang Pos Motorik Kasar.
-                </p>
-              </div>
+                  <span
+                    className={`text-[11px] font-extrabold px-3 py-0.5 rounded-full border shadow-2xs flex items-center gap-1.5 ${
+                      isPos1
+                        ? "bg-[#FAF0E8] text-[#9C4322] border-[#F2D8C7]"
+                        : "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
+                    }`}
+                  >
+                    <i className="mdi mdi-account-group text-xs" />
+                    <span>TARGET: {currentTaskInfo.targetGroup}</span>
+                  </span>
 
-              <div className="bg-white/95 p-3 rounded-xl border border-[#B85627]/40 space-y-1 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-[#B85627] text-[11px]">08.24 (Pintu Pos A)</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
+                  <span className="text-[11px] font-bold text-[#787F7A] bg-white/80 border border-[#E8E2D8] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 font-mono">
+                    <i className="mdi mdi-clock-outline text-xs" />
+                    <span>{currentTaskInfo.timeRange}</span>
+                  </span>
                 </div>
-                <p className="text-[11px] text-[#B85627] font-bold">Handover 1</p>
-                <p className="text-[10.5px] text-[#565C58] leading-snug">
-                  Serahkan Kel. 1 ke SO 1, lalu sambut &amp; <strong className="text-[#486B5A]">Terima Kelompok 2</strong> dari SO 1 untuk diuji di Pos Motorik Kasar.
-                </p>
-              </div>
 
-              <div className="bg-white/95 p-3 rounded-xl border border-[#B85627]/40 space-y-1 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-[#B85627] text-[11px]">08.36 (Jemput Kel. 3)</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
-                </div>
-                <p className="text-[11px] text-[#B85627] font-bold">Handover 2</p>
-                <p className="text-[10.5px] text-[#565C58] leading-snug">
-                  Serahkan Kel. 2 ke SO 2. Segera jalan ke Pos Bahasa untuk <strong className="text-[#486B5A]">Jemput Kelompok 3</strong> bawa ke Pos Motorik Kasar.
-                </p>
-              </div>
-
-              <div className="bg-white/95 p-3 rounded-xl border border-[#CBE0D4] space-y-1 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-[#486B5A] text-[11px]">08.48 (Titik Akhir)</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#486B5A]" />
-                </div>
-                <p className="text-[11px] text-[#22352B] font-bold">Antar ke Snack/Bermain</p>
-                <p className="text-[10.5px] text-[#565C58] leading-snug">
-                  Selesai uji Kelompok 3, <strong className="text-[#486B5A]">Antar Kelompok 3</strong> ke Area Bermain &amp; Snack di Titik Akhir.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {posNumber === 1 && (
-          <div className="bg-[#EFE7D6] rounded-2xl p-4 sm:p-5 border border-[#DDD0B8] shadow-xs space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#DDD0B8]/80">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#7D5327] text-white flex items-center justify-center flex-shrink-0 text-xl shadow-xs">
-                  <i className="mdi mdi-account-check-outline" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm sm:text-base text-[#22352B]">
-                    {currentSubrole === "so1"
-                      ? "Tugas Anda: Super Observer 1 (Ahmad Furqoni, S. Pd)"
-                      : "Tugas Anda: Super Observer 2 (Novia Permatasari, S. Pd)"}
-                  </h3>
-                  <p className="text-[11px] text-[#7D5327] font-bold">
-                    {currentSubrole === "so1" ? "Fokus awal Kelompok 2 ➔ Kelompok 1" : "Fokus awal Kelompok 3 ➔ Kelompok 2"} &bull; Dampingi perpindahan &amp; catat kemandirian/emosi.
-                  </p>
-                </div>
+                {/* Subrole selector for Pos 1, or Officer Badge for Pos 2 */}
+                {isPos1 ? (
+                  <div className="flex items-center gap-1 bg-white/90 p-1 rounded-2xl border border-[#DDD0B8] shadow-2xs self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCurrentSubrole("so1");
+                        setStepOverride(null);
+                        if (typeof window !== "undefined") {
+                          localStorage.setItem("kalamula_evaluator_subrole", "so1");
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+                        currentSubrole === "so1"
+                          ? "bg-[#9C4322] text-white shadow-2xs"
+                          : "text-[#7D5327] hover:bg-[#FAF8F5]"
+                      }`}
+                    >
+                      SO 1 (Ahmad Furqoni)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCurrentSubrole("so2");
+                        setStepOverride(null);
+                        if (typeof window !== "undefined") {
+                          localStorage.setItem("kalamula_evaluator_subrole", "so2");
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+                        currentSubrole === "so2"
+                          ? "bg-[#9C4322] text-white shadow-2xs"
+                          : "text-[#7D5327] hover:bg-[#FAF8F5]"
+                      }`}
+                    >
+                      SO 2 (Novia Permatasari)
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-[11px] font-bold text-[#486B5A] bg-white/80 border border-[#CBE0D4] px-3 py-1 rounded-full shadow-2xs self-start sm:self-auto">
+                    Petugas: Rifky Delsandi Rifai, S. Pd (Pos A + Escort)
+                  </span>
+                )}
               </div>
 
-              {/* Sub-role Quick Switch Pill */}
-              <div className="flex items-center gap-1.5 self-start sm:self-auto bg-white/90 p-1 rounded-xl border border-[#DDD0B8] shadow-2xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentSubrole("so1");
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("kalamula_evaluator_subrole", "so1");
-                    }
-                  }}
-                  className={`px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                    currentSubrole === "so1"
-                      ? "bg-[#7D5327] text-white shadow-2xs"
-                      : "text-[#7D5327] hover:bg-[#FAF8F5]"
+              {/* Main Task Description */}
+              <div className="flex items-start gap-3.5">
+                <div
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl shadow-xs text-white ${
+                    isPos1 ? "bg-[#9C4322]" : "bg-[#486B5A]"
                   }`}
                 >
-                  SO 1 (Ahmad Furqoni)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentSubrole("so2");
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("kalamula_evaluator_subrole", "so2");
-                    }
-                  }}
-                  className={`px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                    currentSubrole === "so2"
-                      ? "bg-[#7D5327] text-white shadow-2xs"
-                      : "text-[#7D5327] hover:bg-[#FAF8F5]"
-                  }`}
-                >
-                  SO 2 (Novia Permatasari)
-                </button>
+                  <i className={`mdi ${currentTaskInfo.icon}`} />
+                </div>
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base sm:text-lg font-black text-[#22352B] leading-snug">
+                      {currentTaskInfo.title}
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#486B5A]">
+                    <i className="mdi mdi-map-marker-radius text-sm" />
+                    <span>Lokasi Alur: {currentTaskInfo.location}</span>
+                  </div>
+                  <p className="text-xs text-[#565C58] leading-relaxed pt-1">
+                    {currentTaskInfo.instruction}
+                  </p>
+                </div>
+              </div>
+
+              {/* Progress Box for Target Group */}
+              <div className="bg-white/95 rounded-2xl p-3.5 sm:p-4 border border-black/5 shadow-2xs space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-extrabold text-[#22352B]">
+                      Progres Asesmen {currentTaskInfo.targetGroup}:
+                    </span>
+                    <span
+                      className={`text-xs font-black font-mono tabular-nums ${
+                        isPos1 ? "text-[#9C4322]" : "text-[#486B5A]"
+                      }`}
+                    >
+                      {targetStats.completed} dari {targetStats.total} Siswa ({targetStats.percent}%)
+                    </span>
+                  </div>
+
+                  <div>
+                    {targetStats.isFinished ? (
+                      <span className="px-2.5 py-1 rounded-full text-[10.5px] font-extrabold bg-[#E4EFE9] text-[#2E6B4D] border border-[#CBE0D4] flex items-center gap-1 shadow-2xs">
+                        <i className="mdi mdi-check-decagram text-sm" />
+                        <span>Selesai! Otomatis Beralih</span>
+                      </span>
+                    ) : (
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10.5px] font-extrabold border flex items-center gap-1 shadow-2xs ${
+                          isPos1
+                            ? "bg-[#FAF0E8] text-[#9C4322] border-[#F2D8C7]"
+                            : "bg-[#E4EFE9] text-[#486B5A] border-[#CBE0D4]"
+                        }`}
+                      >
+                        <i className="mdi mdi-clock-fast text-xs" />
+                        <span>Sedang Berjalan</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Progress Track */}
+                <div className="w-full h-2.5 bg-black/5 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      targetStats.isFinished
+                        ? "bg-[#2E6B4D]"
+                        : isPos1
+                        ? "bg-[#9C4322]"
+                        : "bg-[#486B5A]"
+                    }`}
+                    style={{ width: `${Math.max(5, targetStats.percent)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Navigation & Filter Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                {/* Stepper Dots (Manual Switch) */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-[#787F7A] mr-1">Langkah:</span>
+                  {[1, 2, 3].map((stepNum) => {
+                    const stepGroup =
+                      isPos1
+                        ? (currentSubrole === "so1" ? SO1_STEPS[stepNum] : SO2_STEPS[stepNum])?.targetGroup
+                        : POS2_STEPS[stepNum]?.targetGroup;
+                    const isStepDone = Boolean(stepGroup && groupStats[stepGroup]?.isFinished);
+                    const isCurrent = currentStep === stepNum;
+
+                    return (
+                      <button
+                        key={stepNum}
+                        type="button"
+                        onClick={() => {
+                          setStepOverride(stepNum);
+                          if (stepGroup) setSelectedGroup(stepGroup);
+                        }}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                          isCurrent
+                            ? isPos1
+                              ? "bg-[#9C4322] text-white shadow-2xs font-extrabold"
+                              : "bg-[#486B5A] text-white shadow-2xs font-extrabold"
+                            : isStepDone
+                            ? "bg-white text-[#2E6B4D] border border-[#CBE0D4] hover:bg-[#F0F6F2]"
+                            : "bg-white/80 text-[#565C58] border border-[#E8E2D8] hover:bg-white"
+                        }`}
+                      >
+                        <span>Step {stepNum}</span>
+                        {isStepDone && <i className="mdi mdi-check text-xs text-[#2E6B4D]" />}
+                      </button>
+                    );
+                  })}
+
+                  {stepOverride !== null && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStepOverride(null);
+                        const autoTarget =
+                          isPos1
+                            ? (currentSubrole === "so1" ? SO1_STEPS[autoStep] : SO2_STEPS[autoStep])?.targetGroup
+                            : POS2_STEPS[autoStep]?.targetGroup;
+                        if (autoTarget) setSelectedGroup(autoTarget);
+                      }}
+                      className="text-[11px] text-[#787F7A] hover:text-[#22352B] underline ml-1 cursor-pointer"
+                    >
+                      Kembali ke Alur Otomatis
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Status & Lock State */}
+                <div className="flex items-center gap-2">
+                  {isFilterLocked ? (
+                    <span className="bg-white/90 text-[#2E6B4D] border border-[#CBE0D4] px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs">
+                      <i className="mdi mdi-lock text-xs text-[#2E6B4D]" />
+                      <span>Daftar Siswa: {currentTaskInfo.targetGroup} (Terkunci)</span>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGroup(currentTaskInfo.targetGroup)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold text-white transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 ${
+                        isPos1 ? "bg-[#9C4322] hover:bg-[#85371B]" : "bg-[#486B5A] hover:bg-[#3B5749]"
+                      }`}
+                    >
+                      <i className="mdi mdi-filter-variant text-xs" />
+                      <span>Kunci Kembali ke {currentTaskInfo.targetGroup}</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-
-            {/* Checklist SO 1 */}
-            {currentSubrole === "so1" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1 text-xs">
-                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.00 (Titik Awal)</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
-                  </div>
-                  <p className="text-[11px] text-[#22352B] font-bold">Pandu Kelompok 2</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    Amati berpisah dari ortu &amp; menaruh sepatu. <strong className="text-[#7D5327]">Dampingi Kelompok 2</strong> menuju Pos Bahasa &amp; Halus.
-                  </p>
-                </div>
-
-                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.12 - 08.24</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
-                  </div>
-                  <p className="text-[11px] text-[#22352B] font-bold">Amati di Pos Bahasa</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    Amati ketertiban &amp; regulasi diri Kelompok 2 saat mendengarkan cerita dan menulis.
-                  </p>
-                </div>
-
-                <div className="bg-white/95 p-3 rounded-xl border border-[#B85627]/40 space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#B85627] text-[11px]">08.24 (Pintu Pos A)</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
-                  </div>
-                  <p className="text-[11px] text-[#B85627] font-bold">Switch ke Kelompok 1</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    Antar Kel. 2 ke pintu Pos Motorik Kasar. Langsung <strong className="text-[#7D5327]">Jemput Kelompok 1</strong> bawa ke Pos Kognitif.
-                  </p>
-                </div>
-
-                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.36 - 08.48</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
-                  </div>
-                  <p className="text-[11px] text-[#22352B] font-bold">Dampingi Kelompok 1</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    <strong className="text-[#7D5327]">Dampingi Kelompok 1</strong> berpindah dari Pos Kognitif menuju Pos Bahasa &amp; Halus.
-                  </p>
-                </div>
-
-                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.48 (Titik Akhir)</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
-                  </div>
-                  <p className="text-[11px] text-[#22352B] font-bold">Bermain &amp; Snack</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    Dampingi Kel. 1 ke Area Bermain &amp; Snack. Amati interaksi sosial, berbagi alat main, dan refleksi belajar.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Checklist SO 2 */}
-            {currentSubrole === "so2" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1 text-xs">
-                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.00 (Titik Awal)</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
-                  </div>
-                  <p className="text-[11px] text-[#22352B] font-bold">Pandu Kelompok 3</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    Amati berpisah dari ortu &amp; menaruh sepatu. <strong className="text-[#7D5327]">Dampingi Kelompok 3</strong> menuju Pos Kematangan Kognitif.
-                  </p>
-                </div>
-
-                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.12 - 08.24</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
-                  </div>
-                  <p className="text-[11px] text-[#22352B] font-bold">Amati di Pos Kognitif</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    Amati fokus &amp; kepatuhan instruksi Kelompok 3 saat aktivitas pola berulang dan kuantitas.
-                  </p>
-                </div>
-
-                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.24 - 08.36</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
-                  </div>
-                  <p className="text-[11px] text-[#22352B] font-bold">Dampingi Kelompok 3</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    <strong className="text-[#7D5327]">Dampingi Kelompok 3</strong> berpindah dari Pos Kognitif menuju Pos Bahasa &amp; Halus.
-                  </p>
-                </div>
-
-                <div className="bg-white/95 p-3 rounded-xl border border-[#B85627]/40 space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#B85627] text-[11px]">08.36 (Pintu Pos A)</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
-                  </div>
-                  <p className="text-[11px] text-[#B85627] font-bold">Switch ke Kelompok 2</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    Menuju depan pintu Pos Motorik Kasar. <strong className="text-[#7D5327]">Jemput Kelompok 2</strong> yang baru keluar dan bawa ke Pos Kognitif.
-                  </p>
-                </div>
-
-                <div className="bg-white/95 p-3 rounded-xl border border-[#DDD0B8] space-y-1 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#7D5327] text-[11px]">08.48 (Titik Akhir)</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#7D5327]" />
-                  </div>
-                  <p className="text-[11px] text-[#22352B] font-bold">Bermain &amp; Snack</p>
-                  <p className="text-[10.5px] text-[#565C58] leading-snug">
-                    Dampingi Kel. 2 ke Area Bermain &amp; Snack. Amati interaksi sosial, berbagi alat main, dan refleksi belajar.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          );
+        })()}
 
         {(posNumber === 3 || posNumber === 4) && (
           <div className="bg-[#E4EAF2] rounded-2xl p-4 border border-[#CBD8E5] shadow-xs flex items-center justify-between gap-3 text-xs">
