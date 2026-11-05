@@ -566,6 +566,34 @@ export default function EvaluatorLoginPage() {
               <span>Pos C (Bahasa)</span>
             </Link>
           </div>
+
+          {/* Banner Khusus: Buku Panduan & Rubrik Lengkap Semua Pos (Siap Cetak) */}
+          <div className="pt-2 border-t border-[#F6F2E9]">
+            <Link
+              href="/reports/rubric/guide"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-[#FAF0E8] hover:bg-[#F5E6DC] text-[#9C4322] border border-[#F2D8C7] p-3 rounded-2xl font-extrabold transition flex items-center justify-between gap-3 text-xs shadow-2xs active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#9C4322] text-white flex items-center justify-center text-base shadow-xs flex-shrink-0">
+                  <i className="mdi mdi-book-open-page-variant" />
+                </div>
+                <div className="text-left">
+                  <span className="block font-black text-[#22352B] text-xs sm:text-sm">
+                    Buku Panduan &amp; Rubrik Asesmen Lengkap Semua Pos (Siap Cetak A4)
+                  </span>
+                  <span className="block text-[10.5px] text-[#787F7A] font-normal">
+                    Lengkap dengan SOP alur rotasi, indikator 6 fondasi, rubrik deskriptor skala 1-3, dan lembar pengesahan
+                  </span>
+                </div>
+              </div>
+              <span className="bg-white text-[#9C4322] px-3 py-1.5 rounded-xl text-[11px] font-black border border-[#F2D8C7] flex items-center gap-1 shadow-2xs flex-shrink-0">
+                <span>Buka Buku Panduan</span>
+                <i className="mdi mdi-open-in-new text-xs" />
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
 

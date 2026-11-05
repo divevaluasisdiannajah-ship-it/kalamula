@@ -430,6 +430,18 @@ export default function EvaluatorStudentListPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Link
+              href="/reports/rubric/guide"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#FAF0E8] border border-[#F2D8C7] text-[#9C4322] hover:bg-[#F5E6DC] px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96]"
+              title="Buku Panduan & Rubrik Asesmen Lengkap Semua Pos (Cetak)"
+            >
+              <i className="mdi mdi-book-open-page-variant text-base" />
+              <span className="hidden sm:inline">Buku Panduan Rubrik</span>
+              <span className="sm:hidden">Panduan</span>
+            </Link>
+
+            <Link
               href={`/reports/rubric/${posNumber}${activeBatchId ? `?batch_id=${activeBatchId}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
