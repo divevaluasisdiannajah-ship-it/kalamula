@@ -612,11 +612,14 @@ export default function EvaluatorStudentListPage() {
           </div>
         </div>
 
-        {/* ─── SIGNATURE TERRACOTTA HERO BANNER CARD (Persis Gambar Referensi) ─── */}
+        {/* ─── SIGNATURE TERRACOTTA HERO BANNER CARD (Varian E Megamendung) ─── */}
         <div className="relative overflow-hidden bg-[#9B3F18] rounded-[32px] p-6 text-white shadow-md space-y-4">
+          {/* Megamendung Adaptive Overlay */}
+          <div className="bg-megamendung-overlay" aria-hidden="true" />
+
           {/* Top Tag & Percent Badge */}
-          <div className="flex items-center justify-between gap-3">
-            <span className="bg-white/15 border border-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-3.5 py-1 rounded-full backdrop-blur-xs">
+          <div className="relative z-10 flex items-center justify-between gap-3">
+            <span className="bg-white text-[#9B3F18] font-black text-[10px] tracking-wider uppercase px-3.5 py-1 rounded-full shadow-2xs">
               {posNumber === 1
                 ? "LINTAS KELOMPOK"
                 : posNumber === 2
@@ -627,7 +630,7 @@ export default function EvaluatorStudentListPage() {
             </span>
 
             <div className="bg-white text-[#22352B] rounded-2xl px-3.5 py-1.5 text-center shadow-xs min-w-[70px]">
-              <div className="text-sm font-black font-mono leading-tight">
+              <div className="text-sm font-black font-mono leading-tight text-[#9B3F18]">
                 {displayStats.percent}%
               </div>
               <div className="text-[9px] font-bold text-[#787F7A] uppercase tracking-wider leading-none">
@@ -637,7 +640,7 @@ export default function EvaluatorStudentListPage() {
           </div>
 
           {/* Pos Title & Focus Description */}
-          <div className="space-y-1">
+          <div className="relative z-10 space-y-1">
             <p className="text-xs text-white/80 font-medium">
               {posNumber === 1
                 ? "Super Observer (Kel. 1, 2 & 3)"
@@ -668,13 +671,13 @@ export default function EvaluatorStudentListPage() {
           </div>
 
           {/* Gelombang / Batch Selector Pill */}
-          <div className="relative inline-flex items-center">
-            <div className="bg-black/25 border border-white/20 text-white rounded-full px-4 py-1.5 text-xs font-semibold inline-flex items-center gap-2 shadow-2xs pointer-events-none">
-              <i className="mdi mdi-calendar-month-outline text-sm text-[#F9E6DC]" />
+          <div className="relative z-10 inline-flex items-center">
+            <div className="bg-white text-[#22352B] rounded-full px-4 py-1.5 text-xs font-bold inline-flex items-center gap-2 shadow-xs pointer-events-none">
+              <i className="mdi mdi-calendar-month-outline text-sm text-[#9B3F18]" />
               <span>
                 {batch?.batch_name || "Gelombang 1 - TP 2027/2028"} ({completionStats.total} Siswa) • Aktif
               </span>
-              <i className="mdi mdi-chevron-down text-sm text-white/80" />
+              <i className="mdi mdi-chevron-down text-sm text-[#787F7A]" />
             </div>
             <select
               value={activeBatchId || ""}
@@ -690,29 +693,29 @@ export default function EvaluatorStudentListPage() {
             </select>
           </div>
 
-          {/* ─── 3 STAT BOXES (TOTAL, SELESAI, MENUNGGU - Persis Gambar) ─── */}
-          <div className="grid grid-cols-3 gap-2.5 pt-1">
-            <div className="bg-white/15 rounded-2xl p-3 text-center border border-white/10 backdrop-blur-xs">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/80 block">
+          {/* ─── 3 STAT BOXES (TOTAL, SELESAI, MENUNGGU - Varian E Solid White Cards) ─── */}
+          <div className="relative z-10 grid grid-cols-3 gap-2.5 pt-1">
+            <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs flex flex-col justify-center items-center">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
                 TOTAL
               </span>
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono tabular-nums block mt-0.5">
+              <span className="text-xl sm:text-2xl font-black text-[#22352B] font-mono tabular-nums block mt-0.5">
                 {displayStats.total}
               </span>
             </div>
-            <div className="bg-white rounded-2xl p-3 text-center shadow-xs">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#486B5A] block">
+            <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs flex flex-col justify-center items-center">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
                 SELESAI
               </span>
-              <span className="text-2xl sm:text-3xl font-black text-[#2E6B4D] font-mono tabular-nums block mt-0.5">
+              <span className="text-xl sm:text-2xl font-black text-[#2E6B4D] font-mono tabular-nums block mt-0.5">
                 {displayStats.completed}
               </span>
             </div>
-            <div className="bg-white/15 rounded-2xl p-3 text-center border border-white/10 backdrop-blur-xs">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/80 block">
+            <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs flex flex-col justify-center items-center">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
                 MENUNGGU
               </span>
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono tabular-nums block mt-0.5">
+              <span className="text-xl sm:text-2xl font-black text-[#9B3F18] font-mono tabular-nums block mt-0.5">
                 {Math.max(0, displayStats.total - displayStats.completed)}
               </span>
             </div>

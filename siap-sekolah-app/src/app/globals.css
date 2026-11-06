@@ -48,6 +48,21 @@ body {
   box-shadow: 0 4px 20px -2px rgba(44, 39, 37, 0.06), 0 2px 6px -1px rgba(44, 39, 37, 0.03);
 }
 
+/* ─── Megamendung Batik Adaptive Pattern Overlay (Varian E) ──── */
+.bg-megamendung-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url('/images/megamendung-pattern.png');
+  background-repeat: repeat;
+  background-size: 260px auto;
+  opacity: 0.15;
+  mix-blend-mode: screen;
+  mask-image: radial-gradient(ellipse at 50% 30%, rgba(0,0,0,1) 45%, rgba(0,0,0,0.65) 100%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, rgba(0,0,0,1) 45%, rgba(0,0,0,0.65) 100%);
+}
+
+
 .ios-card-elevated {
   background: #FFFFFF;
   border-radius: 20px;

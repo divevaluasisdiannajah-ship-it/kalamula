@@ -247,15 +247,18 @@ export default function EvaluatorLoginPage() {
           </div>
         </div>
 
-        {/* Hero Banner: Deep Forest Pine (#385642) */}
+        {/* Hero Banner: Deep Forest Pine (#385642) with Megamendung Pattern (Varian E) */}
         <div className="relative overflow-hidden bg-gradient-to-br from-[#385642] to-[#2D4535] rounded-3xl p-5 sm:p-6 text-white shadow-sm space-y-4">
+          {/* Megamendung Adaptive Overlay */}
+          <div className="bg-megamendung-overlay" aria-hidden="true" />
+
           {/* Top Row: Icon + Portal Badge + Title + Subtitle */}
-          <div className="flex items-start gap-3.5">
+          <div className="relative z-10 flex items-start gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center flex-shrink-0 text-2xl shadow-inner border border-white/10">
               <i className="mdi mdi-shield-account-outline" />
             </div>
             <div className="space-y-1 min-w-0">
-              <span className="bg-white/20 text-white font-extrabold text-[10px] tracking-wider uppercase px-2.5 py-0.5 rounded-full inline-block">
+              <span className="bg-white text-[#284232] font-black text-[10px] tracking-wider uppercase px-3 py-0.5 rounded-full inline-block shadow-2xs">
                 PORTAL EVALUATOR
               </span>
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
@@ -268,7 +271,7 @@ export default function EvaluatorLoginPage() {
           </div>
 
           {/* Active Batch Strip */}
-          <div className="space-y-1.5 pt-1">
+          <div className="relative z-10 space-y-1.5 pt-1">
             <p className="text-[10px] font-extrabold uppercase tracking-wider text-white/75">
               GELOMBANG OBSERVASI AKTIF
             </p>
@@ -311,34 +314,34 @@ export default function EvaluatorLoginPage() {
             </div>
           </div>
 
-          {/* 3 Metric Cards */}
-          <div className="grid grid-cols-3 gap-2.5 pt-1">
+          {/* 3 Metric Cards (Varian E: 3 Solid Crisp White Cards) */}
+          <div className="relative z-10 grid grid-cols-3 gap-2.5 pt-1">
             {/* Card 1: Total Pos */}
-            <div className="bg-white/15 backdrop-blur-xs rounded-2xl p-3 text-center border border-white/10 flex flex-col justify-center items-center">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-white/80 block">
+            <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs flex flex-col justify-center items-center">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
                 TOTAL POS
               </span>
-              <span className="text-2xl font-black text-white leading-tight font-mono tabular-nums">
+              <span className="text-xl sm:text-2xl font-black text-[#22352B] leading-tight font-mono tabular-nums">
                 4
               </span>
             </div>
 
-            {/* Card 2: Peserta (Highlighted Solid White Card) */}
-            <div className="bg-white rounded-2xl p-3 text-center shadow-xs flex flex-col justify-center items-center">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#385642]/80 block">
+            {/* Card 2: Peserta */}
+            <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs flex flex-col justify-center items-center">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
                 PESERTA
               </span>
-              <span className="text-2xl font-black text-[#385642] leading-tight font-mono tabular-nums">
+              <span className="text-xl sm:text-2xl font-black text-[#22352B] leading-tight font-mono tabular-nums">
                 {currentBatch?.student_count ?? 0}
               </span>
             </div>
 
             {/* Card 3: Status */}
-            <div className="bg-white/15 backdrop-blur-xs rounded-2xl p-3 text-center border border-white/10 flex flex-col justify-center items-center">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-white/80 block">
+            <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs flex flex-col justify-center items-center">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#787F7A] block">
                 STATUS
               </span>
-              <span className="text-base sm:text-lg font-black text-white leading-tight tracking-wide">
+              <span className="text-base sm:text-lg font-black text-[#2E6B4D] leading-tight tracking-wide uppercase">
                 AKTIF
               </span>
             </div>
