@@ -122,24 +122,77 @@ export default function ParentFormPage() {
         </p>
       </header>
 
-      {/* Student Badge Card if loaded */}
-      {student && (
-        <div className="max-w-lg mx-auto px-4 pt-4">
-          <div className="bg-white border border-[#DFE7E2] rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
-            <div className="w-9 h-9 rounded-full bg-[#2E6B4D] text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
-              {student.nickname?.slice(0, 2).toUpperCase() || "AN"}
+      {/* Student Hero Banner (Varian E Megamendung) */}
+      <div className="max-w-lg mx-auto px-4 pt-4">
+        <div className="relative overflow-hidden bg-[#2D4535] rounded-3xl p-5 shadow-sm text-white">
+          <div className="bg-megamendung-overlay" aria-hidden="true" />
+
+          <div className="relative z-10 space-y-3.5">
+            {/* Top row: badge + status */}
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[#2D4535] text-xs font-black shadow-xs tracking-wider uppercase">
+                <Leaf weight="bold" size={14} className="text-[#2D4535]" />
+                KUESIONER ORANG TUA
+              </div>
+              <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white text-[#2D4535] text-xs font-bold shadow-xs">
+                <span>SPMB 2026/2027</span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="font-extrabold text-xs text-[#22352B] truncate leading-tight">
-                {student.full_name}
-              </p>
-              <p className="text-[10.5px] text-[#787F7A] mt-0.5">
-                Panggilan: &ldquo;{student.nickname}&rdquo; &bull; No: {student.registration_no}
-              </p>
+
+            {/* Student Identity Card (Solid White Varian E) */}
+            {student ? (
+              <div className="bg-white rounded-2xl p-3.5 text-[#22352B] shadow-xs flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#2E6B4D] text-white font-black text-sm flex items-center justify-center flex-shrink-0">
+                  {student.nickname?.slice(0, 2).toUpperCase() || "AN"}
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9.5px] font-black uppercase text-[#2E6B4D] tracking-wide block">
+                    ANANDA TERPILIH
+                  </span>
+                  <p className="font-black text-sm sm:text-base text-[#22352B] truncate leading-tight">
+                    {student.full_name}
+                  </p>
+                  <p className="text-[11px] text-[#787F7A] mt-0.5">
+                    Panggilan: &ldquo;{student.nickname}&rdquo; &bull; No: {student.registration_no}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white/10 rounded-2xl p-3 text-center text-xs text-white/80">
+                Memuat data ananda...
+              </div>
+            )}
+
+            {/* 3 Metric Pills */}
+            <div className="grid grid-cols-3 gap-2 pt-0.5">
+              <div className="bg-white rounded-xl p-2 text-center shadow-xs">
+                <span className="block text-[9.5px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  PERTANYAAN
+                </span>
+                <span className="text-base font-black text-[#2D4535] block">
+                  {questions.length}
+                </span>
+              </div>
+              <div className="bg-white rounded-xl p-2 text-center shadow-xs">
+                <span className="block text-[9.5px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  TERJAWAB
+                </span>
+                <span className="text-base font-black text-[#8C3713] block">
+                  {answeredCount}/{questions.length}
+                </span>
+              </div>
+              <div className="bg-white rounded-xl p-2 text-center shadow-xs">
+                <span className="block text-[9.5px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  ESTIMASI
+                </span>
+                <span className="text-base font-black text-[#2D4558] block">
+                  ~3 Menit
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Instructions */}
       <div className="max-w-lg mx-auto px-4 py-3">

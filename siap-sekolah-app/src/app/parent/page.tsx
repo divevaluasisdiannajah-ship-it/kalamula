@@ -153,6 +153,73 @@ export default function GeneralParentFormPage() {
       </header>
 
       <div className="max-w-xl mx-auto px-4 py-5 space-y-5">
+        {/* Hero Banner: Kuesioner Wali Murid (Varian E Megamendung) */}
+        <div className="relative overflow-hidden bg-[#2D4535] rounded-3xl p-5 sm:p-6 shadow-sm text-white">
+          <div className="bg-megamendung-overlay" aria-hidden="true" />
+
+          <div className="relative z-10 space-y-3.5">
+            {/* Top row: badge + status */}
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[#2D4535] text-xs font-black shadow-xs tracking-wider uppercase">
+                <i className="mdi mdi-sprout text-sm" />
+                KUESIONER ORANG TUA
+              </div>
+              <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white text-[#2D4535] text-xs font-bold shadow-xs">
+                <i className="mdi mdi-calendar-check text-sm" />
+                <span>SPMB 2026/2027</span>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Selamat Datang, Bapak/Ibu Wali Murid
+              </h2>
+              <p className="text-xs text-white/80 font-medium mt-1 leading-relaxed">
+                Kuesioner ini membantu kami memahami kebiasaan, kemandirian, dan kebutuhan belajar ananda sejak hari pertama sekolah.
+              </p>
+            </div>
+
+            {/* 3 Metric Cards Putih Solid (Varian E) */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  PERTANYAAN
+                </span>
+                <span className="text-lg sm:text-xl font-black text-[#2D4535] tracking-tight block">
+                  {questions.length || "10"}
+                </span>
+                <span className="text-[10px] text-[#787F7A] font-semibold block">
+                  Butir Singkat
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  ESTIMASI
+                </span>
+                <span className="text-lg sm:text-xl font-black text-[#8C3713] tracking-tight block">
+                  ~3
+                </span>
+                <span className="text-[10px] text-[#8C3713] font-semibold block">
+                  Menit Selesai
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  INTEGRASI
+                </span>
+                <span className="text-lg sm:text-xl font-black text-[#2D4558] tracking-tight block">
+                  100%
+                </span>
+                <span className="text-[10px] text-[#2D4558] font-semibold block">
+                  Rapor Siswa
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Step 1: Pilih Nama Ananda */}
         {!selectedStudent ? (
           <div className="bg-white border border-[#E8E2D8] rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">

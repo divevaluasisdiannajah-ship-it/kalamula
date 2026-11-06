@@ -446,19 +446,22 @@ export default function AdminQuestionnairePage() {
 
           {/* Standee A4 Printable Box */}
           <div className="standee-print-card max-w-[650px] mx-auto bg-white border-2 border-[#284034] rounded-3xl p-8 sm:p-12 shadow-sm text-center space-y-6">
-            {/* Header Sekolah */}
-            <div className="flex flex-col items-center justify-center space-y-2 border-b-2 border-[#E8E2D8] pb-6">
-              <div className="w-14 h-14 rounded-2xl bg-[#9B3F18] text-white flex items-center justify-center text-3xl shadow-sm">
-                <i className="mdi mdi-sprout" />
-              </div>
-              <p className="text-xs font-black uppercase tracking-widest text-[#787F7A]">
-                YAYASAN NURUN NAJAH &bull; SPMB 2026/2027
-              </p>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#22352B] tracking-tight">
-                SD Islam An Najah
-              </h2>
-              <div className="inline-block bg-[#E4EFE9] text-[#284034] text-xs font-black uppercase tracking-wider px-4 py-1 rounded-full">
-                Kuesioner Observasi Siswa Baru
+            {/* Header Standee Bertekstur Megamendung (Varian E) */}
+            <div className="relative overflow-hidden bg-[#284034] rounded-2xl p-6 sm:p-7 text-white shadow-sm">
+              <div className="bg-megamendung-overlay" aria-hidden="true" />
+              <div className="relative z-10 flex flex-col items-center justify-center space-y-1.5">
+                <div className="w-12 h-12 rounded-2xl bg-white text-[#284034] flex items-center justify-center text-2xl shadow-xs">
+                  <i className="mdi mdi-sprout" />
+                </div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-white/80">
+                  YAYASAN NURUN NAJAH &bull; SPMB 2026/2027
+                </p>
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                  SD Islam An Najah
+                </h2>
+                <div className="inline-block bg-white text-[#284034] text-xs font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-xs mt-1">
+                  Kuesioner Observasi Siswa Baru
+                </div>
               </div>
             </div>
 
