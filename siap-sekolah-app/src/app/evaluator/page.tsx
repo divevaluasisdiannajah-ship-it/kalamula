@@ -248,26 +248,34 @@ export default function EvaluatorLoginPage() {
         </div>
 
         {/* Hero Banner: Deep Forest Pine (#385642) with Megamendung Pattern (Varian E) */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#385642] to-[#2D4535] rounded-3xl p-5 sm:p-6 text-white shadow-sm space-y-4">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#385642] to-[#2D4535] rounded-[32px] p-6 text-white shadow-md space-y-4">
           {/* Megamendung Adaptive Overlay */}
           <div className="bg-megamendung-overlay" aria-hidden="true" />
 
-          {/* Top Row: Icon + Portal Badge + Title + Subtitle */}
-          <div className="relative z-10 flex items-start gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center flex-shrink-0 text-2xl shadow-inner border border-white/10">
-              <i className="mdi mdi-shield-account-outline" />
+          {/* Top Tag & Active Badge (Sesuai Layout POS 1) */}
+          <div className="relative z-10 flex items-center justify-between gap-3">
+            <span className="bg-white text-[#284232] font-black text-[10px] tracking-wider uppercase px-3.5 py-1 rounded-full shadow-2xs">
+              PORTAL EVALUATOR
+            </span>
+
+            <div className="bg-white text-[#22352B] rounded-2xl px-3.5 py-1.5 text-center shadow-xs min-w-[70px]">
+              <div className="text-sm font-black font-mono leading-tight text-[#284232]">
+                {currentBatch?.student_count ?? 0}
+              </div>
+              <div className="text-[9px] font-bold text-[#787F7A] uppercase tracking-wider leading-none">
+                Peserta
+              </div>
             </div>
-            <div className="space-y-1 min-w-0">
-              <span className="bg-white text-[#284232] font-black text-[10px] tracking-wider uppercase px-3 py-0.5 rounded-full inline-block shadow-2xs">
-                PORTAL EVALUATOR
-              </span>
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-                Ruang Observasi SPMB
-              </h1>
-              <p className="text-xs text-white/85 font-normal leading-relaxed">
-                Pilih pos observasi dan masukkan 4 digit PIN tugas Anda.
-              </p>
-            </div>
+          </div>
+
+          {/* Title & Subtitle (Tanpa Ikon Kotak Kiri, Bersih & Luas Sesuai POS 1) */}
+          <div className="relative z-10 space-y-1">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+              Ruang Observasi SPMB
+            </h1>
+            <p className="text-xs text-white/85 font-normal leading-relaxed max-w-xl">
+              Pilih pos observasi dan masukkan 4 digit PIN tugas Anda.
+            </p>
           </div>
 
           {/* Active Batch Strip */}
