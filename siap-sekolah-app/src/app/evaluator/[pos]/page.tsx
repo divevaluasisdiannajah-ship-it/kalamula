@@ -651,22 +651,22 @@ export default function EvaluatorStudentListPage() {
                 : "Pos C (Bahasa Lisan & Motorik Halus)"}
             </p>
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-              {posNumber === 1
+              {config?.pos_name || (posNumber === 1
                 ? "Karakter, Emosi, Kemandirian & Dinamika Sosial"
                 : posNumber === 2
                 ? "Motorik Kasar & Koordinasi Fisik"
                 : posNumber === 3
                 ? "Kematangan Kognitif & Logika Berhitung"
-                : "Bahasa Lisan, Pra-Literasi & Motorik Halus"}
+                : "Bahasa Lisan, Pra-Literasi & Motorik Halus")}
             </h1>
             <p className="text-xs text-white/90 font-normal leading-relaxed max-w-xl pt-0.5">
-              {posNumber === 1
+              {config?.pos_description || (posNumber === 1
                 ? "Kemandirian berpisah, adab antrean, kelenturan transisi, & bermain bebas antar pos."
                 : posNumber === 2
                 ? "Keseimbangan meniti titian, tangkap bola, koordinasi fisik & rotasi pendamping."
                 : posNumber === 3
                 ? "Klasifikasi objek, logika pola berulang, perbandingan kuantitas & problem solving balok."
-                : "Menyimak cerita lisan (read-aloud), komunikasi verbal, & kontrol genggaman pensil (tripod grasp)."}
+                : "Menyimak cerita lisan (read-aloud), komunikasi verbal, & kontrol genggaman pensil (tripod grasp).")}
             </p>
           </div>
 

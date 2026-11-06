@@ -65,8 +65,35 @@ export default function EvaluatorLoginPage() {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string>("");
   const [posFilter, setPosFilter] = useState<"all" | "so" | "posA" | "posB" | "posC">("all");
+  const [posConfigs, setPosConfigs] = useState<Record<number, { name: string; desc: string }>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadConfigs() {
+      try {
+        const res = await fetch("/api/configs");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            const map: Record<number, { name: string; desc: string }> = {};
+            json.data.forEach((c: { pos_number: number; pos_name: string; pos_description?: string | null }) => {
+              if (c.pos_number > 0) {
+                map[c.pos_number] = {
+                  name: c.pos_name,
+                  desc: c.pos_description || "",
+                };
+              }
+            });
+            setPosConfigs(map);
+          }
+        }
+      } catch {
+        // offline fallback
+      }
+    }
+    loadConfigs();
+  }, []);
 
   useEffect(() => {
     async function loadBatches() {
@@ -441,6 +468,8 @@ export default function EvaluatorLoginPage() {
             {filteredPosList.map((pos) => {
               const details = POS_DETAILS[pos];
               const isSo = details.isSo;
+              const posTitle = posConfigs[pos]?.name || details.name;
+              const posDesc = posConfigs[pos]?.desc || details.desc;
 
               return (
                 <div
@@ -476,14 +505,14 @@ export default function EvaluatorLoginPage() {
                           {details.roleBadge}
                         </span>
                         <h3 className="text-sm font-extrabold text-[#22352B] group-hover:text-[#9C4322] transition-colors leading-snug">
-                          {details.name}
+                          {posTitle}
                         </h3>
                         <p className="text-[11px] font-semibold text-[#385642] mt-1 flex items-center gap-1.5 flex-wrap">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#385642]" />
                           <span>{details.evaluatorNames}</span>
                         </p>
                         <p className="text-xs text-[#565C58] mt-2 font-normal leading-relaxed">
-                          {details.desc}
+                          {posDesc}
                         </p>
                       </div>
                     </div>
@@ -659,7 +688,7 @@ export default function EvaluatorLoginPage() {
                     )}
                   </h2>
                   <p className="text-[11px] text-[#787F7A] truncate">
-                    {POS_DETAILS[activePos]?.name}
+                    {activePos ? (posConfigs[activePos]?.name || POS_DETAILS[activePos]?.name) : ""}
                   </p>
                 </div>
               </div>
