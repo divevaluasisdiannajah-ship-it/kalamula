@@ -179,14 +179,11 @@ export default function ParentFormPage() {
           <div className="bg-megamendung-overlay" aria-hidden="true" />
 
           <div className="relative z-10 space-y-3.5">
-            {/* Top row: badge + status */}
-            <div className="flex items-center justify-between">
+            {/* Top row: badge */}
+            <div className="flex items-center">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[#2D4535] text-xs font-black shadow-xs tracking-wider uppercase">
                 <Leaf weight="bold" size={14} className="text-[#2D4535]" />
                 KUESIONER ORANG TUA
-              </div>
-              <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white text-[#2D4535] text-xs font-bold shadow-xs">
-                <span>SPMB 2026/2027</span>
               </div>
             </div>
 
