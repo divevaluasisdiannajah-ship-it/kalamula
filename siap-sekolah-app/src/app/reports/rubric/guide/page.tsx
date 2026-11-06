@@ -1,11 +1,208 @@
 "use client";
 export const runtime = 'edge';
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 export default function CompleteAssessmentGuidePage() {
   const [activePageFilter, setActivePageFilter] = useState<number | "all">("all");
+  const [configs, setConfigs] = useState<Record<number, any>>({});
+  const [isSynced, setIsSynced] = useState(false);
+
+  useEffect(() => {
+    async function loadConfigs() {
+      try {
+        const res = await fetch("/api/configs");
+        if (res.ok) {
+          const json = await res.json();
+          const list = json.data || [];
+          const map: Record<number, any> = {};
+          list.forEach((c: any) => {
+            if (c.pos_number && c.is_active) {
+              map[c.pos_number] = {
+                ...c,
+                indicators: typeof c.indicators_json === "string" ? JSON.parse(c.indicators_json) : (c.indicators_json || []),
+                red_flags: typeof c.red_flags_json === "string" ? JSON.parse(c.red_flags_json) : (c.red_flags_json || []),
+              };
+            }
+          });
+          setConfigs(map);
+          setIsSynced(true);
+        }
+      } catch {
+        // Fallback to static data
+      }
+    }
+    loadConfigs();
+  }, []);
+
+  const getInd = useCallback(
+    (pos: number, id: string, fallback: { label: string; desc: string; d1: string; d2: string; d3: string; foundation?: string }) => {
+      const posCfg = configs[pos];
+      if (!posCfg?.indicators) return fallback;
+      const found = posCfg.indicators.find((i: any) => i.id === id);
+      if (!found) return fallback;
+      return {
+        label: found.label || fallback.label,
+        desc: found.description || fallback.desc,
+        d1: found.score_descriptors?.[1] || found.score_descriptors?.["1"] || fallback.d1,
+        d2: found.score_descriptors?.[2] || found.score_descriptors?.["2"] || fallback.d2,
+        d3: found.score_descriptors?.[3] || found.score_descriptors?.["3"] || fallback.d3,
+        foundation: found.foundation ? `Fondasi ${found.foundation}` : fallback.foundation,
+      };
+    },
+    [configs]
+  );
+
+  const getRedFlags = useCallback(
+    (pos: number, fallback: string[]): string[] => {
+      const posCfg = configs[pos];
+      if (!posCfg?.red_flags || posCfg.red_flags.length === 0) return fallback;
+      return posCfg.red_flags.map((rf: any) => String(rf.label || rf || ""));
+    },
+    [configs]
+  );
+
+  // ─── Pos 1 Indicators (Pages 2 & 3) ───
+  const so01 = getInd(1, "SO-01", {
+    label: "Berpisah dari Orang Tua",
+    desc: "Berpisah dari orang tua dengan tenang tanpa kecemasan berlebihan saat memasuki gerbang/titik awal observasi.",
+    d1: "Menangis histeris / menolak keras ditinggal / harus didampingi orang tua masuk ruangan.",
+    d2: "Sempat cemas/menangis sesaat, namun mau berpisah dan masuk setelah dibujuk pengamat.",
+    d3: "Berpisah dengan tenang, ceria, mandiri, dan langsung antusias menyapa guru pendamping.",
+    foundation: "Fondasi 3 • Kematangan Emosi",
+  });
+  const so02 = getInd(1, "SO-02", {
+    label: "Kemandirian Menaruh Barang Pribadi",
+    desc: "Mandiri melepaskan dan merapikan sepatu di rak serta menggantung tas pada loker/tempat yang disediakan.",
+    d1: "Barang pribadi ditinggal berserakan di lantai / butuh bantuan fisik penuh dari guru.",
+    d2: "Merapikan sepatu di rak dan menggantung tas dengan sedikit arahan verbal/pengingat.",
+    d3: "Spontan dan tertib membuka serta meletakkan sepatu di rak dan menaruh tas secara mandiri.",
+    foundation: "Fondasi 5 • Motorik & Self-Care",
+  });
+  const so03 = getInd(1, "SO-03", {
+    label: "Kepatuhan Mengikuti Instruksi saat Transisi",
+    desc: "Mengikuti instruksi pendamping dengan tertib saat berpindah antar ruang pos observasi.",
+    d1: "Mengabaikan instruksi, berlarian keluar barisan, atau menolak berpindah pos.",
+    d2: "Mengikuti transisi kelompok, sesekali perlu diingatkan untuk tetap tertib di barisan.",
+    d3: "Sangat tertib, fokus, berjalan tenang bersama kelompok, dan tanggap terhadap aba-aba pendamping.",
+    foundation: "Fondasi 2 • Sosial & Bahasa",
+  });
+  const so04 = getInd(1, "SO-04", {
+    label: "Kesantunan dan Budaya Antre",
+    desc: "Menggunakan kata santun (tolong, maaf, terima kasih) dan memiliki kesabaran menunggu giliran antrean.",
+    d1: "Menyerobot antrean teman / tidak sabar menunggu giliran / bersikap agresif saat menunggu.",
+    d2: "Mau mengantre tertib dan berucap santun jika diingatkan atau dicontohkan guru.",
+    d3: "Konsisten sabar menunggu giliran dan spontan berucap tolong, maaf, serta terima kasih.",
+    foundation: "Fondasi 1 • Agama & Budi Pekerti",
+  });
+  const so05 = getInd(1, "SO-05", {
+    label: "Regulasi Diri & Adaptasi Kesulitan",
+    desc: "Kemampuan menenangkan diri, mengendalikan emosi, dan bangkit kembali saat menghadapi kesulitan atau tantangan.",
+    d1: "Tantrum / menangis keras / melempar benda / mogok saat mengalami kesulitan kecil.",
+    d2: "Sempat merasa kesal atau frustrasi, namun mampu tenang kembali setelah ditenangkan guru.",
+    d3: "Tenang, sabar, gigih mencoba kembali, dan mampu meregulasi emosi diri secara mandiri.",
+    foundation: "Fondasi 3 • Kematangan Emosi",
+  });
+  const so06 = getInd(1, "SO-06", {
+    label: "Bermain Kooperatif & Berbagi",
+    desc: "Interaksi saat bermain bersama teman, kesediaan berbagi alat mainan/snack, dan dinamika sosial kelompok.",
+    d1: "Menolak interaksi sama sekali / merebut alat main teman secara paksa / memukul/mendorong.",
+    d2: "Bermain paralel di samping teman atau mau bergantian mainan jika difasilitasi oleh guru.",
+    d3: "Aktif berinteraksi positif, kooperatif, berinisiatif mengajak teman bermain, dan senang berbagi.",
+    foundation: "Fondasi 2 • Sosial & Bahasa",
+  });
+  const so07 = getInd(1, "SO-07", {
+    label: "Antusiasme & Refleksi Belajar",
+    desc: "Menunjukkan rasa ingin tahu positif, keceriaan belajar, dan mampu merefleksikan pengalaman belajarnya.",
+    d1: "Sangat tertekan, pasif total, tidak menunjukkan minat, atau menolak seluruh aktivitas.",
+    d2: "Mengikuti alur kegiatan dengan baik jika diberikan dorongan semangat sesekali.",
+    d3: "Sangat antusias, ceria, aktif bertanya, dan bangga menceritakan kembali pengalamannya.",
+    foundation: "Fondasi 6 • Pemaknaan Belajar",
+  });
+  const redFlagsPos1 = getRedFlags(1, [
+    "Tantrum histeris melantai (>10 menit) tanpa respon bujukan",
+    "Agresi fisik membahayakan (memukul, menggigit, atau menendang teman/guru)",
+    "Perilaku impulsif berbahaya (berlari mendadak keluar area aman sekolah)",
+    "Penolakan sosial ekstrem (menolak disapa sama sekali / kontak mata absen total)",
+  ]);
+
+  // ─── Pos 2 Indicators (Page 4) ───
+  const mk01 = getInd(2, "MK-01", {
+    label: "Keseimbangan & Kontrol Tubuh",
+    desc: "Berjalan lurus pada garis, meniti papan titian kayu, dan melompat 2 kaki bersamaan secara seimbang.",
+    d1: "Menolak melangkah di titian / hilang keseimbangan total (harus dipegangi erat sepanjang titian).",
+    d2: "Mampu meniti titian atau melompat dengan bantuan minimal (sentuhan 1 jari / sesekali goyah).",
+    d3: "Lincah, seimbang sempurna di titian, dan melompat 2 kaki mandiri dengan percaya diri dan mendarat stabil.",
+    foundation: "Fondasi 5 • Motorik & Self-Care",
+  });
+  const mk02 = getInd(2, "MK-02", {
+    label: "Koordinasi Mata-Tangan & Respons Gerak",
+    desc: "Merespons instruksi gerak verbal pemandu dan ketangkasan koordinasi tangkap-lempar bola dari jarak 1,5 meter.",
+    d1: "Tidak merespons instruksi gerak / luput total menangkap bola (bola selalu jatuh ke lantai).",
+    d2: "Respons gerakan agak lambat, berhasil menangkap/melempar bola setelah 1–2 kali percobaan dibimbing.",
+    d3: "Respons tanggap dan gesit, menangkap bola 2 tangan secara akurat dan melempar kembali dengan presisi.",
+    foundation: "Fondasi 5 • Motorik & Self-Care",
+  });
+  const redFlagsPos2 = getRedFlags(2, [
+    "Tonus otot kaku ekstrem (hipertonia) atau sangat lemas tanpa daya (hipotonia)",
+    "Sering terjatuh tanpa hambatan fisik jelas / kehilangan keseimbangan vestibular berat",
+    "Ketidakmampuan melompat 2 kaki lepas dari permukaan lantai pada usia > 6 tahun",
+  ]);
+
+  // ─── Pos 3 Indicators (Page 5) ───
+  const kg01 = getInd(3, "KG-01", {
+    label: "Klasifikasi Objek & Pola Berulang",
+    desc: "Mengelompokkan benda berdasarkan atribut tertentu (warna/bentuk/fungsi) dan melengkapi pola deret yang teratur.",
+    d1: "Belum mampu memilah benda atau melanjutkan pola deret sederhana walaupun telah dicontohkan.",
+    d2: "Mampu mengelompokkan 1 atribut atau melengkapi pola deret sederhana (AB-AB) setelah dipandu contoh.",
+    d3: "Mandiri dan tepat memilah multi-atribut serta melanjutkan pola deret kompleks (ABC-ABC / AABB).",
+    foundation: "Fondasi 4 • Kognitif & Literasi",
+  });
+  const kg02 = getInd(3, "KG-02", {
+    label: "Konsep Kuantitas & Problem Solving",
+    desc: "Memahami perbandingan banyak vs sedikit, membilang benda konkret 1–10, dan menyelesaikan tantangan puzzle/balok.",
+    d1: "Belum memahami konsep banyak-sedikit / bingung membilang konkret (1–5) / puzzle dibiarkan acak.",
+    d2: "Mampu membandingkan kuantitas & menyelesaikan puzzle dasar dengan sedikit petunjuk arahan.",
+    d3: "Pemahaman kuantitas kuat, membilang tepat satu-ke-satu, dan solutif merangkai balok/puzzle secara tuntas.",
+    foundation: "Fondasi 4 • Kognitif & Literasi",
+  });
+  const redFlagsPos3 = getRedFlags(3, [
+    "Disorientasi spasial berat / tidak mengenal konsep bentuk dan arah dasar sama sekali",
+    "Tidak memahami hubungan kausalitas (sebab-akibat) sederhana dalam percakapan sehari-hari",
+    "Ketidakmampuan membedakan ukuran kontras (besar vs kecil sekali) secara visual",
+  ]);
+
+  // ─── Pos 4 Indicators (Pages 6 & 7) ───
+  const bl01 = getInd(4, "BL-01", {
+    label: "Menyimak Cerita Lisan (Read-Aloud)",
+    desc: "Menyimak cerita lisan yang dibacakan guru dan memahami pesan moral serta alur kejadian sederhana.",
+    d1: "Tidak memperhatikan cerita, mudah terdistraksi total / tidak mampu menjawab pertanyaan tentang isi cerita.",
+    d2: "Menyimak cerita sebagian, mampu menjawab pertanyaan jika dibantu dengan pertanyaan pemancing.",
+    d3: "Menyimak dengan fokus penuh, memahami alur cerita, dan mampu menceritakan kembali intisarinya dengan runtut.",
+    foundation: "Fondasi 2 • Sosial & Bahasa",
+  });
+  const bl02 = getInd(4, "BL-02", {
+    label: "Komunikasi Gagasan Lisan",
+    desc: "Mengomunikasikan gagasan lisan tentang ide, gambar, atau karyanya dengan kalimat sederhana yang terstruktur.",
+    d1: "Menolak berbicara sama sekali / suara sangat lirih tak terdengar / berbicara dengan kata tanpa makna.",
+    d2: "Menjawab hanya dengan frasa pendek 1–2 kata, masih butuh dorongan untuk berbicara lebih lanjut.",
+    d3: "Berani, lancar, dan percaya diri mengutarakan gagasan dengan struktur kalimat sederhana yang jelas.",
+    foundation: "Fondasi 2 • Sosial & Bahasa",
+  });
+  const bl03 = getInd(4, "BL-03", {
+    label: "Kontrol Motorik Halus & Tripod Grasp",
+    desc: "Kontrol jemari tangan dan posisi genggaman pensil fungsional (tripod grasp) saat menulis, menarik garis, atau menggambar.",
+    d1: "Genggaman tinju penuh (palmar grasp) kaku tanpa kontrol jemari / tidak dapat memegang alat tulis.",
+    d2: "Genggaman peralihan (pincer / 4 jari), goresan garis pada kertas masih agak kaku dan bergetar.",
+    d3: "Dynamic tripod grasp fungsional mantap (ibu jari, telunjuk, jari tengah), goresan luwes dan terkontrol.",
+    foundation: "Fondasi 5 • Motorik & Self-Care",
+  });
+  const redFlagsPos4 = getRedFlags(4, [
+    "Bicara tidak dapat dipahami sama sekali oleh orang dewasa (speech delay berat)",
+    "Ekolalia — hanya mengulang kata yang diucapkan guru tanpa makna kontekstual",
+    "Tremor jemari tangan ekstrem / otot tangan sangat lemah sehingga pensil selalu terjatuh",
+  ]);
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -72,11 +269,17 @@ export default function CompleteAssessmentGuidePage() {
             <span>Portal Evaluator</span>
           </Link>
           <span className="hidden sm:inline-block w-px h-5 bg-[#E8E2D8]" />
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#2E5442]" />
             <span className="text-xs font-extrabold text-[#22352B]">
               Buku Panduan &amp; Rubrik Resmi (7 Halaman)
             </span>
+            {isSynced && (
+              <span className="hidden md:inline-flex items-center gap-1 bg-[#E4EFE9] text-[#2E6B4D] px-2 py-0.5 rounded-full text-[10px] font-bold">
+                <i className="mdi mdi-check-decagram text-xs" />
+                <span>Sinkron admin/configs</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -429,21 +632,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-3 px-3 align-top space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">SO-01</span>
-                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 3 &bull; Kematangan Emosi</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">{so01.foundation || "Fondasi 3 • Kematangan Emosi"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Berpisah dari Orang Tua</p>
+                      <p className="font-bold text-[#22352B]">{so01.label}</p>
                       <p className="text-[10px] text-[#787F7A] leading-tight">
-                        Berpisah dari orang tua dengan tenang tanpa kecemasan berlebihan saat memasuki gerbang/titik awal observasi.
+                        {so01.desc}
                       </p>
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Menangis histeris / menolak keras ditinggal / harus didampingi orang tua masuk ruangan.
+                      {so01.d1}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Sempat cemas/menangis sesaat, namun mau berpisah dan masuk setelah dibujuk pengamat.
+                      {so01.d2}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Berpisah dengan tenang, ceria, mandiri, dan langsung antusias menyapa guru pendamping.
+                      {so01.d3}
                     </td>
                   </tr>
 
@@ -452,21 +655,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-3 px-3 align-top space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">SO-02</span>
-                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 5 &bull; Motorik &amp; Self-Care</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">{so02.foundation || "Fondasi 5 • Motorik & Self-Care"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Kemandirian Menaruh Barang Pribadi</p>
+                      <p className="font-bold text-[#22352B]">{so02.label}</p>
                       <p className="text-[10px] text-[#787F7A] leading-tight">
-                        Mandiri melepaskan dan merapikan sepatu di rak serta menggantung tas pada loker/tempat yang disediakan.
+                        {so02.desc}
                       </p>
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Barang pribadi ditinggal berserakan di lantai / butuh bantuan fisik penuh dari guru.
+                      {so02.d1}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Merapikan sepatu di rak dan menggantung tas dengan sedikit arahan verbal/pengingat.
+                      {so02.d2}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Spontan dan tertib membuka serta meletakkan sepatu di rak dan menaruh tas secara mandiri.
+                      {so02.d3}
                     </td>
                   </tr>
                 </tbody>
@@ -520,21 +723,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-2 px-3 align-top space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-03</span>
-                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 2 &bull; Sosial &amp; Bahasa</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">{so03.foundation || "Fondasi 2 • Sosial & Bahasa"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Kepatuhan Mengikuti Instruksi saat Transisi</p>
+                      <p className="font-bold text-[#22352B]">{so03.label}</p>
                       <p className="text-[9.5px] text-[#787F7A] leading-tight">
-                        Mengikuti instruksi pendamping dengan tertib saat berpindah antar ruang pos observasi.
+                        {so03.desc}
                       </p>
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Mengabaikan instruksi, berlarian keluar barisan, atau menolak berpindah pos.
+                      {so03.d1}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Mengikuti transisi kelompok, sesekali perlu diingatkan untuk tetap tertib di barisan.
+                      {so03.d2}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Sangat tertib, fokus, berjalan tenang bersama kelompok, dan tanggap terhadap aba-aba pendamping.
+                      {so03.d3}
                     </td>
                   </tr>
 
@@ -543,21 +746,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-2 px-3 align-top space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-04</span>
-                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 1 &bull; Agama &amp; Budi Pekerti</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">{so04.foundation || "Fondasi 1 • Agama & Budi Pekerti"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Kesantunan dan Budaya Antre</p>
+                      <p className="font-bold text-[#22352B]">{so04.label}</p>
                       <p className="text-[9.5px] text-[#787F7A] leading-tight">
-                        Menggunakan kata santun (tolong, maaf, terima kasih) dan memiliki kesabaran menunggu giliran antrean.
+                        {so04.desc}
                       </p>
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Menyerobot antrean teman / tidak sabar menunggu giliran / bersikap agresif saat menunggu.
+                      {so04.d1}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Mau mengantre tertib dan berucap santun jika diingatkan atau dicontohkan guru.
+                      {so04.d2}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Konsisten sabar menunggu giliran dan spontan berucap tolong, maaf, serta terima kasih.
+                      {so04.d3}
                     </td>
                   </tr>
 
@@ -566,21 +769,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-2 px-3 align-top space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-05</span>
-                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 3 &bull; Kematangan Emosi</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">{so05.foundation || "Fondasi 3 • Kematangan Emosi"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Regulasi Diri &amp; Adaptasi Kesulitan</p>
+                      <p className="font-bold text-[#22352B]">{so05.label}</p>
                       <p className="text-[9.5px] text-[#787F7A] leading-tight">
-                        Kemampuan menenangkan diri, mengendalikan emosi, dan bangkit kembali saat menghadapi kesulitan atau tantangan.
+                        {so05.desc}
                       </p>
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Tantrum / menangis keras / melempar benda / mogok saat mengalami kesulitan kecil.
+                      {so05.d1}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Sempat merasa kesal atau frustrasi, namun mampu tenang kembali setelah ditenangkan guru.
+                      {so05.d2}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Tenang, sabar, gigih mencoba kembali, dan mampu meregulasi emosi diri secara mandiri.
+                      {so05.d3}
                     </td>
                   </tr>
 
@@ -589,21 +792,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-2 px-3 align-top space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-06</span>
-                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 2 &bull; Sosial &amp; Bahasa</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">{so06.foundation || "Fondasi 2 • Sosial & Bahasa"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Bermain Kooperatif &amp; Berbagi</p>
+                      <p className="font-bold text-[#22352B]">{so06.label}</p>
                       <p className="text-[9.5px] text-[#787F7A] leading-tight">
-                        Interaksi saat bermain bersama teman, kesediaan berbagi alat mainan/snack, dan dinamika sosial kelompok.
+                        {so06.desc}
                       </p>
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Menolak interaksi sama sekali / merebut alat main teman secara paksa / memukul/mendorong.
+                      {so06.d1}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Bermain paralel di samping teman atau mau bergantian mainan jika difasilitasi oleh guru.
+                      {so06.d2}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Aktif berinteraksi positif, kooperatif, berinisiatif mengajak teman bermain, dan senang berbagi.
+                      {so06.d3}
                     </td>
                   </tr>
 
@@ -612,21 +815,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-2 px-3 align-top space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10px]">SO-07</span>
-                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 6 &bull; Pemaknaan Belajar</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">{so07.foundation || "Fondasi 6 • Pemaknaan Belajar"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Antusiasme &amp; Refleksi Belajar</p>
+                      <p className="font-bold text-[#22352B]">{so07.label}</p>
                       <p className="text-[9.5px] text-[#787F7A] leading-tight">
-                        Menunjukkan rasa ingin tahu positif, keceriaan belajar, dan mampu merefleksikan pengalaman belajarnya.
+                        {so07.desc}
                       </p>
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Sangat tertekan, pasif total, tidak menunjukkan minat, atau menolak seluruh aktivitas.
+                      {so07.d1}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Mengikuti alur kegiatan dengan baik jika diberikan dorongan semangat sesekali.
+                      {so07.d2}
                     </td>
                     <td className="py-2 px-3 align-top text-[#565C58]">
-                      Sangat antusias, ceria, aktif bertanya, dan bangga menceritakan kembali pengalamannya.
+                      {so07.d3}
                     </td>
                   </tr>
                 </tbody>
@@ -640,10 +843,9 @@ export default function CompleteAssessmentGuidePage() {
                 <span>INDIKATOR PERHATIAN KHUSUS (RED FLAG) POS 1</span>
               </div>
               <ul className="space-y-0.5 text-[11px] text-[#565C58] pl-2">
-                <li>&bull; Tantrum histeris melantai (&gt;10 menit) tanpa respon bujukan</li>
-                <li>&bull; Agresi fisik membahayakan (memukul, menggigit, atau menendang teman/guru)</li>
-                <li>&bull; Perilaku impulsif berbahaya (berlari mendadak keluar area aman sekolah)</li>
-                <li>&bull; Penolakan sosial ekstrem (menolak disapa sama sekali / kontak mata absen total)</li>
+                {redFlagsPos1.map((rf: string, idx: number) => (
+                  <li key={idx}>&bull; {rf}</li>
+                ))}
               </ul>
             </div>
           </div>
@@ -752,21 +954,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-3 px-3 align-top space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">MK-01</span>
-                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 5 &bull; Motorik &amp; Self-Care</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">{mk01.foundation || "Fondasi 5 • Motorik & Self-Care"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Keseimbangan &amp; Kontrol Tubuh</p>
+                      <p className="font-bold text-[#22352B]">{mk01.label}</p>
                       <p className="text-[10px] text-[#787F7A] leading-tight">
-                        Berjalan lurus pada garis, meniti papan titian kayu, dan melompat 2 kaki bersamaan secara seimbang.
+                        {mk01.desc}
                       </p>
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Menolak melangkah di titian / hilang keseimbangan total (harus dipegangi erat sepanjang titian).
+                      {mk01.d1}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Mampu meniti titian atau melompat dengan bantuan minimal (sentuhan 1 jari / sesekali goyah).
+                      {mk01.d2}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Lincah, seimbang sempurna di titian, dan melompat 2 kaki mandiri dengan percaya diri dan mendarat stabil.
+                      {mk01.d3}
                     </td>
                   </tr>
 
@@ -775,21 +977,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-3 px-3 align-top space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">MK-02</span>
-                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 5 &bull; Motorik &amp; Self-Care</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">{mk02.foundation || "Fondasi 5 • Motorik & Self-Care"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Koordinasi Mata-Tangan &amp; Respons Gerak</p>
+                      <p className="font-bold text-[#22352B]">{mk02.label}</p>
                       <p className="text-[10px] text-[#787F7A] leading-tight">
-                        Merespons instruksi gerak verbal pemandu dan ketangkasan koordinasi tangkap-lempar bola dari jarak 1,5 meter.
+                        {mk02.desc}
                       </p>
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Tidak merespons instruksi gerak / luput total menangkap bola (bola selalu jatuh ke lantai).
+                      {mk02.d1}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Respons gerakan agak lambat, berhasil menangkap/melempar bola setelah 1–2 kali percobaan dibimbing.
+                      {mk02.d2}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Respons tanggap dan gesit, menangkap bola 2 tangan secara akurat dan melempar kembali dengan presisi.
+                      {mk02.d3}
                     </td>
                   </tr>
                 </tbody>
@@ -803,9 +1005,9 @@ export default function CompleteAssessmentGuidePage() {
                 <span>INDIKATOR PERHATIAN KHUSUS (RED FLAG) POS 2</span>
               </div>
               <ul className="space-y-0.5 text-[11px] text-[#565C58] pl-2">
-                <li>&bull; Tonus otot kaku ekstrem (hipertonia) atau sangat lemas tanpa daya (hipotonia)</li>
-                <li>&bull; Sering terjatuh tanpa hambatan fisik jelas / kehilangan keseimbangan vestibular berat</li>
-                <li>&bull; Ketidakmampuan melompat 2 kaki lepas dari permukaan lantai pada usia &gt; 6 tahun</li>
+                {redFlagsPos2.map((rf: string, idx: number) => (
+                  <li key={idx}>&bull; {rf}</li>
+                ))}
               </ul>
             </div>
           </div>
@@ -910,21 +1112,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-3 px-3 align-top space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">KG-01</span>
-                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 4 &bull; Kognitif &amp; Literasi</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">{kg01.foundation || "Fondasi 4 • Kognitif & Literasi"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Klasifikasi Objek &amp; Pola Berulang</p>
+                      <p className="font-bold text-[#22352B]">{kg01.label}</p>
                       <p className="text-[10px] text-[#787F7A] leading-tight">
-                        Mengelompokkan benda berdasarkan atribut tertentu (warna/bentuk/fungsi) dan melengkapi pola deret yang teratur.
+                        {kg01.desc}
                       </p>
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Belum mampu memilah benda atau melanjutkan pola deret sederhana walaupun telah dicontohkan.
+                      {kg01.d1}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Mampu mengelompokkan 1 atribut atau melengkapi pola deret sederhana (AB-AB) setelah dipandu contoh.
+                      {kg01.d2}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Mandiri dan tepat memilah multi-atribut serta melanjutkan pola deret kompleks (ABC-ABC / AABB).
+                      {kg01.d3}
                     </td>
                   </tr>
 
@@ -933,21 +1135,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-3 px-3 align-top space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10.5px]">KG-02</span>
-                        <span className="text-[9.5px] font-bold text-[#486B5A]">Fondasi 4 &bull; Kognitif &amp; Literasi</span>
+                        <span className="text-[9.5px] font-bold text-[#486B5A]">{kg02.foundation || "Fondasi 4 • Kognitif & Literasi"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Konsep Kuantitas &amp; Problem Solving</p>
+                      <p className="font-bold text-[#22352B]">{kg02.label}</p>
                       <p className="text-[10px] text-[#787F7A] leading-tight">
-                        Memahami perbandingan banyak vs sedikit, membilang benda konkret 1–10, dan menyelesaikan tantangan puzzle/balok.
+                        {kg02.desc}
                       </p>
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Belum memahami konsep banyak-sedikit / bingung membilang konkret (1–5) / puzzle dibiarkan acak.
+                      {kg02.d1}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Mampu membandingkan kuantitas &amp; menyelesaikan puzzle dasar dengan sedikit petunjuk arahan.
+                      {kg02.d2}
                     </td>
                     <td className="py-3 px-3 align-top text-[#565C58]">
-                      Pemahaman kuantitas kuat, membilang tepat satu-ke-satu, dan solutif merangkai balok/puzzle secara tuntas.
+                      {kg02.d3}
                     </td>
                   </tr>
                 </tbody>
@@ -961,9 +1163,9 @@ export default function CompleteAssessmentGuidePage() {
                 <span>INDIKATOR PERHATIAN KHUSUS (RED FLAG) POS 3</span>
               </div>
               <ul className="space-y-0.5 text-[11px] text-[#565C58] pl-2">
-                <li>&bull; Disorientasi spasial berat / tidak mengenal konsep bentuk dan arah dasar sama sekali</li>
-                <li>&bull; Tidak memahami hubungan kausalitas (sebab-akibat) sederhana dalam percakapan sehari-hari</li>
-                <li>&bull; Ketidakmampuan membedakan ukuran kontras (besar vs kecil sekali) secara visual</li>
+                {redFlagsPos3.map((rf: string, idx: number) => (
+                  <li key={idx}>&bull; {rf}</li>
+                ))}
               </ul>
             </div>
           </div>
@@ -1072,21 +1274,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-2.5 px-3 align-top space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10px]">BL-01</span>
-                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 2 &bull; Sosial &amp; Bahasa</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">{bl01.foundation || "Fondasi 2 • Sosial & Bahasa"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Menyimak Cerita Lisan (Read-Aloud)</p>
+                      <p className="font-bold text-[#22352B]">{bl01.label}</p>
                       <p className="text-[9.5px] text-[#787F7A] leading-tight">
-                        Menyimak cerita lisan yang dibacakan guru dan memahami pesan moral serta alur kejadian sederhana.
+                        {bl01.desc}
                       </p>
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Tidak memperhatikan cerita, mudah terdistraksi total / tidak mampu menjawab pertanyaan tentang isi cerita.
+                      {bl01.d1}
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Menyimak cerita sebagian, mampu menjawab pertanyaan jika dibantu dengan pertanyaan pemancing.
+                      {bl01.d2}
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Menyimak dengan fokus penuh, memahami alur cerita, dan mampu menceritakan kembali intisarinya dengan runtut.
+                      {bl01.d3}
                     </td>
                   </tr>
 
@@ -1095,21 +1297,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-2.5 px-3 align-top space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10px]">BL-02</span>
-                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 2 &bull; Sosial &amp; Bahasa</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">{bl02.foundation || "Fondasi 2 • Sosial & Bahasa"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Komunikasi Gagasan Lisan</p>
+                      <p className="font-bold text-[#22352B]">{bl02.label}</p>
                       <p className="text-[9.5px] text-[#787F7A] leading-tight">
-                        Mengomunikasikan gagasan lisan tentang ide, gambar, atau karyanya dengan kalimat sederhana yang terstruktur.
+                        {bl02.desc}
                       </p>
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Menolak berbicara sama sekali / suara sangat lirih tak terdengar / berbicara dengan kata tanpa makna.
+                      {bl02.d1}
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Menjawab hanya dengan frasa pendek 1–2 kata, masih butuh dorongan untuk berbicara lebih lanjut.
+                      {bl02.d2}
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Berani, lancar, dan percaya diri mengutarakan gagasan dengan struktur kalimat sederhana yang jelas.
+                      {bl02.d3}
                     </td>
                   </tr>
 
@@ -1118,21 +1320,21 @@ export default function CompleteAssessmentGuidePage() {
                     <td className="py-2.5 px-3 align-top space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-black text-[#9B3F18] text-[10px]">BL-03</span>
-                        <span className="text-[9px] font-bold text-[#486B5A]">Fondasi 5 &bull; Motorik &amp; Self-Care</span>
+                        <span className="text-[9px] font-bold text-[#486B5A]">{bl03.foundation || "Fondasi 5 • Motorik & Self-Care"}</span>
                       </div>
-                      <p className="font-bold text-[#22352B]">Kontrol Motorik Halus &amp; Tripod Grasp</p>
+                      <p className="font-bold text-[#22352B]">{bl03.label}</p>
                       <p className="text-[9.5px] text-[#787F7A] leading-tight">
-                        Kontrol jemari tangan dan posisi genggaman pensil fungsional (tripod grasp) saat menulis, menarik garis, atau menggambar.
+                        {bl03.desc}
                       </p>
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Genggaman tinju penuh (palmar grasp) kaku tanpa kontrol jemari / tidak dapat memegang alat tulis.
+                      {bl03.d1}
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Genggaman peralihan (pincer / 4 jari), goresan garis pada kertas masih agak kaku dan bergetar.
+                      {bl03.d2}
                     </td>
                     <td className="py-2.5 px-3 align-top text-[#565C58]">
-                      Dynamic tripod grasp fungsional mantap (ibu jari, telunjuk, jari tengah), goresan luwes dan terkontrol.
+                      {bl03.d3}
                     </td>
                   </tr>
                 </tbody>
@@ -1249,9 +1451,9 @@ export default function CompleteAssessmentGuidePage() {
                 <span>INDIKATOR PERHATIAN KHUSUS (RED FLAG) POS 4</span>
               </div>
               <ul className="space-y-0.5 text-[11px] text-[#565C58] pl-2">
-                <li>&bull; Bicara tidak dapat dipahami sama sekali oleh orang dewasa (speech delay berat)</li>
-                <li>&bull; Ekolalia &mdash; hanya mengulang kata yang diucapkan guru tanpa makna kontekstual</li>
-                <li>&bull; Tremor jemari tangan ekstrem / otot tangan sangat lemah sehingga pensil selalu terjatuh</li>
+                {redFlagsPos4.map((rf: string, idx: number) => (
+                  <li key={idx}>&bull; {rf}</li>
+                ))}
               </ul>
             </div>
 
