@@ -7,14 +7,16 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-[#F6F2E9] text-[#22352B] font-sans">
-      {/* Desktop Sidebar */}
-      <AdminSidebar />
+    <div className="flex min-h-screen bg-[#F6F2E9] text-[#22352B] font-sans print:bg-white print:min-h-0 print:block print:p-0 print:m-0">
+      {/* Desktop Sidebar (Hidden on Print) */}
+      <aside className="print:hidden">
+        <AdminSidebar />
+      </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        {/* Mobile Top Header (Visible only on < md screens) */}
-        <header className="md:hidden sticky top-0 z-30 bg-[#F6F2E9]/95 backdrop-blur-md border-b border-[#E8E2D8] px-4 py-2.5 flex items-center justify-between shadow-2xs">
+      <div className="flex-1 flex flex-col min-h-screen print:min-h-0 print:block print:p-0 print:m-0">
+        {/* Mobile Top Header (Visible only on < md screens, Hidden on Print) */}
+        <header className="md:hidden sticky top-0 z-30 bg-[#F6F2E9]/95 backdrop-blur-md border-b border-[#E8E2D8] px-4 py-2.5 flex items-center justify-between shadow-2xs print:hidden">
           <Link href="/admin" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#D67443] text-white rounded-xl flex items-center justify-center shadow-xs">
               <i className="mdi mdi-leaf text-xl" />
@@ -38,13 +40,15 @@ export default function AdminLayout({
         </header>
 
         {/* Page Children */}
-        <main className="flex-1 pb-24 md:pb-6">
+        <main className="flex-1 pb-24 md:pb-6 print:p-0 print:m-0 print:pb-0 print:block">
           {children}
         </main>
       </div>
 
-      {/* Mobile Bottom Nav */}
-      <AdminMobileNav />
+      {/* Mobile Bottom Nav (Hidden on Print) */}
+      <div className="print:hidden">
+        <AdminMobileNav />
+      </div>
     </div>
   );
 }

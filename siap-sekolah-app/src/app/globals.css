@@ -316,16 +316,35 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* ─── Pendampingan Khusus (Sinyal Observasi Afektif) ──────────── */
-.red-flag-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  background: #FAF0E8;
-  border: 1px solid #F2D8C7;
-  border-radius: 9999px;
-  color: #C86D51;
-  font-size: 11px;
-  font-weight: 700;
+/* ─── Global Clean Print Isolation ───────────────────────────── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body {
+    background: #FFFFFF !important;
+    color: #22352B !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  aside,
+  nav,
+  header,
+  footer,
+  .screen-only,
+  .print-hidden,
+  [role="navigation"] {
+    display: none !important;
+  }
 }
+

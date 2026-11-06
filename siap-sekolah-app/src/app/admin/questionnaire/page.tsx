@@ -182,25 +182,34 @@ export default function AdminQuestionnairePage() {
   const totalStudents = students.length;
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6 font-sans print:space-y-0 print:p-0 print:m-0">
       {/* ─── Embedded Print Style for A4 Standee ─── */}
       <style jsx global>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 10mm 15mm 10mm 15mm;
+            margin: 6mm 10mm;
           }
           *, *::before, *::after {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            box-sizing: border-box !important;
           }
           html, body {
             background: #ffffff !important;
             margin: 0 !important;
             padding: 0 !important;
             color: #22352B !important;
+            width: 100% !important;
+            height: 100% !important;
           }
-          .screen-only {
+          .screen-only,
+          aside,
+          nav,
+          header,
+          footer,
+          .print-hidden,
+          [role="navigation"] {
             display: none !important;
           }
           .standee-print-card {
@@ -210,19 +219,26 @@ export default function AdminQuestionnairePage() {
             box-shadow: none !important;
             border: 3px solid #284034 !important;
             border-radius: 28px !important;
-            padding: 18mm 14mm !important;
-            height: 275mm !important;
-            max-height: 275mm !important;
+            padding: 14mm 12mm !important;
+            width: 185mm !important;
+            max-width: 185mm !important;
+            height: 270mm !important;
+            max-height: 270mm !important;
             margin: 0 auto !important;
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+            overflow: hidden !important;
+          }
+          .standee-print-card * {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
           }
         }
       `}</style>
 
-      {/* ─── Screen Header ─── */}
-      <div className="screen-only flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E8E2D8]">
+      {/* ─── Screen Header (Hidden on Print) ─── */}
+      <div className="screen-only print:hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E8E2D8]">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#B85627]" />
@@ -283,7 +299,7 @@ export default function AdminQuestionnairePage() {
       {/* ─── TAB 1: EDITOR PERTANYAAN (MANDIRI) ─────────────────────────── */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === "editor" && (
-        <div className="screen-only space-y-6">
+        <div className="screen-only print:hidden space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-extrabold text-[#22352B]">
@@ -470,8 +486,8 @@ export default function AdminQuestionnairePage() {
       {/* ─── TAB 2: STANDEE CETAK QR RUANG TUNGGU (A4 SIAP PRINT) ────────── */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === "standee" && (
-        <div className="space-y-4">
-          <div className="screen-only flex items-center justify-between bg-white border border-[#E8E2D8] p-4 rounded-2xl shadow-2xs">
+        <div className="space-y-4 print:space-y-0 print:p-0 print:m-0">
+          <div className="screen-only print:hidden flex items-center justify-between bg-white border border-[#E8E2D8] p-4 rounded-2xl shadow-2xs">
             <div className="space-y-0.5">
               <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
                 Pratinjau Lembar Standee Ruang Tunggu (Format A4)
@@ -587,7 +603,7 @@ export default function AdminQuestionnairePage() {
       {/* ─── TAB 3: REKAP RESPON WALI MURID ─────────────────────────────── */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === "responses" && (
-        <div className="screen-only space-y-4">
+        <div className="screen-only print:hidden space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E8E2D8] p-4 rounded-2xl shadow-2xs">
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider text-[#22352B]">
@@ -695,7 +711,7 @@ export default function AdminQuestionnairePage() {
 
           {/* Modal View Detail Jawaban */}
           {selectedResponseStudent && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+            <div className="screen-only print:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
               <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-[#E8E2D8] max-h-[90vh] flex flex-col">
                 <div className="flex items-start justify-between pb-3 border-b border-[#E8E2D8]">
                   <div>
