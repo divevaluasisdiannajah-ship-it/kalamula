@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/admin/batches", label: "Kelola Gelombang", mobileLabel: "Gelombang", mdiIcon: "mdi-calendar-blank-outline" },
   { href: "/admin/students", label: "Data Calon Siswa", mobileLabel: "Siswa", mdiIcon: "mdi-account-multiple-outline" },
   { href: "/admin/configs", label: "Rubrik Asesmen", mobileLabel: "Rubrik", mdiIcon: "mdi-tune-vertical" },
+  { href: "/admin/questionnaire", label: "Kuesioner Ortu", mobileLabel: "Kuesioner", mdiIcon: "mdi-clipboard-list-outline" },
   { href: "/admin/classes", label: "Pembagian Kelas", mobileLabel: "Kelas", mdiIcon: "mdi-school-outline" },
   { href: "/admin/reports", label: "Laporan Siswa", mobileLabel: "Laporan", mdiIcon: "mdi-file-document-outline" },
 ];

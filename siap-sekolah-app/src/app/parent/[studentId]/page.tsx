@@ -1,53 +1,59 @@
 "use client";
 export const runtime = 'edge';
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle, Leaf } from "@phosphor-icons/react";
-
-const PARENT_QUESTIONS = [
-  {
-    id: "q1",
-    question: "Apakah putra/putri Anda pernah mengikuti pendidikan PAUD/TK?",
-    options: ["Belum pernah", "TK 1 tahun", "TK 2 tahun (A dan B)", "PAUD dan TK lengkap"],
-  },
-  {
-    id: "q2",
-    question: "Bagaimana kebiasaan anak saat berpisah dari orang tua di pagi hari?",
-    options: ["Sering menangis lama", "Kadang cemas", "Tenang setelah dibujuk", "Mandiri dan antusias"],
-  },
-  {
-    id: "q3",
-    question: "Apakah anak sudah dapat makan, minum, dan ke toilet secara mandiri?",
-    options: ["Belum mandiri", "Bisa makan sendiri saja", "Bisa makan dan ke toilet", "Mandiri sepenuhnya"],
-  },
-  {
-    id: "q4",
-    question: "Apakah anak memiliki riwayat keterlambatan bicara atau terapi tumbuh kembang?",
-    options: ["Tidak ada", "Pernah speech therapy", "Sedang menjalani terapi", "Ada kondisi khusus lain"],
-  },
-  {
-    id: "q5",
-    question: "Berapa lama rata-rata anak dapat fokus pada satu aktivitas bermain atau mewarnai?",
-    options: ["Kurang dari 5 menit", "5-10 menit", "10-20 menit", "Lebih dari 20 menit"],
-  },
-];
+import { DEFAULT_QUESTIONS, type QuestionnaireQuestion } from "@/types/questionnaire";
 
 export default function ParentFormPage() {
   const params = useParams();
   const studentId = params.studentId as string;
 
+  const [questions, setQuestions] = useState<QuestionnaireQuestion[]>(DEFAULT_QUESTIONS);
+  const [student, setStudent] = useState<any | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [qRes, sRes] = await Promise.all([
+        fetch("/api/questionnaire"),
+        fetch(`/api/students/${studentId}`),
+      ]);
+
+      if (qRes.ok) {
+        const qJson = await qRes.json();
+        if (qJson.data && Array.isArray(qJson.data)) {
+          setQuestions(qJson.data);
+        }
+      }
+
+      if (sRes.ok) {
+        const sJson = await sRes.json();
+        setStudent(sJson.data);
+      }
+    } catch {
+      // offline fallback
+    } finally {
+      setLoading(false);
+    }
+  }, [studentId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleSelect = (questionId: string, option: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
   };
 
   const handleSubmit = async () => {
-    if (Object.keys(answers).length < PARENT_QUESTIONS.length) {
-      alert("Mohon jawab seluruh 5 pertanyaan kuesioner terlebih dahulu.");
+    if (Object.keys(answers).length < questions.length) {
+      alert(`Mohon jawab seluruh ${questions.length} pertanyaan kuesioner terlebih dahulu.`);
       return;
     }
 
@@ -58,13 +64,14 @@ export default function ParentFormPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           student_id: studentId,
-          batch_id: "active",
+          batch_id: student?.batch_id || "active",
           responses_json: answers,
         }),
       });
 
       if (res.ok) {
         setSubmitted(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         alert("Gagal mengirim jawaban. Silakan coba lagi.");
       }
@@ -77,51 +84,81 @@ export default function ParentFormPage() {
 
   if (submitted) {
     return (
-      <main className="min-h-screen bg-ios-bg flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 bg-emerald-100 rounded-2xl flex items-center justify-center mb-5 shadow-ios-sm">
+      <main className="min-h-screen bg-[#F6F2E9] flex flex-col items-center justify-center p-6 text-center font-sans">
+        <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mb-5 shadow-xs">
           <CheckCircle weight="light" size={48} className="text-emerald-800" />
         </div>
-        <h1 className="text-xl font-bold text-ios-label tracking-tight mb-2">Terima Kasih!</h1>
-        <p className="text-xs text-ios-label-secondary max-w-sm leading-relaxed">
-          Kuesioner Anda telah berhasil tersimpan dan langsung terintegrasi dengan laporan profil diagnostik kesiapan belajar putra/putri Anda.
+        <h1 className="text-xl sm:text-2xl font-black text-[#22352B] tracking-tight mb-2">
+          Terima Kasih!
+        </h1>
+        <p className="text-xs sm:text-sm text-[#565C58] max-w-sm leading-relaxed">
+          Kuesioner untuk Ananda <strong className="text-[#22352B] underline">{student?.full_name || "putra/putri Anda"}</strong> telah berhasil tersimpan dan langsung terintegrasi dengan laporan diagnostik kesiapan belajar.
         </p>
-        <p className="text-[11px] text-ios-label-tertiary mt-6">
-          Anda dapat menutup halaman ini atau kembali mendampingi anak di ruang tunggu.
+        <p className="text-[11px] text-[#787F7A] mt-6">
+          Anda dapat menutup halaman ini atau kembali mendampingi ananda di ruang tunggu.
         </p>
       </main>
     );
   }
 
   const answeredCount = Object.keys(answers).length;
-  const isComplete = answeredCount === PARENT_QUESTIONS.length;
+  const isComplete = questions.length > 0 && answeredCount === questions.length;
 
   return (
-    <main className="min-h-screen bg-ios-bg pb-32">
+    <main className="min-h-screen bg-[#F6F2E9] text-[#22352B] font-sans pb-32">
       {/* Header with Soft Ambient Shadow */}
-      <header className="bg-ios-surface shadow-[0_2px_14px_rgba(30,35,32,0.03)] px-4 py-4 text-center">
-        <div className="w-12 h-12 bg-sage-100 rounded-ios-md flex items-center justify-center mx-auto mb-2 shadow-xs">
-          <Leaf weight="light" size={24} className="text-sage-800" />
+      <header className="bg-white border-b border-[#E8E2D8] px-4 py-4 text-center sticky top-0 z-20 shadow-2xs">
+        <div className="w-11 h-11 bg-[#FAF5F0] rounded-2xl flex items-center justify-center mx-auto mb-2 text-[#9B3F18]">
+          <Leaf weight="light" size={24} />
         </div>
-        <p className="font-brand lowercase text-2xl text-ios-label font-bold tracking-tight">kalamula</p>
-        <h1 className="text-base sm:text-lg font-bold text-ios-label tracking-tight mt-0.5">Kuesioner Orang Tua Calon Siswa</h1>
-        <p className="text-xs text-ios-label-secondary mt-1">
-          Memandu Transisi, Memetakan Fondasi
+        <p className="font-brand lowercase text-xl text-[#22352B] font-black tracking-tight leading-none">
+          kalamula
+        </p>
+        <h1 className="text-sm sm:text-base font-black text-[#22352B] tracking-tight mt-1">
+          Kuesioner Observasi Orang Tua
+        </h1>
+        <p className="text-[11px] text-[#787F7A] mt-0.5">
+          SD Islam An Najah &bull; SPMB 2026/2027
         </p>
       </header>
 
+      {/* Student Badge Card if loaded */}
+      {student && (
+        <div className="max-w-lg mx-auto px-4 pt-4">
+          <div className="bg-white border border-[#DFE7E2] rounded-2xl p-3.5 flex items-center gap-3 shadow-2xs">
+            <div className="w-9 h-9 rounded-full bg-[#2E6B4D] text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
+              {student.nickname?.slice(0, 2).toUpperCase() || "AN"}
+            </div>
+            <div className="min-w-0">
+              <p className="font-extrabold text-xs text-[#22352B] truncate leading-tight">
+                {student.full_name}
+              </p>
+              <p className="text-[10.5px] text-[#787F7A] mt-0.5">
+                Panggilan: &ldquo;{student.nickname}&rdquo; &bull; No: {student.registration_no}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Instructions */}
       <div className="max-w-lg mx-auto px-4 py-3">
-        <p className="text-xs text-ios-label-secondary bg-ios-surface rounded-xl p-3.5 shadow-xs leading-relaxed">
-          Mohon isi 5 pertanyaan singkat berikut sementara putra/putri Anda menjalani observasi di pos. Data ini bersifat <strong>rahasia</strong> dan bertujuan membantu guru merancang diferensiasi pembelajaran yang tepat.
+        <p className="text-xs text-[#565C58] bg-white border border-[#E8E2D8] rounded-2xl p-3.5 shadow-2xs leading-relaxed">
+          Mohon jawab pertanyaan singkat berikut sementara ananda menjalani kegiatan observasi di pos. Data ini bersifat <strong>rahasia</strong> dan bertujuan membantu guru merancang pendekatan pembelajaran yang tepat.
         </p>
       </div>
 
       {/* Questions List */}
       <div className="max-w-lg mx-auto px-4 space-y-4">
-        {PARENT_QUESTIONS.map((q, idx) => (
-          <fieldset key={q.id} className="ios-card p-4 sm:p-5 shadow-ios-card" role="radiogroup" aria-labelledby={`q-label-${q.id}`}>
-            <legend id={`q-label-${q.id}`} className="text-xs font-bold text-ios-label mb-3 leading-snug">
-              <span className="text-sage-800 mr-1">{idx + 1}.</span> {q.question}
+        {questions.map((q, idx) => (
+          <fieldset
+            key={q.id}
+            className="bg-white border border-[#E8E2D8] rounded-2xl p-4 sm:p-5 shadow-2xs"
+            role="radiogroup"
+            aria-labelledby={`q-label-${q.id}`}
+          >
+            <legend id={`q-label-${q.id}`} className="text-xs font-bold text-[#22352B] mb-3 leading-snug">
+              <span className="text-[#9B3F18] font-black mr-1">{idx + 1}.</span> {q.question}
             </legend>
             <div className="space-y-2">
               {q.options.map((option) => {
@@ -133,12 +170,11 @@ export default function ParentFormPage() {
                     role="radio"
                     aria-checked={isSelected}
                     onClick={() => handleSelect(q.id, option)}
-                    className={`w-full text-left px-4 py-3 rounded-ios-md shadow-xs transition-all text-xs
-                      focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:outline-none
+                    className={`w-full text-left px-4 py-3 rounded-xl transition-all text-xs border cursor-pointer active:scale-[0.99]
                       ${
                         isSelected
-                          ? "bg-sage-100 text-sage-950 font-bold shadow-ios-sm"
-                          : "bg-warm-50/70 text-ios-label hover:bg-warm-100"
+                          ? "bg-[#F4F8F5] border-[#2E6B4D] text-[#284034] font-bold shadow-2xs ring-1 ring-[#2E6B4D]"
+                          : "bg-[#FAF8F5] border-[#E8E2D8] text-[#565C58] hover:bg-white hover:text-[#22352B]"
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -146,12 +182,11 @@ export default function ParentFormPage() {
                         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors
                           ${
                             isSelected
-                              ? "border-sage-700 bg-sage-700 text-white"
-                              : "border-neutral-300"
-                          }
-                        `}
+                              ? "border-[#2E6B4D] bg-[#2E6B4D] text-white"
+                              : "border-[#DDD7CE] bg-white"
+                          }`}
                       >
-                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        {isSelected && <i className="mdi mdi-check text-[10px]" />}
                       </span>
                       <span>{option}</span>
                     </div>
@@ -161,40 +196,30 @@ export default function ParentFormPage() {
             </div>
           </fieldset>
         ))}
-      </div>
 
-      {/* Fixed Bottom Action Bar with Ambient Shadow */}
-      <div className="fixed bottom-0 left-0 right-0 bg-ios-surface/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(30,35,32,0.06)] px-4 py-3 pb-safe-bottom z-30">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-ios-label-secondary">
-              {answeredCount} dari {PARENT_QUESTIONS.length} pertanyaan terjawab
-            </span>
-            {/* Progress Bar */}
-            <div className="w-24 h-1.5 bg-neutral-200 rounded-full overflow-hidden" aria-hidden="true">
-              <div
-                className="h-full bg-sage-600 rounded-full transition-all duration-300"
-                style={{ width: `${(answeredCount / PARENT_QUESTIONS.length) * 100}%` }}
-              />
-            </div>
-          </div>
+        {/* Submit Button */}
+        <div className="pt-2">
           <button
             type="button"
+            disabled={!isComplete || submitting}
             onClick={handleSubmit}
-            disabled={submitting || !isComplete}
-            className={`ios-btn w-full text-xs font-bold rounded-ios-md transition-all
-              focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:outline-none
+            className={`w-full py-3.5 px-6 rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95
               ${
-                isComplete
-                  ? "bg-ios-blue text-white shadow-ios-sm hover:bg-sage-600"
-                  : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                isComplete && !submitting
+                  ? "bg-[#2E6B4D] hover:bg-[#24543D] text-white"
+                  : "bg-[#EFECE4] text-[#A8A09A] cursor-not-allowed"
               }`}
           >
-            {submitting ? "Mengirim Jawaban..." : isComplete ? "Kirim Jawaban Kuesioner" : `Lengkapi ${PARENT_QUESTIONS.length - answeredCount} Pertanyaan Lagi`}
+            {submitting ? (
+              <span>Mengirim Jawaban...</span>
+            ) : isComplete ? (
+              <span>Kirim Jawaban Kuesioner</span>
+            ) : (
+              <span>Lengkapi Seluruh Pertanyaan ({answeredCount}/{questions.length})</span>
+            )}
           </button>
         </div>
       </div>
     </main>
   );
 }
-
