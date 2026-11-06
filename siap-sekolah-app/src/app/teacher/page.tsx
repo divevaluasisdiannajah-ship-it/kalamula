@@ -179,91 +179,85 @@ export default function TeacherPortalPage() {
           </div>
         </div>
 
-        {/* Banner Utama: PROGRES OBSERVASI (Solid Green #486B5A) */}
-        <div className="bg-[#486B5A] rounded-3xl p-5 shadow-sm text-white space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-white/80 uppercase tracking-wider">
-              PROGRES OBSERVASI
-            </span>
-            <span className="bg-white/20 text-white font-extrabold px-2.5 py-0.5 rounded-full text-xs">
-              {completionPct}%
-            </span>
-          </div>
+        {/* Banner Utama: PROGRES OBSERVASI (Varian E Megamendung) */}
+        <div className="relative overflow-hidden bg-[#486B5A] rounded-3xl p-5 sm:p-6 shadow-sm text-white">
+          <div className="bg-megamendung-overlay" aria-hidden="true" />
 
-          <div className="flex items-baseline">
-            <span className="text-3xl font-extrabold text-white leading-none">
-              {report ? `${report.evaluatedCount}/${report.totalStudents}` : "..."}
-            </span>
-            <span className="text-xs font-bold text-white/80 ml-2">Siswa</span>
-          </div>
-
-          {/* Progress bar putih */}
-          <div className="w-full h-2 bg-white/25 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-white rounded-full transition-all duration-300"
-              style={{ width: `${completionPct}%` }}
-            />
-          </div>
-
-          {/* 2 Pills di bawah */}
-          <div className="flex items-center gap-2 pt-1 flex-wrap">
-            <div className="bg-[#F9E6DC] text-[#8C3713] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
-              <i className="mdi mdi-alert-circle-outline text-sm" />
-              <span>{redFlagStudents.length} Perlu Pendampingan</span>
+          <div className="relative z-10 space-y-4">
+            {/* Top row: badge + status */}
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[#486B5A] text-xs font-black shadow-xs tracking-wider uppercase">
+                <i className="mdi mdi-school-outline text-sm" />
+                PORTAL GURU
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[#486B5A] text-xs font-bold shadow-xs">
+                <i className="mdi mdi-check-circle-outline text-sm" />
+                <span>{completionPct}% Selesai</span>
+              </div>
             </div>
-            <div className="bg-white/15 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
-              <i className="mdi mdi-book-open-page-variant-outline text-sm" />
-              <span>TaRL: {groupAStudents.length}A / {groupBStudents.length}B</span>
+
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Progres Observasi & Diferensiasi
+              </h2>
+              <p className="text-xs text-white/80 font-medium mt-0.5">
+                Pemetaan kesiapan belajar & pembagian kelas adaptif Fase A
+              </p>
+            </div>
+
+            {/* Progress bar putih */}
+            <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden p-0.5">
+              <div
+                className="h-full bg-white rounded-full transition-all duration-300"
+                style={{ width: `${completionPct}%` }}
+              />
+            </div>
+
+            {/* 3 Metric Cards Putih Solid (Varian E) */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  TEROBSERVASI
+                </span>
+                <span className="text-lg sm:text-xl font-black text-[#486B5A] tracking-tight block">
+                  {report ? `${report.evaluatedCount}/${report.totalStudents}` : "..."}
+                </span>
+                <span className="text-[10px] text-[#787F7A] font-semibold block">
+                  Siswa
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  PENDAMPINGAN
+                </span>
+                <span className="text-lg sm:text-xl font-black text-[#8C3713] tracking-tight block">
+                  {redFlagStudents.length}
+                </span>
+                <span className="text-[10px] text-[#8C3713] font-semibold block">
+                  Perlu Atensi
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  TaRL KELAS
+                </span>
+                <span className="text-lg sm:text-xl font-black text-[#2D4558] tracking-tight block">
+                  {groupAStudents.length}A / {groupBStudents.length}B
+                </span>
+                <span className="text-[10px] text-[#2D4558] font-semibold block">
+                  Kelompok
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Grid 2x2 Kartu Metrik */}
+        {/* Grid 2 Kolom Kategori Pembelajaran TaRL */}
         <div className="grid grid-cols-2 gap-3 sm:gap-3.5">
-          {/* 1. Total Calon Siswa (Card Putih) */}
-          <div className="bg-white rounded-3xl p-4 sm:p-4.5 border border-[#E8E2D8]/60 shadow-sm flex flex-col justify-between min-h-[125px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider">
-                TOTAL CALON SISWA
-              </span>
-              <div className="w-8 h-8 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center flex-shrink-0">
-                <i className="mdi mdi-account-multiple-outline text-lg" />
-              </div>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-[#22352B] tracking-tight leading-none">
-                {report?.totalStudents || 0}{" "}
-                <span className="text-xs font-bold text-[#565C58]">Anak</span>
-              </p>
-              <p className="text-[11px] font-medium text-[#787F7A] mt-1.5 leading-tight">
-                Kapasitas 2 Kelas (1A & 1B)
-              </p>
-            </div>
-          </div>
-
-          {/* 2. Sinyal Pendampingan (Soft Peach #F9E6DC) */}
-          <div className="bg-[#F9E6DC] rounded-3xl p-4 sm:p-4.5 border border-[#F1CFC0] shadow-sm flex flex-col justify-between min-h-[125px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-[#8C3713] uppercase tracking-wider">
-                SINYAL PENDAMPINGAN
-              </span>
-              <div className="w-8 h-8 rounded-full bg-[#F1CFC0] text-[#8C3713] flex items-center justify-center flex-shrink-0">
-                <i className="mdi mdi-alert-outline text-lg" />
-              </div>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-[#8C3713] tracking-tight leading-none">
-                {redFlagStudents.length}{" "}
-                <span className="text-xs font-bold text-[#8C3713]">Anak</span>
-              </p>
-              <p className="text-[11px] font-medium text-[#8C3713]/80 mt-1.5 leading-tight">
-                Pendampingan afektif transisi
-              </p>
-            </div>
-          </div>
-
-          {/* 3. Kategori A Pra-Literasi (Warm Sand #EFE7D6) */}
-          <div className="bg-[#EFE7D6] rounded-3xl p-4 sm:p-4.5 border border-[#E8DFC8] shadow-sm flex flex-col justify-between min-h-[125px] text-[#7D5327]">
+          {/* 1. Kategori A Pra-Literasi (Warm Sand #EFE7D6) */}
+          <div className="bg-[#EFE7D6] rounded-3xl p-4 sm:p-4.5 border border-[#E8DFC8] shadow-sm flex flex-col justify-between min-h-[120px] text-[#7D5327]">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-extrabold text-[#7D5327] uppercase tracking-wider">
                 KATEGORI A (PRA-LITERASI)
@@ -278,13 +272,13 @@ export default function TeacherPortalPage() {
                 <span className="text-xs font-bold text-[#7D5327]">Anak</span>
               </p>
               <p className="text-[11px] font-medium text-[#7D5327]/80 mt-1.5 leading-tight">
-                Tingkat 1 & 2 (Simbol & Bunyi)
+                Tingkat 1 & 2 (Simbol Fonik & Bunyi)
               </p>
             </div>
           </div>
 
-          {/* 4. Kategori B Penguatan (Mint Sage #E4EFE9) */}
-          <div className="bg-[#E4EFE9] rounded-3xl p-4 sm:p-4.5 border border-[#CBE0D4] shadow-sm flex flex-col justify-between min-h-[125px] text-[#486B5A]">
+          {/* 2. Kategori B Penguatan (Mint Sage #E4EFE9) */}
+          <div className="bg-[#E4EFE9] rounded-3xl p-4 sm:p-4.5 border border-[#CBE0D4] shadow-sm flex flex-col justify-between min-h-[120px] text-[#486B5A]">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-extrabold text-[#486B5A] uppercase tracking-wider">
                 KATEGORI B (PENGUATAN)

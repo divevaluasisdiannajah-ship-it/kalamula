@@ -114,106 +114,72 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        {/* Page Title & Subtitle */}
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#22352B] tracking-tight">
-            Dashboard Admin
-          </h1>
-          <p className="text-xs text-[#565C58] mt-1">
-            Ringkasan status asesmen diagnostik kesiapan belajar calon siswa Fase A
-          </p>
-        </div>
+        {/* Hero Banner: Dashboard Koordinator SPMB (Varian E Megamendung) */}
+        <div className="relative overflow-hidden bg-[#2D4558] rounded-3xl p-5 sm:p-6 shadow-sm text-white">
+          <div className="bg-megamendung-overlay" aria-hidden="true" />
 
-        {/* Grid 2x2 Statistik */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-3.5">
-          {/* 1. Total Calon Siswa (Card Putih) */}
-          <div className="bg-white rounded-3xl p-4 sm:p-4.5 border border-[#E8E2D8]/60 shadow-sm flex flex-col justify-between min-h-[132px]">
+          <div className="relative z-10 space-y-4">
+            {/* Top row: badge + status */}
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider">
-                TOTAL CALON SISWA
-              </span>
-              <div className="w-8 h-8 rounded-full bg-[#E4EFE9] text-[#486B5A] flex items-center justify-center flex-shrink-0">
-                <i className="mdi mdi-account-multiple-outline text-lg" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[#2D4558] text-xs font-black shadow-xs tracking-wider uppercase">
+                <i className="mdi mdi-shield-crown-outline text-sm" />
+                PORTAL ADMIN
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[#2D4558] text-xs font-bold shadow-xs">
+                <i className="mdi mdi-calendar-check-outline text-sm" />
+                <span>{loading ? "..." : `${stats.activeBatches} Gelombang Aktif`}</span>
               </div>
             </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-[#22352B] tracking-tight leading-none">
-                {loading ? "..." : stats.totalStudents}{" "}
-                <span className="text-xs font-bold text-[#565C58]">Anak</span>
-              </p>
-              <p className="text-[11px] font-medium text-[#787F7A] mt-1.5 leading-tight">
-                {loading ? "Memuat..." : `${stats.genderBreakdown.L} Laki-laki / ${stats.genderBreakdown.P} Perempuan`}
-              </p>
-            </div>
-          </div>
 
-          {/* 2. Gelombang Aktif (Card Putih) */}
-          <div className="bg-white rounded-3xl p-4 sm:p-4.5 border border-[#E8E2D8]/60 shadow-sm flex flex-col justify-between min-h-[132px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider">
-                GELOMBANG AKTIF
-              </span>
-              <div className="w-8 h-8 rounded-full bg-[#E4EAF2] text-[#36506C] flex items-center justify-center flex-shrink-0">
-                <i className="mdi mdi-calendar-blank-outline text-lg" />
-              </div>
-            </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-[#22352B] tracking-tight leading-none">
-                {loading ? "..." : stats.activeBatches}{" "}
-                <span className="text-xs font-bold text-[#36506C]">Gelombang</span>
-              </p>
-              <p className="text-[11px] font-medium text-[#787F7A] mt-1.5 leading-tight">
-                dari {batches.length} total gelombang
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Dashboard Koordinator SPMB
+              </h1>
+              <p className="text-xs text-white/80 font-medium mt-0.5">
+                Monitoring pelaksanaan asesmen diagnostik & kesiapan belajar calon siswa Fase A
               </p>
             </div>
-          </div>
 
-          {/* 3. Selesai Diobservasi (Solid Green #486B5A) */}
-          <div className="bg-[#486B5A] rounded-3xl p-4 sm:p-4.5 shadow-sm flex flex-col justify-between min-h-[132px] text-white">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-white/80 uppercase tracking-wider">
-                SELESAI DIOBSERVASI
-              </span>
-              <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center flex-shrink-0">
-                <i className="mdi mdi-check-circle-outline text-lg" />
+            {/* 3 Metric Cards Putih Solid (Varian E) */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+              {/* 1. Total Siswa */}
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  TOTAL SISWA
+                </span>
+                <span className="text-lg sm:text-2xl font-black text-[#2D4558] tracking-tight block">
+                  {loading ? "..." : stats.totalStudents}
+                </span>
+                <span className="text-[10px] text-[#787F7A] font-semibold block truncate">
+                  {stats.genderBreakdown.L}L / {stats.genderBreakdown.P}P
+                </span>
               </div>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none">
-                {loading ? "..." : stats.evaluatedCount}{" "}
-                <span className="text-xs font-bold text-white/80">Anak</span>
-              </p>
-              {/* Progress bar putih */}
-              <div className="w-full h-1.5 bg-white/30 rounded-full my-1.5 overflow-hidden">
-                <div
-                  className="h-full bg-white rounded-full transition-all duration-300"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              <p className="text-[11px] font-medium text-white/80 leading-tight">
-                dari {stats.totalStudents} siswa terdaftar
-              </p>
-            </div>
-          </div>
 
-          {/* 4. Sinyal Pendampingan (Soft Peach #F9E6DC) */}
-          <div className="bg-[#F9E6DC] rounded-3xl p-4 sm:p-4.5 border border-[#F1CFC0] shadow-sm flex flex-col justify-between min-h-[132px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-[#8C3713] uppercase tracking-wider">
-                SINYAL PENDAMPINGAN
-              </span>
-              <div className="w-8 h-8 rounded-full bg-[#F1CFC0] text-[#8C3713] flex items-center justify-center flex-shrink-0">
-                <i className="mdi mdi-alert-outline text-lg" />
+              {/* 2. Terobservasi */}
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  SELESAI
+                </span>
+                <span className="text-lg sm:text-2xl font-black text-[#385642] tracking-tight block">
+                  {loading ? "..." : stats.evaluatedCount}
+                </span>
+                <span className="text-[10px] text-[#385642] font-bold block">
+                  {progressPercent}% Total
+                </span>
               </div>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-[#8C3713] tracking-tight leading-none">
-                {loading ? "..." : stats.redFlagCount}{" "}
-                <span className="text-xs font-bold text-[#8C3713]">Anak</span>
-              </p>
-              <p className="text-[11px] font-medium text-[#8C3713]/80 mt-1.5 leading-tight">
-                perlu pendekatan afektif bertahap
-              </p>
+
+              {/* 3. Perlu Pendampingan */}
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 text-center shadow-xs">
+                <span className="block text-[10px] font-bold text-[#787F7A] uppercase tracking-wider">
+                  PENDAMPINGAN
+                </span>
+                <span className="text-lg sm:text-2xl font-black text-[#8C3713] tracking-tight block">
+                  {loading ? "..." : stats.redFlagCount}
+                </span>
+                <span className="text-[10px] text-[#8C3713] font-semibold block">
+                  Sinyal Afektif
+                </span>
+              </div>
             </div>
           </div>
         </div>
