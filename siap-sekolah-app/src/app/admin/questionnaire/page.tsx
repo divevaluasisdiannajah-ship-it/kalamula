@@ -208,11 +208,12 @@ export default function AdminQuestionnairePage() {
             flex-direction: column !important;
             justify-content: space-between !important;
             box-shadow: none !important;
-            border: 2px solid #284034 !important;
-            border-radius: 24px !important;
-            padding: 24mm 16mm !important;
+            border: 3px solid #284034 !important;
+            border-radius: 28px !important;
+            padding: 18mm 14mm !important;
             height: 275mm !important;
             max-height: 275mm !important;
+            margin: 0 auto !important;
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
@@ -489,86 +490,94 @@ export default function AdminQuestionnairePage() {
             </button>
           </div>
 
-          {/* Standee A4 Printable Box */}
-          <div className="standee-print-card max-w-[650px] mx-auto bg-white border-2 border-[#284034] rounded-3xl p-8 sm:p-12 shadow-sm text-center space-y-6">
-            {/* Header Standee Bertekstur Megamendung (Varian E) */}
-            <div className="relative overflow-hidden bg-[#284034] rounded-2xl p-6 sm:p-7 text-white shadow-sm">
+          {/* Standee A4 Printable Box (Mengikuti Desain FigCraft) */}
+          <div className="standee-print-card max-w-[620px] mx-auto bg-white border-2 sm:border-[3px] border-[#284034] rounded-3xl p-6 sm:p-9 shadow-sm text-center space-y-5">
+            {/* Header Standee Kompak & Elegan (Mengikuti FigCraft) */}
+            <div className="relative overflow-hidden bg-[#284034] rounded-2xl p-5 sm:p-6 text-white shadow-sm">
               <div className="bg-megamendung-overlay" aria-hidden="true" />
-              <div className="relative z-10 flex flex-col items-center justify-center space-y-1.5">
-                <div className="w-12 h-12 rounded-2xl bg-white text-[#284034] flex items-center justify-center text-2xl shadow-xs">
-                  <i className="mdi mdi-sprout" />
-                </div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-white/80">
-                  YAYASAN PENDIDIKAN ISLAM AN-NAJAH MANDIRI &bull; SPMB 2026/2027
-                </p>
-                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <div className="relative z-10 flex flex-col items-center justify-center space-y-2">
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-serif">
                   SD Islam An Najah
                 </h2>
-                <div className="inline-block bg-white text-[#284034] text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs mt-1">
+                <div className="inline-block bg-white text-[#284034] text-[11px] sm:text-xs font-black uppercase tracking-wider px-4 sm:px-5 py-1.5 rounded-full shadow-xs">
                   Kuesioner Kesiapan Belajar &amp; Kebiasaan Anak di Rumah
                 </div>
-                <p className="text-[10px] text-white/80 max-w-sm mt-1">
+                <p className="text-xs text-[#D2E7DC] font-medium tracking-wide">
                   6 Kemampuan Fondasi Transisi PAUD ke SD
                 </p>
               </div>
             </div>
 
-            {/* QR Code Container */}
-            <div className="py-2 flex flex-col items-center justify-center space-y-3">
-              <div className="p-4 bg-white border-4 border-[#284034] rounded-2xl shadow-md inline-block">
+            {/* QR Code Container (Koordinasi Warna Brand #284034) */}
+            <div className="py-1 flex flex-col items-center justify-center space-y-3">
+              <div className="p-4 bg-white border-4 border-[#284034] rounded-3xl shadow-sm inline-block">
                 <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fobservasi.sdiannajah.ai.id%2Fparent&color=22352B&bgcolor=FFFFFF"
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fobservasi.sdiannajah.ai.id%2Fparent&color=284034&bgcolor=FFFFFF"
                   alt="QR Code Kuesioner Orang Tua"
-                  className="w-56 h-56 sm:w-64 sm:h-64 object-contain"
+                  width={240}
+                  height={240}
+                  className="w-52 h-52 sm:w-60 sm:h-60 object-contain mx-auto"
+                  loading="eager"
+                  decoding="async"
                 />
               </div>
 
-              <div className="space-y-0.5">
-                <p className="font-mono font-black text-sm text-[#22352B] tracking-wide">
+              <div className="space-y-1">
+                <p className="font-mono font-black text-base text-[#22352B] tracking-wide">
                   observasi.sdiannajah.ai.id/parent
                 </p>
-                <p className="text-xs font-bold text-[#9B3F18]">
-                  Pindai / Scan QR Code Melalui Kamera Ponsel
+                <p className="text-xs sm:text-sm font-bold text-[#9B3F18] flex items-center justify-center gap-1.5">
+                  <i className="mdi mdi-camera text-base" aria-hidden="true" />
+                  <span>Pindai / Scan QR Code Menggunakan Kamera Ponsel</span>
                 </p>
               </div>
             </div>
 
-            {/* 3 Petunjuk Singkat */}
-            <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl p-4 sm:p-5 text-left space-y-2.5">
-              <h4 className="text-xs font-black uppercase tracking-wider text-[#284034] text-center mb-1">
+            {/* 3 Petunjuk Singkat (Mengikuti Layout FigCraft) */}
+            <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl p-4 sm:p-5 text-left space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#284034] text-center">
                 Langkah Pengisian Kuesioner:
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-[#565C58]">
-                <div className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-[#E8E2D8]">
-                  <span className="w-5 h-5 rounded-full bg-[#284034] text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">
-                    1
-                  </span>
-                  <p className="text-[11px] leading-tight">
-                    Buka kamera ponsel Anda dan arahkan ke QR Code.
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="bg-white p-3 rounded-xl border border-[#E8E2D8] space-y-1.5 shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#284034] text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                      1
+                    </span>
+                    <strong className="text-[11px] text-[#284034] font-black">Langkah 1</strong>
+                  </div>
+                  <p className="text-[11px] text-[#565C58] leading-snug">
+                    Buka kamera ponsel Anda dan arahkan langsung ke QR Code di atas.
                   </p>
                 </div>
-                <div className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-[#E8E2D8]">
-                  <span className="w-5 h-5 rounded-full bg-[#284034] text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">
-                    2
-                  </span>
-                  <p className="text-[11px] leading-tight">
-                    Cari &amp; pilih nama ananda dari daftar siswa.
+                <div className="bg-white p-3 rounded-xl border border-[#E8E2D8] space-y-1.5 shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#284034] text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                      2
+                    </span>
+                    <strong className="text-[11px] text-[#284034] font-black">Langkah 2</strong>
+                  </div>
+                  <p className="text-[11px] text-[#565C58] leading-snug">
+                    Cari &amp; pilih nama Ananda tercinta dari daftar calon siswa.
                   </p>
                 </div>
-                <div className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-[#E8E2D8]">
-                  <span className="w-5 h-5 rounded-full bg-[#284034] text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">
-                    3
-                  </span>
-                  <p className="text-[11px] leading-tight">
-                    Pilih kebiasaan ananda (Selalu / Kadang / Belum) &amp; kirim.
+                <div className="bg-white p-3 rounded-xl border border-[#E8E2D8] space-y-1.5 shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#284034] text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                      3
+                    </span>
+                    <strong className="text-[11px] text-[#284034] font-black">Langkah 3</strong>
+                  </div>
+                  <p className="text-[11px] text-[#565C58] leading-snug">
+                    Jawab 20 kebiasaan ananda (Selalu / Kadang / Belum) &amp; kirim.
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Footer Standee */}
-            <p className="text-[10px] text-[#787F7A] pt-2 border-t border-[#E8E2D8]">
-              Data kuesioner otomatis terhubung dengan dokumen diagnostik kesiapan belajar ananda &bull; Panitia SPMB SD Islam An Najah
+            <p className="text-[10px] text-[#787F7A] pt-2 border-t border-[#E8E2D8] leading-relaxed">
+              Data kuesioner terhubung otomatis dengan dokumen diagnostik kesiapan belajar ananda &bull; Panitia SPMB SD Islam An Najah
             </p>
           </div>
         </div>
