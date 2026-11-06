@@ -177,13 +177,10 @@ export default function StudentReportPage() {
     { num: 6, code: "P6", name: "Pemaknaan Belajar Positif", score: clampScore(fScores[6] ?? profile.pos_scores[5], 2.9) },
   ];
 
-  const resolvedFoundationScores = useMemo(() => {
-    const map: Record<number, number> = {};
-    aspectList.forEach((item) => {
-      map[item.num] = item.score;
-    });
-    return map;
-  }, [aspectList]);
+  const resolvedFoundationScores: Record<number, number> = {};
+  aspectList.forEach((item) => {
+    resolvedFoundationScores[item.num] = item.score;
+  });
 
   const posNarrativeList = [
     {
