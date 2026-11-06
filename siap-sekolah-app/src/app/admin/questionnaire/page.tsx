@@ -3,7 +3,11 @@ export const runtime = "edge";
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { DEFAULT_QUESTIONS, type QuestionnaireQuestion } from "@/types/questionnaire";
+import {
+  DEFAULT_QUESTIONS,
+  QUESTIONNAIRE_CATEGORIES,
+  type QuestionnaireQuestion,
+} from "@/types/questionnaire";
 
 export default function AdminQuestionnairePage() {
   const [activeTab, setActiveTab] = useState<"editor" | "standee" | "responses">("editor");
@@ -66,10 +70,17 @@ export default function AdminQuestionnairePage() {
       ...questions,
       {
         id: newId,
+        category: "A. Kemandirian & Perawatan Diri (Self-Care)",
         question: "",
-        options: ["Pilihan 1", "Pilihan 2", "Pilihan 3"],
+        options: ["Selalu", "Kadang-Kadang", "Belum"],
       },
     ]);
+  };
+
+  const updateQuestionCategory = (index: number, category: string) => {
+    const updated = [...questions];
+    updated[index].category = category;
+    setQuestions(updated);
   };
 
   const updateQuestionText = (index: number, text: string) => {
@@ -107,6 +118,12 @@ export default function AdminQuestionnairePage() {
     }
     if (confirm("Hapus pertanyaan ini dari kuesioner?")) {
       setQuestions(questions.filter((_, i) => i !== qIndex));
+    }
+  };
+
+  const resetToDefault20Questions = () => {
+    if (confirm("Muat ulang seluruh 20 pertanyaan standar Kemampuan Fondasi PAUD ke SD?")) {
+      setQuestions(DEFAULT_QUESTIONS);
     }
   };
 
@@ -216,7 +233,7 @@ export default function AdminQuestionnairePage() {
             Kuesioner Orang Tua &amp; Standee QR
           </h1>
           <p className="text-xs text-[#565C58] mt-0.5">
-            Kelola pertanyaan riwayat ananda secara mandiri &amp; cetak 1 lembar QR Code untuk dipajang di ruang tunggu.
+            Kelola profil kesiapan bersekolah 6 kemampuan fondasi PAUD ke SD &amp; cetak 1 lembar QR Code ruang tunggu.
           </p>
         </div>
 
@@ -232,7 +249,7 @@ export default function AdminQuestionnairePage() {
             }`}
           >
             <i className="mdi mdi-tune text-base" />
-            <span>Editor Pertanyaan</span>
+            <span>Editor Pertanyaan ({questions.length})</span>
           </button>
           <button
             type="button"
@@ -266,17 +283,27 @@ export default function AdminQuestionnairePage() {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === "editor" && (
         <div className="screen-only space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-extrabold text-[#22352B]">
                 Daftar Pertanyaan Kuesioner ({questions.length} Pertanyaan)
               </h2>
               <p className="text-xs text-[#787F7A]">
-                Pertanyaan ini akan langsung muncul di HP orang tua saat mereka memindai QR Code di ruang tunggu.
+                Disusun berdasarkan 6 Kemampuan Fondasi Transisi PAUD ke SD (Kemendikbudristek).
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={resetToDefault20Questions}
+                className="bg-[#FAF8F5] hover:bg-white border border-[#E8E2D8] text-[#565C58] hover:text-[#22352B] px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                title="Muat ulang 20 pertanyaan baku"
+              >
+                <i className="mdi mdi-restore text-base" />
+                <span>Reset 20 Soal Baku</span>
+              </button>
+
               <button
                 type="button"
                 onClick={addQuestion}
@@ -342,6 +369,24 @@ export default function AdminQuestionnairePage() {
                   </button>
                 </div>
 
+                {/* Kategori Pertanyaan */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#565C58] mb-1">
+                    Dimensi / Kategori Kemampuan Fondasi
+                  </label>
+                  <select
+                    value={q.category || QUESTIONNAIRE_CATEGORIES[0]}
+                    onChange={(e) => updateQuestionCategory(qIndex, e.target.value)}
+                    className="w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs text-[#22352B] font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2E6B4D]"
+                  >
+                    {QUESTIONNAIRE_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Input Pertanyaan */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#565C58] mb-1">
@@ -351,7 +396,7 @@ export default function AdminQuestionnairePage() {
                     type="text"
                     value={q.question}
                     onChange={(e) => updateQuestionText(qIndex, e.target.value)}
-                    placeholder="Contoh: Apakah anak memiliki riwayat alergi makanan atau obat tertentu?"
+                    placeholder="Contoh: Mampu makan dan minum sendiri secara mandiri dan rapi."
                     className="w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#22352B] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2E6B4D]"
                   />
                 </div>
@@ -360,7 +405,7 @@ export default function AdminQuestionnairePage() {
                 <div className="space-y-2 pt-1 border-t border-[#FAF8F5]">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-[#565C58]">
-                      Pilihan Jawaban (Pilihan Ganda)
+                      Pilihan Jawaban (Pilihan Ganda / Radio Chips)
                     </span>
                     <button
                       type="button"
@@ -372,7 +417,7 @@ export default function AdminQuestionnairePage() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {q.options.map((opt, optIndex) => (
                       <div
                         key={optIndex}
@@ -454,14 +499,17 @@ export default function AdminQuestionnairePage() {
                   <i className="mdi mdi-sprout" />
                 </div>
                 <p className="text-[11px] font-black uppercase tracking-widest text-white/80">
-                  YAYASAN NURUN NAJAH &bull; SPMB 2026/2027
+                  YAYASAN PENDIDIKAN ISLAM AN-NAJAH MANDIRI &bull; SPMB 2026/2027
                 </p>
                 <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                   SD Islam An Najah
                 </h2>
-                <div className="inline-block bg-white text-[#284034] text-xs font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-xs mt-1">
-                  Kuesioner Observasi Siswa Baru
+                <div className="inline-block bg-white text-[#284034] text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs mt-1">
+                  Kuesioner Kesiapan Belajar &amp; Kebiasaan Anak di Rumah
                 </div>
+                <p className="text-[10px] text-white/80 max-w-sm mt-1">
+                  6 Kemampuan Fondasi Transisi PAUD ke SD
+                </p>
               </div>
             </div>
 
@@ -512,7 +560,7 @@ export default function AdminQuestionnairePage() {
                     3
                   </span>
                   <p className="text-[11px] leading-tight">
-                    Jawab pertanyaan singkat &amp; klik kirim jawaban.
+                    Pilih kebiasaan ananda (Selalu / Kadang / Belum) &amp; kirim.
                   </p>
                 </div>
               </div>
@@ -639,17 +687,17 @@ export default function AdminQuestionnairePage() {
           {/* Modal View Detail Jawaban */}
           {selectedResponseStudent && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-              <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-xl border border-[#E8E2D8]">
+              <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-[#E8E2D8] max-h-[90vh] flex flex-col">
                 <div className="flex items-start justify-between pb-3 border-b border-[#E8E2D8]">
                   <div>
                     <span className="text-[10px] font-black uppercase text-[#2E6B4D]">
-                      JAWABAN KUESIONER ORANG TUA
+                      JAWABAN KUESIONER ORANG TUA (20 INDIKATOR)
                     </span>
                     <h3 className="text-base font-black text-[#22352B]">
                       {selectedResponseStudent.student.full_name}
                     </h3>
                     <p className="text-xs text-[#787F7A]">
-                      No. Reg: {selectedResponseStudent.student.registration_no} &bull; Ortu: {selectedResponseStudent.student.parent_name || "-"}
+                      No. Reg: {selectedResponseStudent.student.registration_no} &bull; Panggilan: &ldquo;{selectedResponseStudent.student.nickname}&rdquo;
                     </p>
                   </div>
                   <button
@@ -661,25 +709,71 @@ export default function AdminQuestionnairePage() {
                   </button>
                 </div>
 
-                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                <div className="space-y-3 overflow-y-auto pr-1 flex-1">
                   {(() => {
                     const rawResp = selectedResponseStudent.response.responses_json;
                     const parsedResp = typeof rawResp === "string" ? JSON.parse(rawResp) : rawResp || {};
+                    const pName = parsedResp.__parent_name || selectedResponseStudent.student.parent_name;
+                    const sNotes = parsedResp.__special_notes;
 
-                    return questions.map((q, qIdx) => (
-                      <div key={q.id || qIdx} className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl p-3 space-y-1">
-                        <p className="text-[11px] font-bold text-[#565C58]">
-                          {qIdx + 1}. {q.question}
-                        </p>
-                        <p className="text-xs font-black text-[#284034]">
-                          👉 {parsedResp[q.id] || "Belum dijawab"}
-                        </p>
-                      </div>
-                    ));
+                    return (
+                      <>
+                        {/* Identity & Special Notes Alert */}
+                        <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl p-3.5 space-y-2 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[#787F7A]">Wali Pengisi:</span>
+                            <span className="font-bold text-[#22352B]">{pName || "Tidak dicantumkan"}</span>
+                          </div>
+                          {sNotes && (
+                            <div className="bg-[#FFF8E6] border border-[#F3DF9A] p-3 rounded-xl text-[#7A4B00] space-y-1">
+                              <span className="font-black text-[10.5px] uppercase flex items-center gap-1 text-[#9B3F18]">
+                                <i className="mdi mdi-alert-circle text-sm" /> Catatan Khusus Orang Tua:
+                              </span>
+                              <p className="text-xs leading-relaxed font-medium">{sNotes}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Questions & Answers */}
+                        <div className="space-y-2.5 pt-1">
+                          {questions.map((q, qIdx) => {
+                            const ans = parsedResp[q.id];
+                            let badgeClass = "bg-[#E4EFE9] text-[#2E6B4D] border-[#CBE0D4]";
+                            if (ans?.toLowerCase().includes("kadang")) {
+                              badgeClass = "bg-[#FAF5F0] text-[#9B3F18] border-[#EAD5C5]";
+                            } else if (ans?.toLowerCase().includes("belum")) {
+                              badgeClass = "bg-[#F0ECE1] text-[#565C58] border-[#DDD7CE]";
+                            }
+
+                            return (
+                              <div key={q.id || qIdx} className="bg-white border border-[#E8E2D8] rounded-xl p-3 space-y-1.5 shadow-2xs">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[10px] font-bold text-[#787F7A] uppercase">
+                                    {q.category || `Pertanyaan #${qIdx + 1}`}
+                                  </span>
+                                  {ans ? (
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-black border ${badgeClass}`}>
+                                      {ans}
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
+                                      Belum dijawab
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs font-bold text-[#22352B]">
+                                  {qIdx + 1}. {q.question}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    );
                   })()}
                 </div>
 
-                <div className="pt-2 flex justify-end">
+                <div className="pt-2 flex justify-end border-t border-[#E8E2D8]">
                   <button
                     type="button"
                     onClick={() => setSelectedResponseStudent(null)}

@@ -25,10 +25,15 @@ export async function GET() {
     }
 
     const parsed: QuestionnaireQuestion[] = JSON.parse(config.indicators_json);
+    // If the database still has the initial 5-question placeholder, upgrade to DEFAULT_QUESTIONS (20 questions)
+    const isOldPlaceholder =
+      parsed.length <= 5 &&
+      parsed.some((q) => q.question.includes("Apakah putra/putri Anda pernah mengikuti pendidikan PAUD/TK"));
+
     return NextResponse.json({
       success: true,
-      data: parsed.length > 0 ? parsed : DEFAULT_QUESTIONS,
-      is_default: false,
+      data: parsed.length > 0 && !isOldPlaceholder ? parsed : DEFAULT_QUESTIONS,
+      is_default: isOldPlaceholder || parsed.length === 0,
     });
   } catch (err: any) {
     return NextResponse.json({
