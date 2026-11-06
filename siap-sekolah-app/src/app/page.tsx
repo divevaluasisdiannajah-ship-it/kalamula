@@ -24,8 +24,8 @@ interface PortalConfig {
 const PORTALS: Record<PortalKey, PortalConfig> = {
   classroom: {
     key: "classroom",
-    title: "Asesmen Kualitatif untuk Diferensiasi Pembelajaran",
-    badge: "PORTAL ASESMEN",
+    title: "Jurnal Diferensiasi Kelas",
+    badge: "JURNAL KELAS",
     subtitle: "Pilih Jenjang Kelas 1-6 & Calon Siswa Baru",
     pin: "1111",
     href: "/classroom/select",
@@ -40,29 +40,29 @@ const PORTALS: Record<PortalKey, PortalConfig> = {
     key: "evaluator",
     title: "Observasi SPMB",
     badge: "PORTAL SPMB",
-    subtitle: "Observasi Rubrik, Pra-Literasi & Catatan Khusus",
+    subtitle: "Pemetaan Titik Awal Calon Siswa",
     pin: "2222",
     href: "/evaluator",
     icon: "mdi-clipboard-check-outline",
     iconBg: "bg-[#F9E6DC]",
-    iconColor: "text-[#B85627]",
-    badgeColor: "bg-[#F9E6DC] text-[#B85627] border-[#F2D8C7]",
-    dotColor: "bg-[#B85627]",
-    ringColor: "focus-visible:ring-[#B85627]",
+    iconColor: "text-[#9B3F18]",
+    badgeColor: "bg-[#F9E6DC] text-[#9B3F18] border-[#F2D8C7]",
+    dotColor: "bg-[#9B3F18]",
+    ringColor: "focus-visible:ring-[#9B3F18]",
   },
   admin: {
     key: "admin",
     title: "Admin SPMB",
     badge: "PORTAL ADMIN",
-    subtitle: "Kelola Gelombang, Pembagian Kelas & PDF Rekap",
+    subtitle: "Kelola Gelombang, Kelas & Laporan",
     pin: "1212",
     href: "/admin",
     icon: "mdi-view-dashboard-outline",
     iconBg: "bg-[#E4EAF2]",
-    iconColor: "text-[#36506C]",
-    badgeColor: "bg-[#E4EAF2] text-[#36506C] border-[#CCD7E5]",
-    dotColor: "bg-[#36506C]",
-    ringColor: "focus-visible:ring-[#36506C]",
+    iconColor: "text-[#2D4558]",
+    badgeColor: "bg-[#E4EAF2] text-[#2D4558] border-[#CCD7E5]",
+    dotColor: "bg-[#2D4558]",
+    ringColor: "focus-visible:ring-[#2D4558]",
   },
 };
 
@@ -197,7 +197,7 @@ export default function Home() {
   }, [isModalOpen, isModalVisible, handleDigit, handleDelete, closePinModal]);
 
   return (
-    <main className="min-h-screen bg-[#F6F2E9] text-[#22352B] flex flex-col items-center justify-between p-5 sm:p-8 font-sans relative overflow-hidden">
+    <main className="min-h-screen bg-[#F6F2E9] text-[#22352B] flex flex-col items-center justify-between p-5 sm:p-8 md:p-12 font-sans relative">
       {/* Embedded Animation Keyframes */}
       <style jsx global>{`
         @keyframes pinShake {
@@ -212,75 +212,53 @@ export default function Home() {
         }
       `}</style>
 
-      {/* 2 Decorative Pastel Circles in Background */}
-      <div
-        className="w-72 h-72 sm:w-84 sm:h-84 rounded-full bg-[#DCE9E2] absolute -top-12 -right-16 pointer-events-none"
-        aria-hidden="true"
-      />
-      <div
-        className="w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-[#F5DFD3] absolute top-28 -left-36 sm:top-24 sm:-left-44 pointer-events-none"
-        aria-hidden="true"
-      />
-
       {/* Top Spacer for Vertical Balance */}
-      <div className="w-full h-2 z-10" />
+      <div className="w-full h-2 sm:h-4 z-10" />
 
-      {/* App Header & Emblem */}
-      <div className="text-center max-w-md w-full my-auto py-6 sm:py-8 space-y-6 z-10">
+      {/* App Header & Emblem (Centered, Dignified & Clean) */}
+      <div className="text-center w-full max-w-4xl lg:max-w-5xl my-auto py-6 sm:py-10 space-y-8 z-10">
         <div>
-          {/* Logo Box in Warm Terracotta #D67443 */}
-          <div className="w-20 h-20 rounded-[1.6rem] bg-[#D67443] flex items-center justify-center mx-auto shadow-md transition-transform hover:scale-105 duration-300">
-            <i className="mdi mdi-leaf text-white text-4xl" />
+          {/* Logo Box in Warm Terracotta #D67443 (Enlarged on desktop, clean & dignified) */}
+          <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-[1.6rem] sm:rounded-[2.2rem] bg-[#D67443] flex items-center justify-center mx-auto shadow-md transition-transform hover:scale-105 duration-300">
+            <i className="mdi mdi-leaf text-white text-4xl sm:text-5xl" />
           </div>
 
-          <h1 className="font-brand lowercase text-4xl sm:text-[44px] text-[#22352B] tracking-tight font-extrabold leading-none mt-4">
+          <h1 className="font-brand lowercase text-4xl sm:text-5xl md:text-6xl text-[#22352B] tracking-tight font-extrabold leading-none mt-4 sm:mt-5">
             kalamula
           </h1>
-          <p className="text-xs sm:text-sm text-[#565C58] mt-2 font-medium tracking-normal">
+          <p className="text-xs sm:text-base md:text-lg text-[#565C58] mt-2 sm:mt-3 font-medium tracking-normal max-w-md mx-auto">
             Memandu Pembelajaran, Memetakan Potensi
           </p>
-
-          {/* Status Pill */}
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-1.5 rounded-full text-xs font-bold text-[#22352B] mt-3.5 shadow-xs border border-[#E8E2D8]/60">
-            <span className="w-2 h-2 rounded-full bg-[#4F936F] animate-pulse" />
-            <span>Ruang Observasi Aktif</span>
-          </div>
         </div>
 
-        {/* Role Selection Cards (Varian E Megamendung) */}
-        <div className="space-y-3.5 text-left pt-2">
-          <p className="text-xs font-bold text-[#787F7A] uppercase tracking-wider text-left mb-2 px-1">
-            PILIH RUANG MASUK
-          </p>
-
-          {/* 1. Asesmen Kualitatif (PIN: 1111) */}
+        {/* Role Selection Cards (3-Column Grid on Desktop, Stack on Mobile) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 pt-2 w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto">
+          {/* 1. Jurnal Diferensiasi Kelas (PIN: 1111) */}
           <button
             type="button"
             onClick={() => openPinModal("classroom")}
-            className="w-full text-left relative overflow-hidden bg-[#486B5A] text-white rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none group flex items-center justify-between cursor-pointer"
+            className="w-full relative overflow-hidden bg-[#486B5A] text-white rounded-3xl p-4 sm:p-5 md:py-7 md:px-5 shadow-sm hover:shadow-lg hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2 focus-visible:outline-none group cursor-pointer flex md:flex-col items-center justify-between md:justify-center text-left md:text-center md:h-[156px]"
           >
             <div className="bg-megamendung-overlay" aria-hidden="true" />
-            <div className="relative z-10 flex items-center gap-3.5 sm:gap-4 min-w-0">
-              <div className="w-13 h-13 sm:w-14 sm:h-14 bg-white text-[#486B5A] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
-                <i className="mdi mdi-human-male-board text-2xl" />
+            
+            {/* Desktop Center Layout & Mobile Row Layout */}
+            <div className="relative z-10 flex md:flex-col items-center md:justify-center gap-3.5 sm:gap-4 md:gap-3 min-w-0 w-full">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 md:w-15 md:h-15 bg-white text-[#486B5A] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
+                <i className="mdi mdi-human-male-board text-2xl md:text-3xl" />
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-white text-[#486B5A] shadow-xs inline-flex items-center gap-1 uppercase tracking-wider">
-                    <i className="mdi mdi-lock-outline text-[11px]" />
-                    <span>PORTAL ASESMEN &bull; PIN 1111</span>
-                  </span>
-                </div>
-                <p className="font-extrabold text-base sm:text-lg text-white leading-snug mt-1">
-                  Asesmen Kualitatif Pembelajaran
+              <div className="min-w-0 md:w-full">
+                <p className="font-bold text-base sm:text-lg md:text-xl text-white leading-snug">
+                  Jurnal Diferensiasi Kelas
                 </p>
-                <p className="text-xs text-white/80 mt-0.5 truncate leading-relaxed">
+                <p className="text-xs text-white/80 mt-0.5 truncate md:hidden">
                   Pilih Jenjang Kelas 1-6 &amp; Calon Siswa Baru
                 </p>
               </div>
             </div>
-            <div className="relative z-10 w-10 h-10 rounded-full bg-white text-[#486B5A] flex items-center justify-center flex-shrink-0 ml-3 group-hover:translate-x-0.5 transition-transform shadow-xs">
-              <i className="mdi mdi-chevron-right text-xl" />
+
+            {/* Mobile-only Chevron Indicator */}
+            <div className="relative z-10 w-9 h-9 rounded-full bg-white text-[#486B5A] flex md:hidden items-center justify-center flex-shrink-0 ml-3 shadow-xs">
+              <i className="mdi mdi-chevron-right text-lg" />
             </div>
           </button>
 
@@ -288,30 +266,26 @@ export default function Home() {
           <button
             type="button"
             onClick={() => openPinModal("evaluator")}
-            className="w-full text-left relative overflow-hidden bg-[#9B3F18] text-white rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#9B3F18] focus-visible:ring-offset-2 focus-visible:outline-none group flex items-center justify-between cursor-pointer"
+            className="w-full relative overflow-hidden bg-[#9B3F18] text-white rounded-3xl p-4 sm:p-5 md:py-7 md:px-5 shadow-sm hover:shadow-lg hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#9B3F18] focus-visible:ring-offset-2 focus-visible:outline-none group cursor-pointer flex md:flex-col items-center justify-between md:justify-center text-left md:text-center md:h-[156px]"
           >
             <div className="bg-megamendung-overlay" aria-hidden="true" />
-            <div className="relative z-10 flex items-center gap-3.5 sm:gap-4 min-w-0">
-              <div className="w-13 h-13 sm:w-14 sm:h-14 bg-white text-[#9B3F18] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
-                <i className="mdi mdi-clipboard-check-outline text-2xl" />
+            
+            <div className="relative z-10 flex md:flex-col items-center md:justify-center gap-3.5 sm:gap-4 md:gap-3 min-w-0 w-full">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 md:w-15 md:h-15 bg-white text-[#9B3F18] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
+                <i className="mdi mdi-clipboard-check-outline text-2xl md:text-3xl" />
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-white text-[#9B3F18] shadow-xs inline-flex items-center gap-1 uppercase tracking-wider">
-                    <i className="mdi mdi-lock-outline text-[11px]" />
-                    <span>PORTAL SPMB &bull; PIN 2222</span>
-                  </span>
-                </div>
-                <p className="font-extrabold text-base sm:text-lg text-white leading-snug mt-1">
+              <div className="min-w-0 md:w-full">
+                <p className="font-bold text-base sm:text-lg md:text-xl text-white leading-snug">
                   Observasi SPMB
                 </p>
-                <p className="text-xs text-white/80 mt-0.5 truncate leading-relaxed">
-                  Observasi Rubrik Pos, Pra-Literasi &amp; Catatan Khusus
+                <p className="text-xs text-white/80 mt-0.5 truncate md:hidden">
+                  Pemetaan Titik Awal Calon Siswa
                 </p>
               </div>
             </div>
-            <div className="relative z-10 w-10 h-10 rounded-full bg-white text-[#9B3F18] flex items-center justify-center flex-shrink-0 ml-3 group-hover:translate-x-0.5 transition-transform shadow-xs">
-              <i className="mdi mdi-chevron-right text-xl" />
+
+            <div className="relative z-10 w-9 h-9 rounded-full bg-white text-[#9B3F18] flex md:hidden items-center justify-center flex-shrink-0 ml-3 shadow-xs">
+              <i className="mdi mdi-chevron-right text-lg" />
             </div>
           </button>
 
@@ -319,38 +293,34 @@ export default function Home() {
           <button
             type="button"
             onClick={() => openPinModal("admin")}
-            className="w-full text-left relative overflow-hidden bg-[#2D4558] text-white rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#2D4558] focus-visible:ring-offset-2 focus-visible:outline-none group flex items-center justify-between cursor-pointer"
+            className="w-full relative overflow-hidden bg-[#2D4558] text-white rounded-3xl p-4 sm:p-5 md:py-7 md:px-5 shadow-sm hover:shadow-lg hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#2D4558] focus-visible:ring-offset-2 focus-visible:outline-none group cursor-pointer flex md:flex-col items-center justify-between md:justify-center text-left md:text-center md:h-[156px]"
           >
             <div className="bg-megamendung-overlay" aria-hidden="true" />
-            <div className="relative z-10 flex items-center gap-3.5 sm:gap-4 min-w-0">
-              <div className="w-13 h-13 sm:w-14 sm:h-14 bg-white text-[#2D4558] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
-                <i className="mdi mdi-view-dashboard-outline text-2xl" />
+            
+            <div className="relative z-10 flex md:flex-col items-center md:justify-center gap-3.5 sm:gap-4 md:gap-3 min-w-0 w-full">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 md:w-15 md:h-15 bg-white text-[#2D4558] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
+                <i className="mdi mdi-view-dashboard-outline text-2xl md:text-3xl" />
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-white text-[#2D4558] shadow-xs inline-flex items-center gap-1 uppercase tracking-wider">
-                    <i className="mdi mdi-lock-outline text-[11px]" />
-                    <span>PORTAL ADMIN &bull; PIN 1212</span>
-                  </span>
-                </div>
-                <p className="font-extrabold text-base sm:text-lg text-white leading-snug mt-1">
+              <div className="min-w-0 md:w-full">
+                <p className="font-bold text-base sm:text-lg md:text-xl text-white leading-snug">
                   Admin SPMB
                 </p>
-                <p className="text-xs text-white/80 mt-0.5 truncate leading-relaxed">
-                  Kelola Gelombang, Rubrik, Pembagian Kelas &amp; PDF Rekap
+                <p className="text-xs text-white/80 mt-0.5 truncate md:hidden">
+                  Kelola Gelombang, Kelas &amp; Laporan
                 </p>
               </div>
             </div>
-            <div className="relative z-10 w-10 h-10 rounded-full bg-white text-[#2D4558] flex items-center justify-center flex-shrink-0 ml-3 group-hover:translate-x-0.5 transition-transform shadow-xs">
-              <i className="mdi mdi-chevron-right text-xl" />
+
+            <div className="relative z-10 w-9 h-9 rounded-full bg-white text-[#2D4558] flex md:hidden items-center justify-center flex-shrink-0 ml-3 shadow-xs">
+              <i className="mdi mdi-chevron-right text-lg" />
             </div>
           </button>
         </div>
       </div>
 
       {/* Sapaan Hangat & Footer */}
-      <div className="text-center space-y-1 pb-3 sm:pb-4 z-10">
-        <p className="text-xs text-[#565C58] font-medium">
+      <div className="text-center space-y-1 pb-4 sm:pb-6 z-10">
+        <p className="text-xs sm:text-sm text-[#565C58] font-medium">
           Hari ini kita mengamati ritme belajar Ananda tanpa tergesa.
         </p>
         <p className="text-[11px] text-[#787F7A]">
@@ -448,92 +418,98 @@ export default function Home() {
                 }`}
                 aria-label={`PIN terisi ${pin.length} dari 4 digit`}
               >
-                {[0, 1, 2, 3].map((i) => {
-                  const isFilled = pin.length > i;
+                {[0, 1, 2, 3].map((idx) => {
+                  const isFilled = idx < pin.length;
                   return (
                     <div
-                      key={i}
-                      className={`w-4 h-4 rounded-full transition-all duration-150 ${
+                      key={idx}
+                      className={`w-4.5 h-4.5 rounded-full transition-all duration-200 border-2 ${
                         isSuccess
-                          ? "bg-[#2E6B4D] shadow-sm scale-125"
+                          ? "bg-emerald-600 border-emerald-600 scale-110"
                           : isFilled
-                          ? `${activePortal.dotColor} shadow-xs scale-115`
-                          : "border-2 border-[#C5B4A5] bg-transparent"
+                          ? `${activePortal.dotColor} ${activePortal.dotColor.replace("bg-", "border-")} scale-110 shadow-xs`
+                          : "bg-white border-[#DDD7CE]"
                       }`}
                     />
                   );
                 })}
               </div>
+
+              {/* Status Message / Error Message */}
+              <div className="h-5 flex items-center justify-center">
+                {error ? (
+                  <p className="text-xs text-red-600 font-bold animate-fadeIn flex items-center gap-1">
+                    <i className="mdi mdi-alert-circle text-sm" />
+                    <span>{error}</span>
+                  </p>
+                ) : loading ? (
+                  <p className="text-xs text-[#565C58] font-medium flex items-center gap-1.5">
+                    <i className="mdi mdi-loading mdi-spin text-sm text-[#486B5A]" />
+                    <span>Memverifikasi PIN...</span>
+                  </p>
+                ) : isSuccess ? (
+                  <p className="text-xs text-emerald-700 font-bold flex items-center gap-1 animate-fadeIn">
+                    <i className="mdi mdi-check-circle text-sm" />
+                    <span>Akses Berhasil! Mengalihkan...</span>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-[#A8A09A]">
+                    Tekan tombol angka di bawah atau gunakan keyboard
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <p className="text-xs text-[#B83A35] text-center font-bold bg-[#FCEEEF] p-2.5 rounded-xl border border-[#F2D8C7] animate-in fade-in duration-150">
-                {error}
-              </p>
-            )}
-
-            {/* Success Message */}
-            {isSuccess && (
-              <div className="flex items-center justify-center gap-2 text-xs text-[#2E6B4D] font-bold bg-[#E4EFE9] p-2.5 rounded-xl border border-[#C9DBD0] animate-in fade-in duration-150">
-                <i className="mdi mdi-check-circle text-base" />
-                <span>PIN benar! Mengarahkan ke {activePortal.badge}...</span>
-              </div>
-            )}
-
-            {/* Loading Status */}
-            {loading && !isSuccess && (
-              <div className="flex items-center justify-center gap-2 text-xs text-[#565C58] font-medium py-1 animate-pulse">
-                <i className="mdi mdi-loading mdi-spin text-base" />
-                <span>Memverifikasi PIN...</span>
-              </div>
-            )}
-
-            {/* Keypad 3 Kolom */}
-            <div
-              className={`grid grid-cols-3 gap-2 max-w-[240px] mx-auto transition-opacity ${
-                loading || isSuccess ? "opacity-50 pointer-events-none" : ""
-              }`}
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+            {/* Numeric Keypad Grid */}
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
+              {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((digit) => (
                 <button
-                  key={num}
+                  key={digit}
                   type="button"
-                  onClick={() => handleDigit(String(num))}
+                  onClick={() => handleDigit(digit)}
                   disabled={loading || isSuccess}
-                  className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.92] transition-all flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#385642] focus-visible:outline-none"
-                  aria-label={`Digit ${num}`}
+                  className="h-14 rounded-2xl bg-[#FAF8F5] hover:bg-[#F2ECE1] border border-[#E8E2D8] text-[#22352B] text-xl font-bold transition-all shadow-2xs active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center font-sans"
                 >
-                  {num}
+                  {digit}
                 </button>
               ))}
 
-              <div />
+              {/* Empty placeholder */}
+              <div aria-hidden="true" />
 
+              {/* Digit 0 */}
               <button
                 type="button"
                 onClick={() => handleDigit("0")}
                 disabled={loading || isSuccess}
-                className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-2xl h-12 font-bold font-mono tabular-nums text-lg text-[#22352B] hover:bg-[#F3EFE6] active:scale-[0.92] transition-all flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#385642] focus-visible:outline-none"
-                aria-label="Digit 0"
+                className="h-14 rounded-2xl bg-[#FAF8F5] hover:bg-[#F2ECE1] border border-[#E8E2D8] text-[#22352B] text-xl font-bold transition-all shadow-2xs active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center font-sans"
               >
                 0
               </button>
 
+              {/* Backspace Button */}
               <button
                 type="button"
                 onClick={handleDelete}
                 disabled={loading || isSuccess || pin.length === 0}
-                className="bg-[#FAF0E8] text-[#9C4322] border border-[#F2D8C7] rounded-2xl h-12 font-bold hover:bg-[#F5E6DC] active:scale-[0.92] transition-all flex items-center justify-center shadow-2xs cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[#385642] focus-visible:outline-none"
-                aria-label="Hapus satu digit"
+                className="h-14 rounded-2xl bg-[#FAF8F5] hover:bg-[#F2ECE1] border border-[#E8E2D8] text-[#787F7A] hover:text-[#9B3F18] transition-all shadow-2xs active:scale-95 disabled:opacity-40 cursor-pointer flex items-center justify-center"
+                aria-label="Hapus Satu Digit"
               >
-                <i className="mdi mdi-backspace-outline text-xl" />
+                <i className="mdi mdi-backspace-outline text-2xl" />
               </button>
             </div>
 
-            <p className="text-[10px] text-[#787F7A] text-center pt-1">
-              Dapat menggunakan keyboard angka fisik atau tombol layar.
-            </p>
+            {/* Cancel Button */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={closePinModal}
+                disabled={loading || isSuccess}
+                className="w-full py-2.5 text-xs text-[#787F7A] hover:text-[#22352B] font-bold transition cursor-pointer"
+              >
+                Batal
+              </button>
+            </div>
           </div>
         </div>
       )}
