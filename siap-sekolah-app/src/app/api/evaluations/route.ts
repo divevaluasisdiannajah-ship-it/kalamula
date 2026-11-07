@@ -17,30 +17,22 @@ export async function GET(request: Request) {
     const db = getDB();
     let query = db.select().from(evaluationsTable);
 
+    const conditions = [];
+    if (studentId) {
+      conditions.push(eq(evaluationsTable.student_id, studentId));
+    }
+    if (batchId) {
+      conditions.push(eq(evaluationsTable.batch_id, batchId));
+    }
+    if (posNumber) {
+      conditions.push(eq(evaluationsTable.pos_number, parseInt(posNumber, 10)));
+    }
+
     let evaluations: Evaluation[];
-    if (studentId && batchId) {
-      evaluations = (await query
-        .where(
-          and(eq(evaluationsTable.student_id, studentId), eq(evaluationsTable.batch_id, batchId))
-        )
-        .all()) as Evaluation[];
-    } else if (batchId && posNumber) {
-      evaluations = (await query
-        .where(
-          and(
-            eq(evaluationsTable.batch_id, batchId),
-            eq(evaluationsTable.pos_number, parseInt(posNumber))
-          )
-        )
-        .all()) as Evaluation[];
-    } else if (studentId) {
-      evaluations = (await query
-        .where(eq(evaluationsTable.student_id, studentId))
-        .all()) as Evaluation[];
-    } else if (batchId) {
-      evaluations = (await query
-        .where(eq(evaluationsTable.batch_id, batchId))
-        .all()) as Evaluation[];
+    if (conditions.length === 1) {
+      evaluations = (await query.where(conditions[0]).all()) as Evaluation[];
+    } else if (conditions.length > 1) {
+      evaluations = (await query.where(and(...conditions)).all()) as Evaluation[];
     } else {
       evaluations = (await query.all()) as Evaluation[];
     }

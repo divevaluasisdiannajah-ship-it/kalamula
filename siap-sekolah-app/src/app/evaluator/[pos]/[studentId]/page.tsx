@@ -9,7 +9,7 @@ import { PosStepIndicator } from "@/components/aetrium/PosStepIndicator";
 import { SkeletonAssessmentForm } from "@/components/aetrium/SkeletonAssessmentForm";
 import { EvaluationConfirmDialog } from "@/components/aetrium/EvaluationConfirmDialog";
 import { saveDraftEvaluation, loadDraftEvaluation, enqueuePendingSync } from "@/lib/idb";
-import type { Student, AssessmentConfig, AssessmentConfigParsed, ReadingLevel, ScoreValue } from "@/types";
+import type { Student, Evaluation, AssessmentConfig, AssessmentConfigParsed, ReadingLevel, ScoreValue } from "@/types";
 import { FOUNDATION_LABELS } from "@/types";
 
 export default function EvaluationFormPage() {
@@ -36,6 +36,23 @@ export default function EvaluationFormPage() {
   const [saving, setSaving] = useState(false);
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ─── Valid Indicators & Sanitized Scores for this Pos ────────
+  const validIndicatorIds = useMemo(() => {
+    return new Set(config?.indicators.map((i) => i.id) || []);
+  }, [config]);
+
+  // Clean scores strictly matching this pos's indicators (defends against foreign pos leakage)
+  const cleanScores = useMemo(() => {
+    if (validIndicatorIds.size === 0) return scores;
+    const cleaned: Record<string, ScoreValue> = {};
+    for (const [key, val] of Object.entries(scores)) {
+      if (validIndicatorIds.has(key)) {
+        cleaned[key] = val;
+      }
+    }
+    return cleaned;
+  }, [scores, validIndicatorIds]);
 
   // Viewport detection for inline textarea vs bottom sheet
   useEffect(() => {
@@ -91,7 +108,7 @@ export default function EvaluationFormPage() {
 
       if (eRes.ok) {
         const eData = await eRes.json();
-        const existing = (eData.data || [])[0];
+        const existing = (eData.data || []).find((ev: Evaluation) => ev.pos_number === posNumber);
         if (existing) {
           try {
             setScores(JSON.parse(existing.scores_json || "{}"));
@@ -106,10 +123,12 @@ export default function EvaluationFormPage() {
 
       // Check IndexedDB draft
       const draft = await loadDraftEvaluation(studentId, posNumber);
-      if (draft?.scores) setScores(draft.scores);
-      if (draft?.red_flags) setRedFlags(draft.red_flags);
-      if (draft?.reading_level) setReadingLevel(draft.reading_level);
-      if (draft?.anecdotal_note) setAnecdotalNote(draft.anecdotal_note);
+      if (draft && draft.pos_number === posNumber) {
+        if (draft.scores) setScores(draft.scores);
+        if (draft.red_flags) setRedFlags(draft.red_flags);
+        if (draft.reading_level) setReadingLevel(draft.reading_level);
+        if (draft.anecdotal_note) setAnecdotalNote(draft.anecdotal_note);
+      }
     } catch {
       // offline: use cached/draft data
     } finally {
@@ -129,7 +148,7 @@ export default function EvaluationFormPage() {
         await saveDraftEvaluation(studentId, posNumber, {
           student_id: studentId,
           pos_number: posNumber,
-          scores: scores,
+          scores: cleanScores,
           red_flags: redFlags,
           reading_level: readingLevel,
           anecdotal_note: anecdotalNote,
@@ -139,13 +158,13 @@ export default function EvaluationFormPage() {
         // IDB error
       }
     }, 500);
-  }, [studentId, posNumber, scores, redFlags, readingLevel, anecdotalNote]);
+  }, [studentId, posNumber, cleanScores, redFlags, readingLevel, anecdotalNote]);
 
   useEffect(() => {
     if (!loading) {
       scheduleAutoSave();
     }
-  }, [scores, redFlags, readingLevel, anecdotalNote, loading, scheduleAutoSave]);
+  }, [cleanScores, redFlags, readingLevel, anecdotalNote, loading, scheduleAutoSave]);
 
   // Close note sheet on Escape key
   useEffect(() => {
@@ -168,7 +187,7 @@ export default function EvaluationFormPage() {
       student_id: studentId,
       batch_id: batchId || student?.batch_id || "",
       pos_number: posNumber,
-      scores_json: JSON.stringify(scores),
+      scores_json: JSON.stringify(cleanScores),
       red_flags_json: JSON.stringify(redFlags),
       reading_level: posNumber === 4 ? readingLevel : null,
       anecdotal_note: anecdotalNote.trim() || null,
@@ -201,7 +220,7 @@ export default function EvaluationFormPage() {
           evaluator_id: "",
           scores_json: payload.scores_json,
           red_flags_json: payload.red_flags_json,
-          scores: scores,
+          scores: cleanScores,
           red_flags: redFlags,
           reading_level: payload.reading_level,
           anecdotal_note: payload.anecdotal_note,
@@ -227,16 +246,17 @@ export default function EvaluationFormPage() {
 
   // ─── Computed Progress ───────────────────────────────────────
   const totalIndicators = config?.indicators.length || 0;
-  const filledIndicators = Object.keys(scores).length;
-  const completionPct = totalIndicators > 0 ? Math.round((filledIndicators / totalIndicators) * 100) : 0;
+  const filledIndicators = Object.keys(cleanScores).length;
+  const completionPct =
+    totalIndicators > 0 ? Math.min(100, Math.round((filledIndicators / totalIndicators) * 100)) : 0;
   const isComplete = filledIndicators === totalIndicators && totalIndicators > 0;
 
   const averageScore = useMemo(() => {
-    const vals = Object.values(scores);
+    const vals = Object.values(cleanScores);
     if (vals.length === 0) return null;
     const sum = vals.reduce((acc, curr) => acc + curr, 0);
     return Number((sum / vals.length).toFixed(2));
-  }, [scores]);
+  }, [cleanScores]);
 
   // Continuum Score Configuration with Warm Organic Palette (Skala 1 - 3)
   const SCORE_COLOR_CONFIG: Record<
@@ -671,7 +691,7 @@ export default function EvaluationFormPage() {
                 <span>Simpan Catatan Observasi Pos</span>
               </>
             ) : (
-              <span>Amati <span className="font-mono tabular-nums">{totalIndicators - filledIndicators}</span> Indikator Lagi</span>
+              <span>Amati <span className="font-mono tabular-nums">{Math.max(0, totalIndicators - filledIndicators)}</span> Indikator Lagi</span>
             )}
           </button>
         </div>
