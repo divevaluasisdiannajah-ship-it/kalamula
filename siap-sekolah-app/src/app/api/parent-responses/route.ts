@@ -4,6 +4,38 @@ import { eq, and } from 'drizzle-orm';
 import { getDB, parentResponses as parentResponsesTable } from '@/db';
 import type { ParentResponse } from '@/types';
 
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const studentId = url.searchParams.get('student_id');
+    const batchId = url.searchParams.get('batch_id');
+
+    const db = getDB();
+    let query = db.select().from(parentResponsesTable);
+
+    const conditions = [];
+    if (studentId) {
+      conditions.push(eq(parentResponsesTable.student_id, studentId));
+    }
+    if (batchId) {
+      conditions.push(eq(parentResponsesTable.batch_id, batchId));
+    }
+
+    let responses: ParentResponse[];
+    if (conditions.length === 1) {
+      responses = (await query.where(conditions[0]).all()) as ParentResponse[];
+    } else if (conditions.length > 1) {
+      responses = (await query.where(and(...conditions)).all()) as ParentResponse[];
+    } else {
+      responses = (await query.all()) as ParentResponse[];
+    }
+
+    return NextResponse.json({ success: true, data: responses });
+  } catch {
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
