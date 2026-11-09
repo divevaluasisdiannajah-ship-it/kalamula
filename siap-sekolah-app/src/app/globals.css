@@ -319,8 +319,8 @@ body {
 /* ─── Global Clean Print Isolation ───────────────────────────── */
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 0;
+    size: auto;
+    margin: 8mm 8mm 10mm 8mm;
   }
 
   *, *::before, *::after {
@@ -334,15 +334,18 @@ body {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
   }
 
   aside,
   nav,
-  header,
-  footer,
+  .site-header,
+  .app-header,
+  .site-footer,
   .screen-only,
   .print-hidden,
+  .print\:hidden,
   [role="navigation"] {
     display: none !important;
   }
