@@ -170,10 +170,15 @@ export default function AdminReportsPage() {
         ) : (
           <div className="space-y-3.5">
             {filteredStudents.map((p) => {
-              const completedPos = [1, 2, 3, 4, 5].filter(
-                (pos) => p.pos_scores[pos] !== null
+              // Asesmen SPMB SD Islam An Najah menggunakan 4 Pos Observasi aktif (Pos 1 s.d. Pos 4)
+              const activePos = [1, 2, 3, 4];
+              const completedPos = activePos.filter(
+                (pos) => p.pos_scores[pos] !== null && p.pos_scores[pos] !== undefined
               ).length;
-              const rate = Math.round((completedPos / 5) * 100);
+              const rate =
+                typeof p.completion_rate === "number"
+                  ? p.completion_rate
+                  : Math.min(100, Math.round((completedPos / activePos.length) * 100));
 
               return (
                 <StudentHeroCard
