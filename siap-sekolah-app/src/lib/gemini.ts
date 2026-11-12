@@ -188,19 +188,53 @@ export async function synthesizeWithGemini(
     };
   }
 
+  const readingMap = {
+    L1: "Tingkat 1 - Mengenal Gambar & Simbol (belum membaca kata/kalimat, baru tahap simbol visual)",
+    L2: "Tingkat 2 - Mengenal Huruf & Bunyi (tahap fonemik/abjad, belum membaca suku kata)",
+    L3: "Tingkat 3 - Membaca Suku Kata Sederhana (bu-ku, bo-la)",
+    L4: "Tingkat 4 - Membaca Kalimat Pendek Lancar",
+  };
+  const readingDescription = input.readingLevel && readingMap[input.readingLevel as keyof typeof readingMap]
+    ? readingMap[input.readingLevel as keyof typeof readingMap]
+    : "Tahap awal perkembangan";
+
   const promptText = `Anda adalah pakar psikologi anak & asesor PPDB SD Islam An-Najah.
 Tugas Anda adalah merangkum catatan observasi lapangan ananda menjadi narasi resmi rapor asesmen kesiapan bersekolah.
-Prinsip Penulisan:
-1. Nada bahasa santun, bernada positif (strength-based), apresiatif, edukatif, dan ramah wali murid.
-2. Gabungkan standar capaian (template) dengan fakta unik pengamatan otentik guru di tiap pos.
-3. Sebut nama panggilan ananda ("${input.nickname || input.fullName}") secara wajar dan personal.
-4. Jangan menyalahkan anak; ubah catatan kesulitan menjadi kalimat motivatif dan area yang sedang berkembang.
-5. Panjang narasi tiap pos: 1-2 kalimat padu (ringkas, tepat untuk kartu rapor).
-6. PANDUAN LATIHAN DI RUMAH (stimulations): Berikan tepat 2 saran kegiatan stimulasi konkret, praktis, dan menyenangkan bagi orang tua yang SECARA KHUSUS MENJAWAB catatan kendala atau kebutuhan latihan dari guru observer (misal: jika guru mencatat masalah keseimbangan fisik, daya fokus/konsentrasi, susunan pola angka, atau keaksaraan huruf, prioritaskan panduan latihan untuk aspek tersebut).
+
+═══════════════════════════════════════════════════════════════════
+PEDOMAN & GUARDRAILS WAJIB (JANGAN DIABAIKAN):
+═══════════════════════════════════════════════════════════════════
+1. GUARDRAIL KEJELASAN DIAGNOSTIK (ANTI-TOXIC POSITIVITY):
+   - DILARANG mengaburkan, menghapus, atau memperhalus berlebihan catatan kesulitan anak.
+   - Orang tua dan guru kelas 1 WAJIB mengetahui bagian mana yang masih kurang dan harus dikejar sebelum masuk SD.
+   - Formula kalimat tiap pos: [1 Fakta Usaha / Kekuatan yang Muncul] + [1 Fakta Aspek yang Belum Tuntas / Perlu Pendampingan Spesifik].
+   - Contoh BENAR: "Ananda menunjukkan usaha yang baik saat menyusun balok, namun masih memerlukan pendampingan intensif dalam mengurutkan angka dan menemukan pola berulang."
+   - Contoh SALAH (DILARANG): "Ananda sangat cerdas dan menguasai semua permainan berhitung dengan gembira." (Ini menipu realitas).
+
+2. GUARDRAIL ANTI-OMISI FAKTA LAPANGAN (ANTI-OMISSION RULE):
+   - Jika guru observer mencatat kesulitan nyata, fakta tersebut WAJIB tercermin dalam narasi dan stimulasi:
+     * Jika guru mencatat "keseimbangan kurang / goyah" -> WAJIB sebutkan bahwa kendali keseimbangan tubuh ananda masih perlu terus dilatih.
+     * Jika guru mencatat "mudah terdistraksi / tidak fokus" -> WAJIB sebutkan bahwa daya konsentrasi ananda masih mudah teralihkan oleh lingkungan dan perlu dibiasakan memusatkan fokus.
+     * Jika guru mencatat "sulit mengurutkan angka / pola berulang" -> WAJIB sebutkan ananda masih perlu bimbingan konkret dalam memahami urutan pola dan angka.
+     * Jika guru mencatat "belum bisa baca / hanya kenal sedikit huruf" -> WAJIB sebutkan ananda masih dalam tahap awal simbol dan perlu latihan mengenal bentuk huruf.
+
+3. GUARDRAIL TINGKAT KEMAMPUAN MEMBACA:
+   - Status Membaca Ananda: ${readingDescription}.
+   - Jika Tingkat Membaca adalah L1 atau L2, DILARANG menyatakan ananda sudah bisa membaca kata atau kalimat. Nyatakan secara jujur bahwa ananda masih pada tahap pengenalan gambar/simbol atau huruf.
+
+4. NADA BAHASA:
+   - Santun, objektif, edukatif, dan menghargai martabat anak tanpa menyalahkan.
+   - Sebut nama panggilan ananda ("${input.nickname || input.fullName}") secara wajar dan personal.
+   - Panjang narasi tiap pos: 1-2 kalimat padu (ringkas, tepat untuk kartu rapor).
+
+5. PANDUAN LATIHAN DI RUMAH (stimulations):
+   - Berikan tepat 2 saran kegiatan stimulasi konkret, praktis, dan menyenangkan bagi orang tua.
+   - Saran latihan WAJIB MENARGETKAN ASPEK YANG DINYATAKAN KURANG / PERLU DILATIH dari catatan guru observer di atas, bukan saran umum generik.
 
 Data Ananda:
 Nama Lengkap: ${input.fullName}
 Nama Panggilan: ${input.nickname || input.fullName}
+Tingkat Membaca Asesmen: ${readingDescription}
 
 Data Pos 1 (Kematangan Emosi & Kemandirian):
 - Standar Capaian: ${input.templates[1] || "Mampu berpisah dari orang tua dan mulai mandiri."}
@@ -222,14 +256,14 @@ Instruksi Output:
 Kembalikan format JSON murni tanpa markdown wrapper (\`\`\`json):
 {
   "narratives": {
-    "1": "Narasi 1-2 kalimat untuk Pos 1",
-    "2": "Narasi 1-2 kalimat untuk Pos 2",
-    "3": "Narasi 1-2 kalimat untuk Pos 3",
-    "4": "Narasi 1-2 kalimat untuk Pos 4"
+    "1": "Narasi 1-2 kalimat untuk Pos 1 (memuat kekuatan + aspek yang perlu dilatih)",
+    "2": "Narasi 1-2 kalimat untuk Pos 2 (memuat kekuatan + aspek yang perlu dilatih)",
+    "3": "Narasi 1-2 kalimat untuk Pos 3 (memuat kekuatan + aspek yang perlu dilatih)",
+    "4": "Narasi 1-2 kalimat untuk Pos 4 (memuat kekuatan + aspek yang perlu dilatih)",
   },
   "stimulations": [
-    "Saran latihan stimulasi konkret 1 di rumah yang menjawab catatan guru",
-    "Saran latihan stimulasi konkret 2 di rumah yang menjawab catatan guru"
+    "Saran latihan konkret 1 di rumah yang menjawab aspek yang masih kurang",
+    "Saran latihan konkret 2 di rumah yang menjawab aspek yang masih kurang"
   ]
 }`;
 
@@ -237,7 +271,7 @@ Kembalikan format JSON murni tanpa markdown wrapper (\`\`\`json):
     contents: [{ parts: [{ text: promptText }] }],
     generationConfig: {
       responseMimeType: "application/json",
-      temperature: 0.2,
+      temperature: 0.1,
     },
   };
 
