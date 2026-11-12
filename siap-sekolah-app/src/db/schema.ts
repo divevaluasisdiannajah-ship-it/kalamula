@@ -124,3 +124,14 @@ export const parentResponses = sqliteTable("parent_responses", {
   responses_json: text("responses_json").notNull().default("{}"),
   submitted_at: text("submitted_at").notNull(),
 });
+
+// ─── student_ai_summaries ──────────────────────────────────────────
+
+export const studentAiSummaries = sqliteTable("student_ai_summaries", {
+  student_id: text("student_id").primaryKey(),
+  batch_id: text("batch_id"),
+  narratives_json: text("narratives_json").notNull(),
+  stimulations_json: text("stimulations_json").notNull(),
+  created_at: text("created_at").notNull(),
+  updated_at: text("updated_at").notNull(),
+});

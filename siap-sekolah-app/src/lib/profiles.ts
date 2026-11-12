@@ -5,7 +5,7 @@
  * instead of importing directly from the in-memory store.
  */
 
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import type { DB } from "@/db";
 import {
   students as studentsTable,
@@ -13,7 +13,9 @@ import {
   evaluations as evaluationsTable,
   parentResponses as parentResponsesTable,
   classPlacements as classPlacementsTable,
+  studentAiSummaries as studentAiSummariesTable,
 } from "@/db/schema";
+import { sanitizeObserverNote } from "@/lib/gemini";
 import type {
   Student,
   Batch,
@@ -260,73 +262,159 @@ export async function getBatchStudentProfiles(
 }
 
 /**
- * Generates qualitative narrative and stimulation advice for individual report PDF
+ * Database helpers for cached AI-generated student narratives
+ */
+export async function getStudentAiSummary(db: DB, studentId: string) {
+  try {
+    const row = await db
+      .select()
+      .from(studentAiSummariesTable)
+      .where(eq(studentAiSummariesTable.student_id, studentId))
+      .get();
+    if (!row) return null;
+    return {
+      narratives: JSON.parse(row.narratives_json) as Record<number, string>,
+      stimulations: JSON.parse(row.stimulations_json) as string[],
+      updated_at: row.updated_at,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function saveStudentAiSummary(
+  db: DB,
+  studentId: string,
+  batchId: string | null,
+  narratives: Record<number, string>,
+  stimulations: string[]
+) {
+  try {
+    // Ensure table exists on first write
+    await db.run(sql`CREATE TABLE IF NOT EXISTS student_ai_summaries (
+      student_id TEXT PRIMARY KEY,
+      batch_id TEXT,
+      narratives_json TEXT NOT NULL,
+      stimulations_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`);
+
+    const now = new Date().toISOString();
+    await db
+      .insert(studentAiSummariesTable)
+      .values({
+        student_id: studentId,
+        batch_id: batchId,
+        narratives_json: JSON.stringify(narratives),
+        stimulations_json: JSON.stringify(stimulations),
+        created_at: now,
+        updated_at: now,
+      })
+      .onConflictDoUpdate({
+        target: studentAiSummariesTable.student_id,
+        set: {
+          narratives_json: JSON.stringify(narratives),
+          stimulations_json: JSON.stringify(stimulations),
+          updated_at: now,
+        },
+      });
+    return true;
+  } catch (err) {
+    console.error("Failed to save student AI summary:", err);
+    return false;
+  }
+}
+
+/**
+ * Generates qualitative narrative and stimulation advice for individual report PDF.
+ * Extracts authentic observer notes per pos and merges them with standard milestone rubrics.
  */
 export function generateQualitativeNarrative(profile: StudentProfile) {
+  const templates: Record<number, string> = {};
   const narratives: Record<number, string> = {};
   const stimulations: string[] = [];
+
+  // Extract observer notes by pos
+  const notes: Record<number, string | null> = {
+    1: null,
+    2: null,
+    3: null,
+    4: null,
+  };
+  profile.evaluations.forEach((ev) => {
+    if (ev.pos_number >= 1 && ev.pos_number <= 4 && ev.anecdotal_note) {
+      notes[ev.pos_number] = ev.anecdotal_note.trim();
+    }
+  });
 
   // Pos 1: Emosi & Kemandirian
   const p1 = profile.pos_scores[1];
   if (p1 !== null) {
     if (p1 >= 2.6) {
-      narratives[1] =
+      templates[1] =
         "Menunjukkan kematangan emosi yang sangat baik. Cepat beradaptasi di lingkungan baru, mandiri mengelola barang pribadi, dan konsisten mempraktikkan budaya santun serta antre.";
     } else if (p1 >= 1.8) {
-      narratives[1] =
+      templates[1] =
         "Mampu berpisah dari orang tua dengan pendampingan wajar. Mulai mandiri dalam merapikan barang dan memahami aturan antre sederhana di kelas.";
       stimulations.push(
         "Latih kemandirian meletakkan sepatu dan tas sendiri di rumah tanpa bantuan orang tua."
       );
     } else {
-      narratives[1] =
+      templates[1] =
         "Masih membutuhkan transisi emosi yang lebih tenang saat berpisah dari orang tua. Memerlukan penguatan afeksi dan pembiasaan rutinitas kemandirian.";
       stimulations.push(
         "Buat rutinitas perpisahan pagi yang konsisten dan berikan apresiasi setiap kali anak berhasil mandiri."
       );
     }
+  } else {
+    templates[1] = "Mampu berpisah dari orang tua dan mulai menunjukkan kemandirian dasar.";
   }
 
-  // Pos 2: Motorik Kasar
+  // Pos 2: Motorik Kasar & Koordinasi
   const p2 = profile.pos_scores[2];
   if (p2 !== null) {
     if (p2 >= 2.6) {
-      narratives[2] =
+      templates[2] =
         "Koordinasi fisik dan keseimbangan tubuh sangat prima. Cekatan merespons instruksi gerak berurutan dan tangkas menangkap bola.";
     } else if (p2 >= 1.8) {
-      narratives[2] =
+      templates[2] =
         "Koordinasi fisik dasar telah berkembang sesuai usia. Mampu meniti dan melompat dengan kendali tubuh yang cukup stabil.";
       stimulations.push(
         "Ajak aktivitas luar ruangan seperti meniti garis lurus, lempar-tangkap bola, atau bersepeda."
       );
     } else {
-      narratives[2] =
+      templates[2] =
         "Perlu stimulasi penguatan otot tungkai dan koordinasi visual-motorik (mata-tangan).";
       stimulations.push(
         "Perbanyak latihan gerak aktif: lompat tali sederhana, merangkak di rintangan bantal, dan bermain bola."
       );
     }
+  } else {
+    templates[2] = "Koordinasi fisik dan kemampuan gerak dasar berkembang sesuai tahapan usia.";
   }
 
   // Pos 3: Kognitif & Numerasi
   const p3 = profile.pos_scores[3];
   if (p3 !== null) {
     if (p3 >= 2.6) {
-      narratives[3] =
+      templates[3] =
         "Penalaran logis sangat kuat. Sangat cepat menemukan pola berulang, membandingkan kuantitas objek konkret, serta tekun memecahkan masalah teka-teki balok.";
     } else if (p3 >= 1.8) {
-      narratives[3] =
+      templates[3] =
         "Memahami konsep banyak-sedikit dan klasifikasi benda berdasarkan warna/bentuk secara konkret.";
       stimulations.push(
         "Libatkan dalam permainan menyortir benda di rumah (sendok-garpu, kaos kaki berpasangan) dan puzzle."
       );
     } else {
-      narratives[3] =
+      templates[3] =
         "Konsep kuantitas dan persepsi spasial masih dalam tahap pengenalan awal dengan objek konkret.";
       stimulations.push(
         "Gunakan benda nyata sehari-hari untuk menghitung benda 1-10 sambil disentuh (one-to-one correspondence)."
       );
     }
+  } else {
+    templates[3] = "Penalaran kuantitas dan logika objek konkret dalam tahap pengenalan awal.";
   }
 
   // Pos 4: Bahasa & Literasi
@@ -341,37 +429,33 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
     const readingStatus = profile.reading_level
       ? readingMap[profile.reading_level]
       : "Belum dievaluasi";
-    narratives[4] = `Kesiapan membaca berada pada ${readingStatus}. `;
+    templates[4] = `Kesiapan membaca berada pada ${readingStatus}. `;
     if (p4 >= 2.5) {
-      narratives[4] +=
+      templates[4] +=
         "Daya simak cerita lisan sangat fokus, artikulasi gagasan jelas, dan kontrol jari saat memegang pensil sudah stabil.";
     } else {
-      narratives[4] +=
+      templates[4] +=
         "Perlu pengayaan perbendaharaan kata melalui dialog interaktif dan stimulasi motorik halus jemari tangan.";
       stimulations.push(
         "Rutin bacakan buku cerita bergambar 10-15 menit setiap hari dan ajak bermain plastisin atau meronce."
       );
     }
+  } else {
+    templates[4] = "Kemampuan komunikasi gagasan dan pra-literasi berkembang sesuai tahapan.";
   }
 
-  // Pos 5: Sosial & Interaksi
-  const p5 = profile.pos_scores[5];
-  if (p5 !== null) {
-    if (p5 >= 2.6) {
-      narratives[5] =
-        "Kemampuan sosialisasi sangat hangat. Suka berbagi mainan, mampu berkolaborasi dalam kelompok kecil, dan memiliki regulasi emosi yang baik saat bermain.";
-    } else if (p5 >= 1.8) {
-      narratives[5] =
-        "Mampu bermain berdampingan dan mulai menunjukkan inisiatif berbagi dengan dorongan pembimbing.";
-      stimulations.push("Berikan kesempatan bermain bergantian dengan saudara atau teman sebaya.");
+  // Merge template with observer note for each pos (Deterministic combination fallback)
+  [1, 2, 3, 4].forEach((pos) => {
+    const note = notes[pos];
+    const baseTemplate = templates[pos] || "";
+    if (note && note.trim().length > 0) {
+      const sanitized = sanitizeObserverNote(note);
+      // If note already starts with uppercase or full sentence, join nicely
+      narratives[pos] = `${baseTemplate} Catatan pengamatan guru: "${sanitized}"`;
     } else {
-      narratives[5] =
-        "Perlu pendampingan untuk mengatasi kecemasan sosial dan bimbingan saat berbagi ruang interaksi.";
-      stimulations.push(
-        "Bimbing anak mengungkapkan perasaan dengan kata-kata ('aku mau pinjam', 'sebentar ya') daripada tindakan fisik."
-      );
+      narratives[pos] = baseTemplate;
     }
-  }
+  });
 
-  return { narratives, stimulations };
+  return { narratives, stimulations, templates, notes };
 }

@@ -10,6 +10,8 @@ interface ReportData {
   profile: StudentProfile;
   narratives: Record<number, string>;
   stimulations: string[];
+  source?: "ai" | "fallback" | "template";
+  cached?: boolean;
 }
 
 export default function StudentReportPage() {
@@ -20,6 +22,7 @@ export default function StudentReportPage() {
   const [data, setData] = useState<ReportData | null>(null);
   const [schoolProfile, setSchoolProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isSummarizing, setIsSummarizing] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState(false);
 
   const loadReport = useCallback(async () => {
@@ -43,6 +46,35 @@ export default function StudentReportPage() {
       setLoading(false);
     }
   }, [studentId]);
+
+  const handleSummarizeWithAI = async () => {
+    setIsSummarizing(true);
+    try {
+      const res = await fetch(`/api/reports/student/${studentId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setData((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  narratives: json.data.narratives,
+                  stimulations: json.data.stimulations,
+                  source: json.data.source,
+                }
+              : null
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Failed to summarize with AI:", err);
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
 
   useEffect(() => {
     loadReport();
@@ -289,13 +321,34 @@ export default function StudentReportPage() {
           <span>Kembali</span>
         </button>
 
-        <button
-          onClick={handlePrint}
-          className="bg-[#9B3F18] hover:bg-[#853714] text-white px-5 py-2 text-xs font-extrabold rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95"
-        >
-          <i className="mdi mdi-printer-outline text-base" />
-          <span>Cetak A4 (1 Lembar)</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSummarizeWithAI}
+            disabled={isSummarizing}
+            className="bg-[#2E5442] hover:bg-[#234133] disabled:opacity-50 text-white px-4 py-2 text-xs font-bold rounded-full shadow-sm flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+            title="Rangkum catatan asli guru dan gabungkan dengan template capaian menggunakan Gemini AI"
+          >
+            {isSummarizing ? (
+              <>
+                <i className="mdi mdi-loading mdi-spin text-sm" />
+                <span>Merangkum AI...</span>
+              </>
+            ) : (
+              <>
+                <i className="mdi mdi-auto-fix text-sm" />
+                <span>Rangkum Ulang AI</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="bg-[#9B3F18] hover:bg-[#853714] text-white px-5 py-2 text-xs font-extrabold rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+          >
+            <i className="mdi mdi-printer-outline text-base" />
+            <span>Cetak A4 (1 Lembar)</span>
+          </button>
+        </div>
       </div>
 
       {/* ═════════════════════════════════════════════════════════════════ */}
@@ -514,7 +567,14 @@ export default function StudentReportPage() {
                 CATATAN PENGAMATAN GURU
               </h3>
             </div>
-            <span className="text-xs font-bold text-[#787F7A]">4 Catatan</span>
+            <div className="flex items-center gap-2">
+              {data?.source === "ai" && (
+                <span className="text-[10px] bg-[#E4EFE9] text-[#2E5442] font-semibold px-2 py-0.5 rounded-full print:hidden">
+                  ✨ Rangkuman AI Aktif
+                </span>
+              )}
+              <span className="text-xs font-bold text-[#787F7A]">4 Catatan</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-3 print:gap-2">
