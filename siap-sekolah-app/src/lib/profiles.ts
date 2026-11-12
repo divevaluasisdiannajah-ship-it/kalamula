@@ -15,7 +15,7 @@ import {
   classPlacements as classPlacementsTable,
   studentAiSummaries as studentAiSummariesTable,
 } from "@/db/schema";
-import { sanitizeObserverNote } from "@/lib/gemini";
+import { sanitizeObserverNote, generateContextualStimulations } from "@/lib/gemini";
 import type {
   Student,
   Batch,
@@ -457,5 +457,9 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
     }
   });
 
-  return { narratives, stimulations, templates, notes };
+  // Generate contextual stimulations connected to observer notes and scores
+  const contextualStimulations = generateContextualStimulations(notes, profile.pos_scores);
+  const finalStimulations = contextualStimulations.length > 0 ? contextualStimulations : stimulations;
+
+  return { narratives, stimulations: finalStimulations, templates, notes };
 }
