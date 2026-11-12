@@ -7,7 +7,6 @@ import {
   Printer,
   ArrowLeft,
   Leaf,
-  GraduationCap,
   Users,
   BookOpen,
   Books,
@@ -637,49 +636,8 @@ export default function BatchReportPDFPage() {
           </div>
         </section>
 
-        {/* Ringkasan Rekomendasi Pedagogis Guru */}
-        <section className="mb-4 grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-3.5 print:gap-3 print-break-inside-avoid items-stretch">
-          {/* Card Literasi (Warm Clay Theme) */}
-          <div
-            className="bg-[#FAF4F0] p-3.5 rounded-xl ring-1 ring-orange-200/70 shadow-xs flex flex-col justify-between space-y-2 h-full print:p-2.5 print:rounded-lg print:shadow-none"
-            style={{ backgroundColor: "#FAF4F0" }}
-          >
-            <h3 className="text-xs print:text-[10px] font-bold text-[#B85627] uppercase tracking-wide flex items-center gap-1.5">
-              <BookOpen weight="bold" size={15} className="text-[#B85627]" />
-              <span>Pembagian Kategori Belajar Membaca</span>
-            </h3>
-            <div className="space-y-1 flex-1 text-[11px] print:text-[9.5px] text-stone-800 leading-snug">
-              <p>
-                <strong>Kategori A ({recommendationPackage.tarl.groupA.students.length} anak):</strong> Fokus pada pengenalan bentuk huruf dan bunyinya (fonik dasar), kartu bergambar konkret, dan latihan motorik halus jemari.
-              </p>
-              <p>
-                <strong>Kategori B ({recommendationPackage.tarl.groupB.students.length} anak):</strong> Pojok baca mandiri dengan buku cerita bertingkat dan pembiasaan menyusun kata-kata sederhana.
-              </p>
-            </div>
-          </div>
-
-          {/* Card MPLS (Muted Sage Theme) */}
-          <div
-            className="bg-[#F0F5F2] p-3.5 rounded-xl ring-1 ring-emerald-200/70 shadow-xs flex flex-col justify-between space-y-2 h-full print:p-2.5 print:rounded-lg print:shadow-none"
-            style={{ backgroundColor: "#F0F5F2" }}
-          >
-            <h3 className="text-xs print:text-[10px] font-bold text-[#2E6B4D] uppercase tracking-wide flex items-center gap-1.5">
-              <GraduationCap weight="bold" size={15} className="text-[#2E6B4D]" />
-              <span>Masa Pengenalan Lingkungan Sekolah (MPLS)</span>
-            </h3>
-            <div className="space-y-1 flex-1 text-[11px] print:text-[9.5px] text-stone-800 leading-snug">
-              <p>
-                <strong>Minggu 1:</strong> Adaptasi emosional, orientasi tata letak kelas &amp; toilet, pembiasaan adab antre, dan kemandirian meletakkan barang pribadi di loker.
-              </p>
-              <p>
-                <strong>Minggu 2:</strong> Permainan eksplorasi gerak dasar di halaman, penyepakatan kesepakatan kelas ramah anak, dan kolaborasi kelompok tanpa tes tertulis.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Lembar Tanda Tangan Pengesahan (Editable Sebelum Cetak) */}
-        <footer className="pt-4 border-t border-stone-300 mt-4 grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4 sm:gap-0 text-center text-xs print:text-[10.5px] print-break-inside-avoid print:grid print:pt-3 print:mt-3">
+        <footer className="pt-4 border-t border-stone-300 mt-5 grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4 sm:gap-0 text-center text-xs print:text-[10.5px] print-break-inside-avoid print:grid print:pt-3 print:mt-4">
           <div>
             <p className="text-stone-600 font-medium">Koordinator Tim Asesor Observasi</p>
             <div className="h-14 flex items-end justify-center">
