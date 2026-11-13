@@ -351,7 +351,10 @@ export default function BatchStudentsBulkReportPage() {
               "Latih kemandirian merapikan sepatu dan tas sekolah secara konsisten setiap pulang bepergian.",
           ];
 
-          const averageScore = profile.overall_score !== null ? profile.overall_score : 2.8;
+          const studentScores = Object.values(profile.pos_scores || {}).filter((v): v is number => v !== null);
+          const averageScore = studentScores.length > 0
+            ? Number((studentScores.reduce((acc, curr) => acc + curr, 0) / studentScores.length).toFixed(1))
+            : (profile.overall_score !== null ? Number(profile.overall_score.toFixed(1)) : 2.8);
 
           return (
             <div

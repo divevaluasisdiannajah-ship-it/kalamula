@@ -6,7 +6,9 @@ import {
   getBatchStudentProfiles,
   generateQualitativeNarrative,
   getStudentAiSummary,
+  saveStudentAiSummary,
 } from '@/lib/profiles';
+import { synthesizeWithGemini } from '@/lib/gemini';
 import type { Batch } from '@/types';
 
 export async function GET(
@@ -32,11 +34,46 @@ export async function GET(
 
     const profiles = await getBatchStudentProfiles(db, id);
 
-    // Build complete report item for each student
+    // Build complete report item for each student, auto-synthesizing AI if not yet cached
     const items = await Promise.all(
       profiles.map(async (profile) => {
         const qualitative = generateQualitativeNarrative(profile);
-        const cached = await getStudentAiSummary(db, profile.student.id);
+        let cached = await getStudentAiSummary(db, profile.student.id);
+
+        if (!cached) {
+          const hasNotes = Object.values(qualitative.notes).some(
+            (n) => n && n.trim().length > 0
+          );
+          if (hasNotes) {
+            try {
+              const aiResult = await synthesizeWithGemini({
+                fullName: profile.student.full_name,
+                nickname: profile.student.nickname,
+                templates: qualitative.templates,
+                notes: qualitative.notes,
+                readingLevel: profile.reading_level,
+                overallScore: profile.overall_score,
+              });
+
+              if (aiResult.source === 'ai') {
+                await saveStudentAiSummary(
+                  db,
+                  profile.student.id,
+                  profile.student.batch_id,
+                  aiResult.narratives,
+                  aiResult.stimulations
+                );
+                cached = {
+                  narratives: aiResult.narratives,
+                  stimulations: aiResult.stimulations,
+                  updated_at: new Date().toISOString(),
+                };
+              }
+            } catch (aiErr) {
+              console.error('Batch student auto Gemini error:', aiErr);
+            }
+          }
+        }
 
         const narratives = cached?.narratives || qualitative.narratives;
         const stimulations = cached?.stimulations || qualitative.stimulations;

@@ -196,10 +196,10 @@ export default function BatchReportPDFPage() {
     : "Tahun Ajaran 2026/2027";
 
   const posAverageItems = [
-    { pos: 1, label: "Sosio-Emosi & Adab", score: posAverages[1] },
-    { pos: 2, label: "Motorik Kasar & Halus", score: posAverages[2] },
-    { pos: 3, label: "Kognitif & Logika", score: posAverages[3] },
-    { pos: 4, label: "Bahasa & Literasi", score: posAverages[4] },
+    { pos: 1, label: "Kemandirian & Regulasi Emosi", score: posAverages[1] },
+    { pos: 2, label: "Motorik Kasar & Koordinasi", score: posAverages[2] },
+    { pos: 3, label: "Kematangan Kognitif", score: posAverages[3] },
+    { pos: 4, label: "Bahasa Lisan & Pra-Literasi", score: posAverages[4] },
     ...(hasPos5 ? [{ pos: 5, label: "Sosial & Kolaborasi", score: posAverages[5] }] : []),
   ];
 
@@ -517,7 +517,7 @@ export default function BatchReportPDFPage() {
               Daftar Rinci Skor Observasi Calon Siswa ({allProfiles.length} Anak)
             </h2>
             <span className="text-[10px] print:text-[9px] text-stone-500 italic">
-              Skala: 1.0 = Perlu Bimbingan · 2.0 = Mulai Terbiasa · 3.0 = Mandiri
+              Skala: 1.0 = Perlu Bimbingan (PB) · 2.0 = Berkembang Sesuai Harapan (BSH) · 3.0 = Mandiri (M)
             </span>
           </div>
 
@@ -535,10 +535,10 @@ export default function BatchReportPDFPage() {
                   <th className="py-2 px-2 min-w-[140px] print:min-w-0">Nama Lengkap</th>
                   <th className="py-2 px-1 text-center w-9 print:w-7">JK</th>
                   <th className="py-2 px-1.5 text-center w-18 print:w-16 whitespace-nowrap">Usia</th>
-                  <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 1: Sosio-Emosi & Adab">P1</th>
-                  <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 2: Motorik Kasar & Halus">P2</th>
-                  <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 3: Kognitif & Logika">P3</th>
-                  <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 4: Bahasa & Literasi">P4</th>
+                  <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 1: Kemandirian & Regulasi Emosi">P1</th>
+                  <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 2: Motorik Kasar & Koordinasi">P2</th>
+                  <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 3: Kematangan Kognitif">P3</th>
+                  <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 4: Bahasa Lisan & Pra-Literasi">P4</th>
                   {hasPos5 && (
                     <th className="py-2 px-1 text-center w-10 print:w-8" title="Pos 5: Sosial & Kolaborasi">P5</th>
                   )}
