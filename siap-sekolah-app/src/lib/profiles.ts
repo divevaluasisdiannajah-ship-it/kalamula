@@ -15,7 +15,11 @@ import {
   classPlacements as classPlacementsTable,
   studentAiSummaries as studentAiSummariesTable,
 } from "@/db/schema";
-import { sanitizeObserverNote, generateContextualStimulations } from "@/lib/gemini";
+import {
+  sanitizeObserverNote,
+  generateContextualStimulations,
+  cleanObserverNotesByDomain,
+} from "@/lib/gemini";
 import type {
   Student,
   Batch,
@@ -336,7 +340,7 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   const stimulations: string[] = [];
 
   // Extract observer notes by pos
-  const notes: Record<number, string | null> = {
+  const rawNotes: Record<number, string | null> = {
     1: null,
     2: null,
     3: null,
@@ -344,9 +348,12 @@ export function generateQualitativeNarrative(profile: StudentProfile) {
   };
   profile.evaluations.forEach((ev) => {
     if (ev.pos_number >= 1 && ev.pos_number <= 4 && ev.anecdotal_note) {
-      notes[ev.pos_number] = ev.anecdotal_note.trim();
+      rawNotes[ev.pos_number] = ev.anecdotal_note.trim();
     }
   });
+
+  // Isolate and clean notes so each pos only contains its genuine observations
+  const notes = cleanObserverNotesByDomain(rawNotes);
 
   // Pos 1: Emosi & Kemandirian
   const p1 = profile.pos_scores[1];

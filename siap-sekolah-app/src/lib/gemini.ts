@@ -5,6 +5,8 @@
  * into constructive, parent-friendly narratives and home stimulation advice.
  */
 
+import { getRequestContext } from "@cloudflare/next-on-pages";
+
 export interface NarrativeSynthesisInput {
   fullName: string;
   nickname: string;
@@ -26,11 +28,9 @@ export function getGeminiApiKey(customEnvKey?: string): string {
     return process.env.GEMINI_API_KEY.trim();
   }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getRequestContext } = require("@cloudflare/next-on-pages");
     const ctx = getRequestContext();
-    if (ctx?.env?.GEMINI_API_KEY) {
-      return String(ctx.env.GEMINI_API_KEY).trim();
+    if ((ctx?.env as any)?.GEMINI_API_KEY) {
+      return String((ctx.env as any).GEMINI_API_KEY).trim();
     }
   } catch {
     // Not in Cloudflare request context
@@ -46,6 +46,8 @@ export function sanitizeObserverNote(note: string): string {
     .replace(/\bobser\b/gi, "observasi")
     .replace(/\bkarna\b/gi, "karena")
     .replace(/\bdistract\b/gi, "terdistraksi")
+    .replace(/\bterdistrek\b/gi, "terdistraksi")
+    .replace(/\bdistrek\b/gi, "terdistraksi")
     .replace(/\bgk\b/gi, "tidak")
     .replace(/\bgak\b/gi, "tidak")
     .replace(/\bdgn\b/gi, "dengan")
@@ -54,6 +56,96 @@ export function sanitizeObserverNote(note: string): string {
     .replace(/\bbisa baca\b/gi, "dapat membaca")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/**
+ * Cleans and isolates observer field notes by their authentic domain.
+ * Evaluators frequently copy-pasted general notes from Pos 1 or Pos 2 across all pos.
+ * This helper strips out identical or cross-station text prefixes to ensure
+ * each pos contains only its genuine observations.
+ */
+function cleanTextFromCrossStationPrefix(current: string, otherNote: string | null): string | null {
+  if (!current || !otherNote) return current;
+  const norm = (s: string) => (s || "").toLowerCase().replace(/[\r\n\t]+/g, " ").replace(/\s+/g, " ").trim();
+  const stripPunct = (s: string) => norm(s).replace(/^[\d\)\.\-\s]+/, "").replace(/[\.?!,;:\-\s]+$/, "").trim();
+
+  const otherClean = otherNote.trim();
+  const otherNorm = stripPunct(otherClean);
+
+  if (stripPunct(current) === otherNorm) {
+    return null;
+  }
+
+  const otherPrefix = otherNorm.slice(0, 30);
+  if (otherPrefix.length < 15) return current;
+
+  // Case 1: Multiple paragraphs separated by newlines
+  const paragraphs = current.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  if (paragraphs.length > 1) {
+    const kept = paragraphs.filter((p) => !stripPunct(p).includes(otherPrefix));
+    if (kept.length > 0) {
+      return kept.join("\n\n");
+    }
+  }
+
+  // Case 2: Check if current contains otherPrefix
+  if (stripPunct(current).includes(otherPrefix)) {
+    const sentences = current.split(/(?<=[.?!])\s+/);
+    const keptSentences = sentences.filter((s) => {
+      const sNorm = stripPunct(s);
+      if (sNorm.length > 10 && otherNorm.includes(sNorm)) return false;
+      return true;
+    });
+    if (keptSentences.length > 0) {
+      return keptSentences.join(" ");
+    }
+    return null;
+  }
+
+  return current;
+}
+
+export function cleanObserverNotesByDomain(
+  rawNotes: Record<number, string | null>
+): Record<number, string | null> {
+  const cleaned: Record<number, string | null> = {
+    1: rawNotes[1]?.trim() || null,
+    2: rawNotes[2]?.trim() || null,
+    3: rawNotes[3]?.trim() || null,
+    4: rawNotes[4]?.trim() || null,
+  };
+
+  // 1. Clean Pos 1 against Pos 2 (e.g. motor note accidentally pasted into Pos 1)
+  if (cleaned[1] && cleaned[2]) {
+    cleaned[1] = cleanTextFromCrossStationPrefix(cleaned[1], cleaned[2]);
+    if (cleaned[1]) {
+      cleaned[1] = cleaned[1].replace(/^\s*\d+[\)\.\-]\s*/, "").replace(/^[\s.,:;\-\n]+/, "").trim();
+    }
+  }
+
+  // 2. Clean Pos 3 against Pos 2 and Pos 1
+  if (cleaned[3]) {
+    if (cleaned[2]) cleaned[3] = cleanTextFromCrossStationPrefix(cleaned[3], cleaned[2]);
+    if (cleaned[3] && cleaned[1]) cleaned[3] = cleanTextFromCrossStationPrefix(cleaned[3], cleaned[1]);
+  }
+
+  // 3. Clean Pos 4 against Pos 2 and Pos 1
+  if (cleaned[4]) {
+    if (cleaned[2]) cleaned[4] = cleanTextFromCrossStationPrefix(cleaned[4], cleaned[2]);
+    if (cleaned[4] && cleaned[1]) cleaned[4] = cleanTextFromCrossStationPrefix(cleaned[4], cleaned[1]);
+  }
+
+  // Trim and normalize remaining notes
+  [1, 2, 3, 4].forEach((pos) => {
+    let text = cleaned[pos];
+    if (text) {
+      text = text.replace(/^\s*\d+[\)\.\-]\s*/, "").replace(/^[\s.,:;\-\n]+/, "").trim();
+      text = text.replace(/^(namun|tetapi|serta|dan)\s+/i, "");
+      cleaned[pos] = text.trim().length > 0 ? text.trim() : null;
+    }
+  });
+
+  return cleaned;
 }
 
 /**
@@ -162,28 +254,31 @@ export async function synthesizeWithGemini(
 ): Promise<NarrativeSynthesisResult> {
   const apiKey = getGeminiApiKey(apiKeyOverride);
 
+  // Clean and isolate notes by domain first to prevent cross-pos contamination
+  const cleanedNotes = cleanObserverNotesByDomain(input.notes);
+
   // If no key or empty notes across all positions, return smart deterministic fallback
-  const hasAnyNotes = Object.values(input.notes).some(
+  const hasAnyNotes = Object.values(cleanedNotes).some(
     (n) => n && n.trim().length > 0
   );
 
   if (!apiKey || !hasAnyNotes) {
     return {
       narratives: {
-        1: input.notes[1]
-          ? `${input.templates[1]} Catatan pengamatan: "${sanitizeObserverNote(input.notes[1]!)}"`
+        1: cleanedNotes[1]
+          ? `${input.templates[1]} Catatan pengamatan: "${sanitizeObserverNote(cleanedNotes[1]!)}"`
           : input.templates[1],
-        2: input.notes[2]
-          ? `${input.templates[2]} Catatan pengamatan: "${sanitizeObserverNote(input.notes[2]!)}"`
+        2: cleanedNotes[2]
+          ? `${input.templates[2]} Catatan pengamatan: "${sanitizeObserverNote(cleanedNotes[2]!)}"`
           : input.templates[2],
-        3: input.notes[3]
-          ? `${input.templates[3]} Catatan pengamatan: "${sanitizeObserverNote(input.notes[3]!)}"`
+        3: cleanedNotes[3]
+          ? `${input.templates[3]} Catatan pengamatan: "${sanitizeObserverNote(cleanedNotes[3]!)}"`
           : input.templates[3],
-        4: input.notes[4]
-          ? `${input.templates[4]} Catatan pengamatan: "${sanitizeObserverNote(input.notes[4]!)}"`
+        4: cleanedNotes[4]
+          ? `${input.templates[4]} Catatan pengamatan: "${sanitizeObserverNote(cleanedNotes[4]!)}"`
           : input.templates[4],
       },
-      stimulations: generateContextualStimulations(input.notes),
+      stimulations: generateContextualStimulations(cleanedNotes),
       source: "fallback",
     };
   }
@@ -202,6 +297,27 @@ export async function synthesizeWithGemini(
 Tugas Anda adalah merangkum catatan observasi lapangan ananda menjadi narasi resmi rapor asesmen kesiapan bersekolah.
 
 ═══════════════════════════════════════════════════════════════════
+ATURAN UTAMA: BATASAN DOMAIN POS KETAT (STRICT DOMAIN SEPARATION)
+═══════════════════════════════════════════════════════════════════
+Setiap pos adalah domain perkembangan yang BERBEDA dan MANDIRI. DILARANG KERAS mencampuradukkan aspek pos yang satu ke pos yang lain, meskipun terdapat catatan lapangan yang salah kamar:
+
+1. POS 1 [Kemandirian & Regulasi Emosi]:
+   - FOKUS HANYA: Kemandirian mengelola barang pribadi (tas/sepatu/alat tulis), toilet training, adaptasi di lingkungan baru, regulasi emosi saat berpisah dari orang tua, adab/kesantunan, budaya antre, dan interaksi kooperatif dengan teman.
+   - DILARANG MEMUAT: Aspek fisik/motorik (keseimbangan badan, lari, melompat, kelincahan fisik), atau kemampuan akademik kognitif (berhitung, pola) dan membaca/hafalan surat.
+
+2. POS 2 [Motorik Kasar & Koordinasi]:
+   - FOKUS HANYA: Koordinasi fisik, keseimbangan tubuh (meniti garis/balok), kekuatan otot gerak (power), kelincahan (agility), ketangkasan menangkap bola, stabilitas tubuh, dan kontrol gerak motorik kasar.
+   - DILARANG MEMUAT: Kemampuan membaca, berhitung, hafalan surat, atau pola berulang.
+
+3. POS 3 [Kematangan Kognitif & Numerasi]:
+   - FOKUS HANYA: Penalaran logika, pemecahan masalah (puzzle/balok), pola berulang (patterning), konsep kuantitas & numerasi (penjumlahan/pengurangan/banyak-sedikit), klasifikasi benda, hafalan surat Al-Quran/doa harian, serta daya konsentrasi saat menyelesaikan tugas berpikir.
+   - DILARANG MEMUAT: Tes fisik/motorik (keseimbangan badan, jatuh, kelincahan gerak fisik, power otot tungkai). JIKA ADA CATATAN FISIK DI POS 3, ABAIKAN karena itu catatan motorik yang salah tempat.
+
+4. POS 4 [Bahasa Lisan & Pra-Literasi]:
+   - FOKUS HANYA: Tingkat membaca (L1-L4), pengenalan simbol huruf/suku kata/kalimat pendek, pemahaman instruksi lisan, kelancaran komunikasi dua arah, dan menceritakan kembali kejadian.
+   - DILARANG MEMUAT: Aspek fisik motorik atau hafalan surat.
+
+═══════════════════════════════════════════════════════════════════
 PEDOMAN & GUARDRAILS WAJIB (JANGAN DIABAIKAN):
 ═══════════════════════════════════════════════════════════════════
 1. GUARDRAIL KEJELASAN DIAGNOSTIK (ANTI-TOXIC POSITIVITY):
@@ -212,11 +328,11 @@ PEDOMAN & GUARDRAILS WAJIB (JANGAN DIABAIKAN):
    - Contoh SALAH (DILARANG): "Ananda sangat cerdas dan menguasai semua permainan berhitung dengan gembira." (Ini menipu realitas).
 
 2. GUARDRAIL ANTI-OMISI FAKTA LAPANGAN (ANTI-OMISSION RULE):
-   - Jika guru observer mencatat kesulitan nyata, fakta tersebut WAJIB tercermin dalam narasi dan stimulasi:
-     * Jika guru mencatat "keseimbangan kurang / goyah" -> WAJIB sebutkan bahwa kendali keseimbangan tubuh ananda masih perlu terus dilatih.
-     * Jika guru mencatat "mudah terdistraksi / tidak fokus" -> WAJIB sebutkan bahwa daya konsentrasi ananda masih mudah teralihkan oleh lingkungan dan perlu dibiasakan memusatkan fokus.
-     * Jika guru mencatat "sulit mengurutkan angka / pola berulang" -> WAJIB sebutkan ananda masih perlu bimbingan konkret dalam memahami urutan pola dan angka.
-     * Jika guru mencatat "belum bisa baca / hanya kenal sedikit huruf" -> WAJIB sebutkan ananda masih dalam tahap awal simbol dan perlu latihan mengenal bentuk huruf.
+   - Jika guru observer mencatat kesulitan nyata PADA DOMAIN TERSEBUT, fakta tersebut WAJIB tercermin dalam narasi:
+     * Pada Pos 2: jika dicatat "keseimbangan kurang / goyah / sering jatuh / power kurang" -> WAJIB sebutkan kendali keseimbangan tubuh ananda masih perlu terus dilatih.
+     * Pada Pos 3: jika dicatat "sulit mengurutkan angka / pola berulang / ragu penjumlahan" -> WAJIB sebutkan ananda masih perlu bimbingan konkret dalam memahami urutan pola dan angka.
+     * Pada Pos 4: jika dicatat "belum bisa baca / hanya kenal sedikit huruf" -> WAJIB sebutkan ananda masih dalam tahap awal simbol dan perlu latihan mengenal bentuk huruf.
+     * Pada Pos 1/3: jika dicatat "mudah terdistraksi / tidak fokus saat kegiatan" -> WAJIB sebutkan daya konsentrasi ananda masih mudah teralihkan dan perlu dibiasakan memusatkan fokus.
 
 3. GUARDRAIL TINGKAT KEMAMPUAN MEMBACA:
    - Status Membaca Ananda: ${readingDescription}.
@@ -236,21 +352,21 @@ Nama Lengkap: ${input.fullName}
 Nama Panggilan: ${input.nickname || input.fullName}
 Tingkat Membaca Asesmen: ${readingDescription}
 
-Data Pos 1 (Kematangan Emosi & Kemandirian):
+Data Pos 1 (Kemandirian & Regulasi Emosi):
 - Standar Capaian: ${input.templates[1] || "Mampu berpisah dari orang tua dan mulai mandiri."}
-- Catatan Asli Guru: ${input.notes[1] ? sanitizeObserverNote(input.notes[1]!) : "Belum ada catatan khusus."}
+- Catatan Asli Guru: ${cleanedNotes[1] ? sanitizeObserverNote(cleanedNotes[1]!) : "Belum ada catatan khusus."}
 
 Data Pos 2 (Motorik Kasar & Koordinasi Fisik):
 - Standar Capaian: ${input.templates[2] || "Koordinasi fisik dasar berkembang sesuai usia."}
-- Catatan Asli Guru: ${input.notes[2] ? sanitizeObserverNote(input.notes[2]!) : "Belum ada catatan khusus."}
+- Catatan Asli Guru: ${cleanedNotes[2] ? sanitizeObserverNote(cleanedNotes[2]!) : "Belum ada catatan khusus."}
 
 Data Pos 3 (Kematangan Kognitif & Numerasi):
 - Standar Capaian: ${input.templates[3] || "Konsep kuantitas dan logika objek konkret."}
-- Catatan Asli Guru: ${input.notes[3] ? sanitizeObserverNote(input.notes[3]!) : "Belum ada catatan khusus."}
+- Catatan Asli Guru: ${cleanedNotes[3] ? sanitizeObserverNote(cleanedNotes[3]!) : "Belum ada catatan khusus."}
 
 Data Pos 4 (Bahasa Lisan & Pra-Literasi):
 - Standar Capaian: ${input.templates[4] || "Kesiapan menyimak cerita dan komunikasi gagasan."}
-- Catatan Asli Guru: ${input.notes[4] ? sanitizeObserverNote(input.notes[4]!) : "Belum ada catatan khusus."}
+- Catatan Asli Guru: ${cleanedNotes[4] ? sanitizeObserverNote(cleanedNotes[4]!) : "Belum ada catatan khusus."}
 
 Instruksi Output:
 Kembalikan format JSON murni tanpa markdown wrapper (\`\`\`json):
