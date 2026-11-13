@@ -466,36 +466,6 @@ export default function EvaluatorStudentListPage() {
     return completionStats;
   }, [selectedGroup, currentTaskInfo, groupStats, completionStats]);
 
-  const handleReset = () => {
-    setStepOverride(null);
-    setSearchQuery("");
-    setFilterTab("all");
-    const autoTarget =
-      posNumber === 1
-        ? (currentSubrole === "so1" ? SO1_STEPS[autoStep] : SO2_STEPS[autoStep])?.targetGroup
-        : posNumber === 2
-        ? POS2_STEPS[autoStep]?.targetGroup
-        : posNumber === 3
-        ? POS3_STEPS[autoStep]?.targetGroup
-        : POS4_STEPS[autoStep]?.targetGroup;
-    if (autoTarget) setSelectedGroup(autoTarget);
-    else setSelectedGroup("all");
-  };
-
-  const handleSimulate = () => {
-    const nextStep = (currentStep % 3) + 1;
-    setStepOverride(nextStep);
-    const stepTarget =
-      posNumber === 1
-        ? (currentSubrole === "so1" ? SO1_STEPS[nextStep] : SO2_STEPS[nextStep])?.targetGroup
-        : posNumber === 2
-        ? POS2_STEPS[nextStep]?.targetGroup
-        : posNumber === 3
-        ? POS3_STEPS[nextStep]?.targetGroup
-        : POS4_STEPS[nextStep]?.targetGroup;
-    if (stepTarget) setSelectedGroup(stepTarget);
-  };
-
   /** Calculate accurate age string */
   const calculateAge = (birthDateStr: string): string => {
     if (!birthDateStr) return "-";
@@ -552,26 +522,6 @@ export default function EvaluatorStudentListPage() {
               <i className="mdi mdi-chevron-left text-base" />
               <span>Ganti Pos</span>
             </Link>
-
-            <button
-              type="button"
-              onClick={handleReset}
-              className="bg-white border border-[#E8E2D8] text-[#22352B] px-3 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96] cursor-pointer"
-              title="Reset filter dan step ke alur otomatis"
-            >
-              <i className="mdi mdi-restore text-base text-[#787F7A]" />
-              <span>Reset</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSimulate}
-              className="bg-white border border-[#E8E2D8] text-[#22352B] px-3 py-1.5 rounded-full text-xs font-bold hover:bg-[#FAF8F5] transition flex items-center gap-1.5 shadow-2xs active:scale-[0.96] cursor-pointer"
-              title="Simulasi perputaran rotasi step"
-            >
-              <i className="mdi mdi-flask-outline text-base text-[#9B3F18]" />
-              <span>Simulasi</span>
-            </button>
           </div>
 
           <div className="flex items-center gap-2">
