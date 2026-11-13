@@ -116,20 +116,28 @@ export default function BatchManagerPage() {
 
   const handleStatusChange = async (batch: Batch, newStatus: string) => {
     const confirmMsg: Record<string, string> = {
-      active: `Aktifkan gelombang "${batch.batch_name}"? Evaluator akan bisa mulai input data observasi.`,
-      locked: `Kunci gelombang "${batch.batch_name}"? Evaluator tidak bisa mengubah data lagi.`,
+      active:
+        batch.status === "locked"
+          ? `Buka kunci gelombang "${batch.batch_name}"? Evaluator akan dapat kembali mengedit dan menginput data observasi.`
+          : `Aktifkan gelombang "${batch.batch_name}"? Evaluator akan bisa mulai input data observasi.`,
+      locked: `Kunci gelombang "${batch.batch_name}"? Evaluator tidak bisa mengubah data lagi. (Catatan: Anda tetap dapat membuka kuncinya kembali sewaktu-waktu).`,
     };
     if (!confirm(confirmMsg[newStatus] || "Lanjutkan?")) return;
 
     try {
-      await fetch(`/api/batches/${batch.id}`, {
+      const res = await fetch(`/api/batches/${batch.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || "Gagal mengubah status gelombang");
+        return;
+      }
       loadBatches();
     } catch {
-      /* handle error */
+      alert("Gagal mengubah status gelombang. Periksa koneksi.");
     }
   };
 
@@ -267,7 +275,8 @@ export default function BatchManagerPage() {
                   {batch.status === "draft" && (
                     <button
                       onClick={() => handleStatusChange(batch, "active")}
-                      className="h-8 sm:h-9 bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#D4E2D8] active:scale-[0.96] transition-all cursor-pointer"
+                      className="h-8 sm:h-9 bg-[#E4EFE9] text-[#486B5A] border border-[#CBE0D4] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1.5 hover:bg-[#D4E2D8] active:scale-[0.96] transition-all cursor-pointer"
+                      title="Aktifkan gelombang agar evaluator dapat mulai observasi"
                     >
                       <i className="mdi mdi-play text-base" />
                       <span>Aktifkan</span>
@@ -276,17 +285,22 @@ export default function BatchManagerPage() {
                   {batch.status === "active" && (
                     <button
                       onClick={() => handleStatusChange(batch, "locked")}
-                      className="h-8 sm:h-9 bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1 hover:bg-[#EFECE4] active:scale-[0.96] transition-all cursor-pointer"
+                      className="h-8 sm:h-9 bg-[#FAF8F5] text-[#565C58] border border-[#E8E2D8] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1.5 hover:bg-[#F2ECE4] hover:text-[#8C3713] hover:border-[#E1D7C8] active:scale-[0.96] transition-all cursor-pointer"
+                      title="Kunci gelombang setelah observasi selesai (dapat dibuka kembali sewaktu-waktu)"
                     >
                       <i className="mdi mdi-lock-outline text-base" />
-                      <span>Kunci</span>
+                      <span>Kunci Gelombang</span>
                     </button>
                   )}
                   {batch.status === "locked" && (
-                    <span className="h-8 sm:h-9 text-xs text-[#787F7A] inline-flex items-center gap-1 px-3 bg-[#FAF8F5] border border-[#E8E2D8] rounded-xl font-semibold">
-                      <i className="mdi mdi-lock text-sm" />
-                      <span>Terkunci</span>
-                    </span>
+                    <button
+                      onClick={() => handleStatusChange(batch, "active")}
+                      className="h-8 sm:h-9 bg-[#FFF4E5] text-[#9A3412] border border-[#FED7AA] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1.5 hover:bg-[#FEEBC8] hover:border-[#FDBA74] active:scale-[0.96] transition-all cursor-pointer"
+                      title="Buka kunci gelombang jika tidak sengaja terkunci atau perlu revisi data observasi"
+                    >
+                      <i className="mdi mdi-lock-open-variant-outline text-base" />
+                      <span>Buka Kunci</span>
+                    </button>
                   )}
                   <button
                     onClick={() => openEdit(batch)}

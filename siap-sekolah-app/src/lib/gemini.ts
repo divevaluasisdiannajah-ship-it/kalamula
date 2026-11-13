@@ -272,11 +272,12 @@ Kembalikan format JSON murni tanpa markdown wrapper (\`\`\`json):
     generationConfig: {
       responseMimeType: "application/json",
       temperature: 0.1,
+      maxOutputTokens: 600,
     },
   };
 
-  // Try gemini-flash-lite-latest, then gemini-flash-latest
-  const candidateModels = ["gemini-flash-lite-latest", "gemini-3.8-flash", "gemini-flash-latest"];
+  // Try fastest lightweight models first
+  const candidateModels = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash"];
 
   for (const model of candidateModels) {
     try {

@@ -66,8 +66,8 @@ export async function PATCH(
     if (status) {
       const validTransitions: Record<string, string[]> = {
         draft: ['active'],
-        active: ['locked'],
-        locked: [],
+        active: ['locked', 'draft'],
+        locked: ['active'],
       };
       if (!validTransitions[existing.status]?.includes(status)) {
         return NextResponse.json(

@@ -325,13 +325,13 @@ export default function StudentReportPage() {
           <button
             onClick={handleSummarizeWithAI}
             disabled={isSummarizing}
-            className="bg-[#2E5442] hover:bg-[#234133] disabled:opacity-50 text-white px-4 py-2 text-xs font-bold rounded-full shadow-sm flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+            className="bg-[#2E5442] hover:bg-[#234133] disabled:opacity-60 text-white px-4 py-2 text-xs font-bold rounded-full shadow-sm flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
             title="Rangkum catatan asli guru dan gabungkan dengan template capaian menggunakan Gemini AI"
           >
             {isSummarizing ? (
               <>
                 <i className="mdi mdi-loading mdi-spin text-sm" />
-                <span>Merangkum AI...</span>
+                <span>Merangkum AI... (±3 dtk)</span>
               </>
             ) : (
               <>
@@ -568,16 +568,21 @@ export default function StudentReportPage() {
               </h3>
             </div>
             <div className="flex items-center gap-2">
-              {data?.source === "ai" && (
+              {isSummarizing ? (
+                <span className="text-[10px] bg-[#FAF0E8] text-[#9C4322] font-bold px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1 print:hidden">
+                  <i className="mdi mdi-loading mdi-spin text-xs" />
+                  <span>AI Sedang Menganalisis...</span>
+                </span>
+              ) : data?.source === "ai" ? (
                 <span className="text-[10px] bg-[#E4EFE9] text-[#2E5442] font-semibold px-2 py-0.5 rounded-full print:hidden">
                   ✨ Rangkuman AI Aktif
                 </span>
-              )}
+              ) : null}
               <span className="text-xs font-bold text-[#787F7A]">4 Catatan</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-3 print:gap-2">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-3 print:gap-2 transition-opacity duration-300 ${isSummarizing ? "opacity-50 animate-pulse" : ""}`}>
             {posNarrativeList.slice(0, 4).map((item) => (
               <div
                 key={item.num}
