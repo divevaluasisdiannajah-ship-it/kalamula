@@ -289,6 +289,16 @@ export default function BatchReportPDFPage() {
 
           <button
             type="button"
+            onClick={() => router.push(`/reports/batch/${batchId}/students`)}
+            className="px-3.5 py-2 rounded-xl bg-[#2E5442] hover:bg-[#234133] text-white text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            title="Cetak seluruh rapor individual siswa dalam 1 file PDF sekaligus"
+          >
+            <i className="mdi mdi-book-multiple text-base" />
+            <span>Rapor Siswa (1 PDF)</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handlePrint}
             className="px-4 py-2 rounded-xl bg-[#1E2E24] hover:bg-[#152219] text-white text-xs font-bold shadow-sm flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             style={{ backgroundColor: "#1E2E24", color: "#FFFFFF" }}

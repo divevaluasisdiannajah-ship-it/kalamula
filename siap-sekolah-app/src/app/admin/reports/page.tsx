@@ -127,16 +127,28 @@ export default function AdminReportsPage() {
           </div>
 
           {selectedBatchId && (
-            <Link
-              href={`/reports/batch/${selectedBatchId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-11 bg-[#B85627] hover:bg-[#A34B21] text-white px-5 text-xs rounded-2xl font-bold shadow-sm flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:scale-[0.98] w-full sm:w-auto flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2"
-              title="Buka Lembar Rekapitulasi Gelombang Siap Cetak"
-            >
-              <i className="mdi mdi-printer text-base" />
-              <span>Cetak Rekap Gelombang</span>
-            </Link>
+            <>
+              <Link
+                href={`/reports/batch/${selectedBatchId}/students`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-11 bg-[#2E5442] hover:bg-[#234133] text-white px-5 text-xs rounded-2xl font-bold shadow-sm flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:scale-[0.98] w-full sm:w-auto flex-shrink-0"
+                title="Cetak seluruh rapor individual siswa dalam 1 file PDF sekaligus"
+              >
+                <i className="mdi mdi-book-multiple text-base" />
+                <span>Cetak Rapor Siswa (1 PDF)</span>
+              </Link>
+              <Link
+                href={`/reports/batch/${selectedBatchId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-11 bg-[#B85627] hover:bg-[#A34B21] text-white px-5 text-xs rounded-2xl font-bold shadow-sm flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:scale-[0.98] w-full sm:w-auto flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[#486B5A] focus-visible:ring-offset-2"
+                title="Buka Lembar Rekapitulasi Gelombang Siap Cetak"
+              >
+                <i className="mdi mdi-printer text-base" />
+                <span>Cetak Rekap Gelombang</span>
+              </Link>
+            </>
           )}
         </div>
 

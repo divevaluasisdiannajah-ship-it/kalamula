@@ -272,6 +272,14 @@ export default function BatchManagerPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end border-t sm:border-t-0 pt-2.5 sm:pt-0 flex-shrink-0">
+                  <Link
+                    href={`/reports/batch/${batch.id}/students`}
+                    className="h-8 sm:h-9 bg-[#E4EFE9] text-[#2E5442] border border-[#CBE0D4] font-bold px-3 text-xs rounded-xl shadow-2xs flex items-center gap-1.5 hover:bg-[#D4E2D8] active:scale-[0.96] transition-all"
+                    title="Cetak seluruh rapor individual siswa gelombang ini dalam 1 berkas PDF"
+                  >
+                    <i className="mdi mdi-book-multiple text-sm" />
+                    <span>Rapor (1 PDF)</span>
+                  </Link>
                   {batch.status === "draft" && (
                     <button
                       onClick={() => handleStatusChange(batch, "active")}

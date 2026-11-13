@@ -3,6 +3,7 @@ export const runtime = 'edge';
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { RadarChart } from "@/components/reports/RadarChart";
 import type { StudentProfile, ReadingLevel } from "@/types";
 
@@ -312,7 +313,7 @@ export default function StudentReportPage() {
       `}</style>
 
       {/* ─── Top Floating Action Bar (Hidden on Print) ─── */}
-      <div className="max-w-[820px] mx-auto mb-4 flex items-center justify-between gap-3 print-hidden-nav">
+      <div className="max-w-[820px] mx-auto mb-4 flex flex-wrap items-center justify-between gap-3 print-hidden-nav">
         <button
           onClick={() => router.back()}
           className="bg-white hover:bg-[#FAF8F5] text-[#22352B] px-4 py-2 text-xs font-bold rounded-full shadow-2xs border border-[#E8E2D8] transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -321,7 +322,18 @@ export default function StudentReportPage() {
           <span>Kembali</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {profile.student.batch_id && (
+            <Link
+              href={`/reports/batch/${profile.batch?.id || profile.student.batch_id}/students`}
+              className="bg-white hover:bg-[#FAF8F5] text-[#22352B] px-4 py-2 text-xs font-bold rounded-full shadow-2xs border border-[#E8E2D8] transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Cetak seluruh rapor peserta 1 gelombang sekaligus dalam 1 berkas PDF"
+            >
+              <i className="mdi mdi-book-multiple-outline text-base text-[#486B5A]" />
+              <span>Cetak 1 Gelombang (1 PDF)</span>
+            </Link>
+          )}
+
           <button
             onClick={handleSummarizeWithAI}
             disabled={isSummarizing}
