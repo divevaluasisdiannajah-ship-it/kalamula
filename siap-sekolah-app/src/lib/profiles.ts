@@ -34,27 +34,33 @@ import type {
 
 export const INDICATOR_FOUNDATION_MAP: Record<string, FoundationNumber> = {
   // ─── 4 Domain Fungsional Baru ───
-  // Pos Kemandirian, Regulasi Emosi & Kepatuhan Instruksi (Super Observer)
+  // Pos 1: Karakter & Dinamika Sosial (Super Observer)
   "SO-01": 3, // Berpisah dari orang tua (Kematangan Emosi)
   "SO-02": 5, // Kemandirian menaruh barang (Self-Care & Motorik)
   "SO-03": 2, // Kepatuhan instruksi saat transisi (Sosial & Bahasa)
   "SO-04": 1, // Kesantunan & budaya antre (Nilai Agama & Budi Pekerti)
   "SO-05": 3, // Regulasi diri & adaptasi kesulitan (Kematangan Emosi)
-  "SO-06": 2, // Bermain kooperatif & berbagi (Keterampilan Sosial)
+  "SO-06": 5, // Motorik halus & kontrol alat tulis (Self-Care & Motorik)
   "SO-07": 6, // Antusiasme & refleksi belajar (Pemaknaan Belajar Positif)
+  "SO-08": 2, // Bermain kooperatif & berbagi (Keterampilan Sosial)
 
-  // Pos Motorik Kasar & Koordinasi Fisik
-  "MK-01": 5, // Keseimbangan & kontrol tubuh
-  "MK-02": 5, // Koordinasi mata-tangan & respons gerak
+  // Pos 2: Motorik Kasar & Koordinasi Fisik
+  "MK-01": 5, // Endurance - Daya Tahan (Motorik)
+  "MK-02": 5, // Agility - Kelincahan (Motorik)
+  "MK-03": 5, // Power - Daya Ledak Tungkai (Motorik)
+  "MK-04": 5, // Balancing Dinamis (Motorik)
+  "MK-05": 5, // Balancing Statis (Motorik)
 
-  // Pos Kematangan Kognitif & Berhitung
-  "KG-01": 4, // Klasifikasi objek & pola berulang
-  "KG-02": 4, // Konsep kuantitas & problem solving
+  // Pos 3: Kematangan Kognitif & Berhitung
+  "KG-01": 4, // Klasifikasi dan sortir benda (Kognitif)
+  "KG-02": 4, // Persepsi pola berulang (Kognitif)
+  "KG-03": 4, // Number sense & subitasi (Kognitif)
+  "KG-04": 1, // Pemetaan Hafalan Al-Qur'an (Nilai Agama & Budi Pekerti)
 
-  // Pos Bahasa Lisan, Pra-Literasi & Motorik Halus
-  "BL-01": 2, // Menyimak cerita lisan read-aloud
-  "BL-02": 2, // Komunikasi gagasan lisan
-  "BL-03": 5, // Kontrol motorik halus & tripod grasp
+  // Pos 4: Bahasa Lisan, Pra-Literasi & Literasi Al-Qur'an
+  "BL-01": 2, // Menyimak & menceritakan kembali (Sosial & Bahasa)
+  "BL-02": 2, // Pra-literasi & reading level (Bahasa)
+  "BL-03": 1, // Pemetaan Literasi Al-Qur'an dengan Iqra (Nilai Agama & Budi Pekerti)
 
   // ─── Legacy Backward Compatibility (1.1 - 5.3) ───
   "1.1": 3,
