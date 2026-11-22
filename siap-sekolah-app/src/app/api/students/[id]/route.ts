@@ -51,10 +51,77 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updates = { ...body, updated_at: new Date().toISOString() };
+
+    // Validasi field nama jika diedit
+    if (body.full_name !== undefined && !body.full_name.trim()) {
+      return NextResponse.json(
+        { success: false, error: 'Nama lengkap tidak boleh kosong' },
+        { status: 400 }
+      );
+    }
+    if (body.nickname !== undefined && !body.nickname.trim()) {
+      return NextResponse.json(
+        { success: false, error: 'Nama panggilan tidak boleh kosong' },
+        { status: 400 }
+      );
+    }
+
+    // Jika no pendaftaran diubah, pastikan tidak bentrok dengan siswa lain
+    if (
+      body.registration_no &&
+      body.registration_no.trim() !== existing.registration_no
+    ) {
+      const regDuplicate = await db
+        .select()
+        .from(studentsTable)
+        .where(eq(studentsTable.registration_no, body.registration_no.trim()))
+        .get();
+
+      if (regDuplicate && regDuplicate.id !== id) {
+        return NextResponse.json(
+          { success: false, error: 'No. Pendaftaran sudah digunakan oleh siswa lain' },
+          { status: 409 }
+        );
+      }
+    }
+
+    const allowedKeys: (keyof Student)[] = [
+      'full_name',
+      'nickname',
+      'registration_no',
+      'birth_date',
+      'gender',
+      'parent_name',
+      'phone',
+      'batch_id',
+      'observation_group',
+      'is_active',
+    ];
+
+    const updates: Partial<Student> = {};
+    for (const key of allowedKeys) {
+      if (key in body) {
+        const val = body[key];
+        if (typeof val === 'string') {
+          (updates as Record<string, unknown>)[key] = val.trim() || null;
+        } else {
+          (updates as Record<string, unknown>)[key] = val;
+        }
+      }
+    }
+
+    // Ensure non-nullable strings aren't null
+    if (updates.full_name === null) updates.full_name = existing.full_name;
+    if (updates.nickname === null) updates.nickname = existing.nickname;
+    if (updates.registration_no === null) updates.registration_no = existing.registration_no;
+    if (updates.birth_date === null) updates.birth_date = existing.birth_date;
+
+    updates.updated_at = new Date().toISOString();
+
     await db.update(studentsTable).set(updates).where(eq(studentsTable.id, id));
     return NextResponse.json({ success: true, data: { ...existing, ...updates } });
-  } catch {
+  } catch (err) {
+    console.error('Error updating student:', err);
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }

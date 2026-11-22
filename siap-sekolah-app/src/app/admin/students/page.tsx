@@ -38,6 +38,22 @@ export default function StudentsPage() {
     observation_group: "",
   });
   const [addSubmitting, setAddSubmitting] = useState(false);
+
+  // Edit student modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [editForm, setEditForm] = useState({
+    registration_no: "",
+    full_name: "",
+    nickname: "",
+    birth_date: "",
+    gender: "L" as "L" | "P",
+    parent_name: "",
+    phone: "",
+    batch_id: "",
+    observation_group: "",
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
   const [deletingDummy, setDeletingDummy] = useState(false);
 
   const hasDummyData = batches.some(
@@ -107,11 +123,15 @@ export default function StudentsPage() {
           setImportResults(null);
         }
         if (showAddModal) setShowAddModal(false);
+        if (showEditModal) {
+          setShowEditModal(false);
+          setEditingStudent(null);
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showImport, showAddModal]);
+  }, [showImport, showAddModal, showEditModal]);
 
   const filtered = students.filter((s) => {
     if (!searchQuery.trim()) return true;
@@ -224,6 +244,70 @@ export default function StudentsPage() {
       alert("Gagal menambah siswa");
     } finally {
       setAddSubmitting(false);
+    }
+  };
+
+  // ─── Edit Student ─────────────────────────────────────────
+  const handleOpenEdit = (student: Student) => {
+    setEditingStudent(student);
+    setEditForm({
+      registration_no: student.registration_no || "",
+      full_name: student.full_name || "",
+      nickname: student.nickname || "",
+      birth_date: student.birth_date || "",
+      gender: (student.gender as "L" | "P") || "L",
+      parent_name: student.parent_name || "",
+      phone: student.phone || "",
+      batch_id: student.batch_id || "",
+      observation_group: student.observation_group || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateStudent = async () => {
+    if (!editingStudent) return;
+    if (!editForm.full_name.trim()) {
+      alert("Nama lengkap calon siswa tidak boleh kosong.");
+      return;
+    }
+    if (!editForm.nickname.trim()) {
+      alert("Nama panggilan tidak boleh kosong.");
+      return;
+    }
+    if (!editForm.birth_date) {
+      alert("Tanggal lahir wajib diisi.");
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      const res = await fetch(`/api/students/${editingStudent.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...editForm,
+          full_name: editForm.full_name.trim(),
+          nickname: editForm.nickname.trim(),
+          registration_no: editForm.registration_no.trim(),
+          parent_name: editForm.parent_name.trim() || null,
+          phone: editForm.phone.trim() || null,
+          observation_group: editForm.observation_group ? editForm.observation_group.trim() : null,
+          batch_id: editForm.batch_id || null,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setShowEditModal(false);
+        setEditingStudent(null);
+        await loadData();
+      } else {
+        alert(data.error || "Gagal memperbarui data siswa");
+      }
+    } catch {
+      alert("Gagal memperbarui data siswa. Periksa koneksi.");
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -471,6 +555,13 @@ export default function StudentsPage() {
                 </div>
 
                 <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleOpenEdit(s)}
+                    className="p-1.5 rounded-xl bg-[#FAF0E8] text-[#B85627] hover:bg-[#F5E2D5] transition cursor-pointer active:scale-[0.96]"
+                    title="Edit Nama & Data Siswa"
+                  >
+                    <i className="mdi mdi-pencil-outline text-base" />
+                  </button>
                   <Link
                     href={`/reports/student/${s.id}`}
                     target="_blank"
@@ -568,6 +659,13 @@ export default function StudentsPage() {
                     <td className="p-3.5 text-[#565C58]">{s.parent_name || "-"}</td>
                     <td className="p-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleOpenEdit(s)}
+                          className="p-1.5 rounded-lg bg-[#FAF0E8] text-[#B85627] hover:bg-[#F5E2D5] transition cursor-pointer active:scale-[0.96]"
+                          title="Edit Nama & Data Siswa"
+                        >
+                          <i className="mdi mdi-pencil-outline text-sm" />
+                        </button>
                         <Link
                           href={`/reports/student/${s.id}`}
                           target="_blank"
@@ -877,7 +975,7 @@ export default function StudentsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-[#F3EFE6] text-[#22352B] text-xs font-bold hover:bg-[#EAE4D8] transition"
+                  className="flex-1 py-2.5 rounded-xl bg-[#F3EFE6] text-[#22352B] text-xs font-bold hover:bg-[#EAE4D8] transition cursor-pointer"
                 >
                   Batal
                 </button>
@@ -885,9 +983,213 @@ export default function StudentsPage() {
                   type="button"
                   onClick={handleAddStudent}
                   disabled={addSubmitting}
-                  className="flex-1 py-2.5 rounded-xl bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-extrabold shadow-xs transition"
+                  className="flex-1 py-2.5 rounded-xl bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-extrabold shadow-xs transition cursor-pointer disabled:opacity-60"
                 >
                   {addSubmitting ? "Menyimpan..." : "Simpan Siswa"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Student Modal */}
+      {showEditModal && editingStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div
+            className="fixed inset-0 bg-[#22352B]/40 backdrop-blur-sm transition-opacity"
+            onClick={() => {
+              setShowEditModal(false);
+              setEditingStudent(null);
+            }}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-student-modal-title"
+            className="relative w-full max-w-md bg-white rounded-2xl p-5 sm:p-6 border border-[#E8E2D8] shadow-xl z-10 space-y-4 max-h-[90vh] overflow-y-auto font-sans"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D8]">
+              <h2 id="edit-student-modal-title" className="text-base font-extrabold text-[#22352B] flex items-center gap-2">
+                <i className="mdi mdi-account-edit-outline text-xl text-[#B85627]" />
+                <span>Edit Data Calon Siswa</span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingStudent(null);
+                }}
+                className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#22352B] flex items-center justify-center border border-[#DDD7CE] transition cursor-pointer"
+                title="Tutup Modal"
+              >
+                <i className="mdi mdi-close text-lg" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  No Pendaftaran *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.registration_no}
+                  onChange={(e) => setEditForm({ ...editForm, registration_no: e.target.value })}
+                  placeholder="SPMB-2026-001"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-mono focus:outline-none focus:border-[#B85627]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Nama Lengkap *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.full_name}
+                  onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                  placeholder="Nama Lengkap Calon Siswa"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-bold focus:outline-none focus:border-[#B85627]"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Nama Panggilan *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.nickname}
+                  onChange={(e) => setEditForm({ ...editForm, nickname: e.target.value })}
+                  placeholder="Nama Panggilan"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] focus:outline-none focus:border-[#B85627]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Tanggal Lahir *
+                </label>
+                <input
+                  type="date"
+                  value={editForm.birth_date}
+                  onChange={(e) => setEditForm({ ...editForm, birth_date: e.target.value })}
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] focus:outline-none focus:border-[#B85627]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Jenis Kelamin *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["L", "P"] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, gender: g })}
+                      className={`h-10 text-xs font-extrabold rounded-xl transition cursor-pointer ${
+                        editForm.gender === g
+                          ? "bg-[#B85627] text-white shadow-xs"
+                          : "bg-[#FAF8F5] text-[#565C58] border border-[#DDD7CE]"
+                      }`}
+                    >
+                      {g === "L" ? "Laki-laki" : "Perempuan"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Nama Orang Tua / Wali
+                </label>
+                <input
+                  type="text"
+                  value={editForm.parent_name}
+                  onChange={(e) => setEditForm({ ...editForm, parent_name: e.target.value })}
+                  placeholder="Nama Orang Tua"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] focus:outline-none focus:border-[#B85627]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  No WhatsApp / Telepon
+                </label>
+                <input
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  placeholder="08123456789"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-mono focus:outline-none focus:border-[#B85627]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Gelombang
+                </label>
+                <select
+                  value={editForm.batch_id}
+                  onChange={(e) => setEditForm({ ...editForm, batch_id: e.target.value })}
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-bold focus:outline-none focus:border-[#B85627]"
+                >
+                  <option value="">(Tanpa Gelombang)</option>
+                  {batches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.batch_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Kelompok Observasi
+                </label>
+                <select
+                  value={editForm.observation_group}
+                  onChange={(e) => setEditForm({ ...editForm, observation_group: e.target.value })}
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-bold focus:outline-none focus:border-[#B85627]"
+                >
+                  <option value="">(Belum Ditentukan)</option>
+                  <option value="Kelompok 1">Kelompok 1</option>
+                  <option value="Kelompok 2">Kelompok 2</option>
+                  <option value="Kelompok 3">Kelompok 3</option>
+                  <option value="Kelompok 4">Kelompok 4</option>
+                  <option value="Kelompok 5">Kelompok 5</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-[#E8E2D8]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingStudent(null);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-[#F3EFE6] text-[#22352B] text-xs font-bold hover:bg-[#EAE4D8] transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdateStudent}
+                  disabled={editSubmitting}
+                  className="flex-1 py-2.5 rounded-xl bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-extrabold shadow-xs transition cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
+                >
+                  {editSubmitting ? (
+                    <>
+                      <i className="mdi mdi-loading mdi-spin text-sm" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <span>Simpan Perubahan</span>
+                  )}
                 </button>
               </div>
             </div>

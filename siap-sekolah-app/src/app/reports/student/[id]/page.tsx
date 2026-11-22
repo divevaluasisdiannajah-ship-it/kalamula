@@ -26,6 +26,90 @@ export default function StudentReportPage() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState(false);
 
+  // Edit student modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    registration_no: "",
+    full_name: "",
+    nickname: "",
+    birth_date: "",
+    gender: "L" as "L" | "P",
+    parent_name: "",
+    phone: "",
+    observation_group: "",
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
+  const handleOpenEdit = () => {
+    if (!data?.profile?.student) return;
+    const s = data.profile.student;
+    setEditForm({
+      registration_no: s.registration_no || "",
+      full_name: s.full_name || "",
+      nickname: s.nickname || "",
+      birth_date: s.birth_date || "",
+      gender: (s.gender as "L" | "P") || "L",
+      parent_name: s.parent_name || "",
+      phone: s.phone || "",
+      observation_group: s.observation_group || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateStudent = async () => {
+    if (!data?.profile?.student) return;
+    if (!editForm.full_name.trim()) {
+      alert("Nama lengkap tidak boleh kosong.");
+      return;
+    }
+    if (!editForm.nickname.trim()) {
+      alert("Nama panggilan tidak boleh kosong.");
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      const res = await fetch(`/api/students/${studentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...editForm,
+          full_name: editForm.full_name.trim(),
+          nickname: editForm.nickname.trim(),
+          registration_no: editForm.registration_no.trim(),
+          parent_name: editForm.parent_name.trim() || null,
+          phone: editForm.phone.trim() || null,
+          observation_group: editForm.observation_group ? editForm.observation_group.trim() : null,
+        }),
+      });
+
+      const resJson = await res.json();
+      if (res.ok && resJson.success) {
+        setShowEditModal(false);
+        // Refresh local data state immediately
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            profile: {
+              ...prev.profile,
+              student: {
+                ...prev.profile.student,
+                ...resJson.data,
+              },
+            },
+          };
+        });
+      } else {
+        alert(resJson.error || "Gagal memperbarui data siswa");
+      }
+    } catch {
+      alert("Gagal memperbarui data siswa. Periksa koneksi.");
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   const loadReport = useCallback(async () => {
     try {
       const [res, schRes] = await Promise.all([
@@ -323,6 +407,15 @@ export default function StudentReportPage() {
         </button>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleOpenEdit}
+            className="bg-white hover:bg-[#FAF8F5] text-[#B85627] px-3.5 py-2 text-xs font-bold rounded-full shadow-2xs border border-[#E8E2D8] transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95"
+            title="Koreksi nama, nama panggilan, atau data identitas siswa"
+          >
+            <i className="mdi mdi-pencil-outline text-base" />
+            <span>Edit Data Siswa</span>
+          </button>
+
           {profile.student.batch_id && (
             <Link
               href={`/reports/batch/${profile.batch?.id || profile.student.batch_id}/students`}
@@ -663,6 +756,184 @@ export default function StudentReportPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Student Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 print-hidden-nav">
+          <div
+            className="fixed inset-0 bg-[#22352B]/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowEditModal(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-edit-student-modal-title"
+            className="relative w-full max-w-md bg-white rounded-2xl p-5 sm:p-6 border border-[#E8E2D8] shadow-xl z-10 space-y-4 max-h-[90vh] overflow-y-auto font-sans text-left"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D8]">
+              <h2 id="report-edit-student-modal-title" className="text-base font-extrabold text-[#22352B] flex items-center gap-2">
+                <i className="mdi mdi-account-edit-outline text-xl text-[#B85627]" />
+                <span>Koreksi Data / Nama Siswa</span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#565C58] hover:text-[#22352B] flex items-center justify-center border border-[#DDD7CE] transition cursor-pointer"
+                title="Tutup Modal"
+              >
+                <i className="mdi mdi-close text-lg" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Nama Lengkap Siswa *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.full_name}
+                  onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                  placeholder="Nama Lengkap"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-bold focus:outline-none focus:border-[#B85627]"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Nama Panggilan *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.nickname}
+                  onChange={(e) => setEditForm({ ...editForm, nickname: e.target.value })}
+                  placeholder="Nama Panggilan"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] focus:outline-none focus:border-[#B85627]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                    No Pendaftaran *
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.registration_no}
+                    onChange={(e) => setEditForm({ ...editForm, registration_no: e.target.value })}
+                    placeholder="SPMB-2026-001"
+                    className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-mono focus:outline-none focus:border-[#B85627]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                    Tanggal Lahir *
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.birth_date}
+                    onChange={(e) => setEditForm({ ...editForm, birth_date: e.target.value })}
+                    className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3 text-xs text-[#22352B] focus:outline-none focus:border-[#B85627]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Jenis Kelamin *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["L", "P"] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, gender: g })}
+                      className={`h-10 text-xs font-extrabold rounded-xl transition cursor-pointer ${
+                        editForm.gender === g
+                          ? "bg-[#B85627] text-white shadow-xs"
+                          : "bg-[#FAF8F5] text-[#565C58] border border-[#DDD7CE]"
+                      }`}
+                    >
+                      {g === "L" ? "Laki-laki" : "Perempuan"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Nama Orang Tua / Wali
+                </label>
+                <input
+                  type="text"
+                  value={editForm.parent_name}
+                  onChange={(e) => setEditForm({ ...editForm, parent_name: e.target.value })}
+                  placeholder="Nama Orang Tua"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] focus:outline-none focus:border-[#B85627]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  No WhatsApp / Telepon
+                </label>
+                <input
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  placeholder="08123456789"
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-mono focus:outline-none focus:border-[#B85627]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-[#787F7A] uppercase tracking-wider block mb-1">
+                  Kelompok Observasi
+                </label>
+                <select
+                  value={editForm.observation_group}
+                  onChange={(e) => setEditForm({ ...editForm, observation_group: e.target.value })}
+                  className="w-full h-10 rounded-2xl bg-[#FAF8F5] border border-[#DDD7CE] px-3.5 text-xs text-[#22352B] font-bold focus:outline-none focus:border-[#B85627]"
+                >
+                  <option value="">(Belum Ditentukan)</option>
+                  <option value="Kelompok 1">Kelompok 1</option>
+                  <option value="Kelompok 2">Kelompok 2</option>
+                  <option value="Kelompok 3">Kelompok 3</option>
+                  <option value="Kelompok 4">Kelompok 4</option>
+                  <option value="Kelompok 5">Kelompok 5</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-[#E8E2D8]">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-[#F3EFE6] text-[#22352B] text-xs font-bold hover:bg-[#EAE4D8] transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdateStudent}
+                  disabled={editSubmitting}
+                  className="flex-1 py-2.5 rounded-xl bg-[#B85627] hover:bg-[#A34A1F] text-white text-xs font-extrabold shadow-xs transition cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
+                >
+                  {editSubmitting ? (
+                    <>
+                      <i className="mdi mdi-loading mdi-spin text-sm" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <span>Simpan Perubahan</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
